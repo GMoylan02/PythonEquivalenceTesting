@@ -1,1 +1,1 @@
-"# PythonEquivalenceTesting" 
+# PythonEquivalenceTesting
