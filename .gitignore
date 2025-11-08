@@ -1,2 +1,5 @@
 .idea/
 .hypothesis/
+slow\-unit*
+crash\-*
+__pycache__/
