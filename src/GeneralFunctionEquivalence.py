@@ -1,8 +1,9 @@
 import inspect
 import string
 from numbers import Number
-from typing import Any, Callable, Tuple, Iterable
+from typing import Any, Callable, Tuple, Iterable, get_origin, get_args
 from hypothesis import given, strategies as st
+from TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort
 
 """
 This file implements a very basic general equivalence check across
@@ -21,6 +22,18 @@ def strategy(param):
         return st.booleans()
     if param is str:
         return st.text(string.ascii_letters)
+
+    origin = get_origin(param)
+    args = get_args(param)
+    if origin is list and len(args) == 1:
+        return st.lists(strategy(args[0]), max_size=10)
+    if origin is tuple and len(args) > 0:
+        return st.tuples(*(strategy(a) for a in args))
+    if origin is dict and len(args) == 2:
+        key_s, val_s = strategy(args[0]), strategy(args[1])
+        return st.dictionaries(key_s, val_s, max_size=10)
+    if origin is set and len(args) == 1:
+        return st.sets(strategy(args[0]), max_size=10)
     return st.none()
 
 
@@ -39,8 +52,7 @@ def generate_equivalence_test(f1, f2):
     """Simple equivalence test generator
         Assumes equal arity and parameters across f1 and f2
         Ignore side effects"""
-    # Can easily add a check to ensure equal/equivalent arguments
-    # across f1 and f2
+    # Should add check that strategy across f1 and f2 is equivalent or comparable in some way
     strategy = build_args(f1)
 
     @given(strategy)
@@ -63,33 +75,21 @@ def generate_equivalence_test(f1, f2):
             assert return1 == return2
         else:
             assert ex1 == ex2
-
     return test
 
-def add_A(a: int, b:int):
-    return a + b
-
-def add_B(a: int, b: int):
-    if b < 3:
-        return a + b + 1
-    return a + b
-
-def add_C(a: float, b: int):
-    return a + b
-
-def add_D(a: str, b: int):
-    return a + str(b)
 
 # Fails as both functions are not equivalent
-test = generate_equivalence_test(add_A, add_B)
+#test = generate_equivalence_test(add_A, add_B)
 
 """For this example, the test arguments are generated based on add_C which takes 
 a float. This test still passes though since floats can be passed into add_A just
 fine. Type annotations aren't enforced in any way by python."""
-test2 = generate_equivalence_test(add_C, add_A)
+#test2 = generate_equivalence_test(add_C, add_A)
 
-# With the current implementation, this causes hypofuzz to crash
+# With the current implementation, this causes hypofuzz to crash as add_D takes a string
 #test3 = generate_equivalence_test(add_D, add_A)
+
+testSort = generate_equivalence_test(quickSort, mergeSort)
 
 
 
