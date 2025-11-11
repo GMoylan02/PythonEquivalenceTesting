@@ -3,7 +3,7 @@ import string
 from numbers import Number
 from typing import Any, Callable, Tuple, Iterable, get_origin, get_args
 from hypothesis import given, strategies as st
-from TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort
+from TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort, dedupe_correct, dedupe_buggy
 
 """
 This file implements a very basic general equivalence check across
@@ -25,8 +25,11 @@ def strategy(param):
 
     origin = get_origin(param)
     args = get_args(param)
-    if origin is list and len(args) == 1:
-        return st.lists(strategy(args[0]), max_size=10)
+    if origin is list:
+        if len(args) == 1:
+            return st.lists(strategy(args[0]), max_size=10)
+        else:
+            return st.lists(st.one_of(*(strategy(a) for a in args)), max_size=10)
     if origin is tuple and len(args) > 0:
         return st.tuples(*(strategy(a) for a in args))
     if origin is dict and len(args) == 2:
@@ -34,6 +37,11 @@ def strategy(param):
         return st.dictionaries(key_s, val_s, max_size=10)
     if origin is set and len(args) == 1:
         return st.sets(strategy(args[0]), max_size=10)
+    if origin is set:
+        if len(args) == 1:
+            return st.sets(strategy(args[0]), max_size=10)
+        else:
+            return st.sets(st.one_of(*(strategy(a) for a in args)), max_size=10)
     return st.none()
 
 
@@ -89,7 +97,9 @@ fine. Type annotations aren't enforced in any way by python."""
 # With the current implementation, this causes hypofuzz to crash as add_D takes a string
 #test3 = generate_equivalence_test(add_D, add_A)
 
-testSort = generate_equivalence_test(quickSort, mergeSort)
+#testSort = generate_equivalence_test(quickSort, mergeSort)
+
+testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
 
 
 

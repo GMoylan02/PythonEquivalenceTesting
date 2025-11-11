@@ -8,11 +8,12 @@ def partition(arr, low, high):
     arr[i + 1], arr[high] = arr[high], arr[i + 1]
     return i + 1
 
-def qs(arr: list[int], low: int, high: int):
+def qs(arr: list[int], low: int, high: int) -> list[int]:
     if low < high:
         p = partition(arr, low, high)
         qs(arr, low, p - 1)
         qs(arr, p + 1, high)
+    return arr
 
 def quickSort(arr: list[int]):
     """Wrapper for testing purposes"""
@@ -53,12 +54,13 @@ def merge(arr, l, m, r):
         j += 1
         k += 1
 
-def ms(arr: list[int], l: int, r: int):
+def ms(arr: list[int], l: int, r: int) -> list[int]:
     if l < r:
         m = l + (r - l) // 2
         ms(arr, l, m)
         ms(arr, m + 1, r)
         merge(arr, l, m, r)
+    return arr
 
 def mergeSort(arr: list[int]):
     return ms(arr, 0, len(arr) - 1)
@@ -76,3 +78,21 @@ def add_C(a: float, b: int):
 
 def add_D(a: str, b: int):
     return a + str(b)
+
+def dedupe_correct(xs: list[int|None]):
+    if not xs:
+        return []
+    result = [xs[0]]
+    for x in xs[1:]:
+        if x != result[-1]:
+            result.append(x)
+    return result
+
+def dedupe_buggy(xs: list[int|None]):
+    result = []
+    last = None
+    for x in xs:
+        if x != last:
+            result.append(x)
+        last = x
+    return result
