@@ -17,7 +17,7 @@ def qs(arr: list[int], low: int, high: int) -> list[int]:
 
 def quickSort(arr: list[int]):
     """Wrapper for testing purposes"""
-    return qs(arr, 0, len(arr) - 1)
+    return qs(arr, 0, len(arr) - 1)[::-1]
 
 
 
@@ -79,7 +79,7 @@ def add_C(a: float, b: int):
 def add_D(a: str, b: int):
     return a + str(b)
 
-def dedupe_correct(xs: list[int|None]):
+def dedupe_correct(xs):
     if not xs:
         return []
     result = [xs[0]]
@@ -96,3 +96,9 @@ def dedupe_buggy(xs: list[int|None]):
             result.append(x)
         last = x
     return result
+
+def f1(x):
+    return int(x) + 1
+
+def f2(x):
+    return round(float(x)) + 1

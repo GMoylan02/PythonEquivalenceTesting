@@ -3,3 +3,4 @@
 slow\-unit*
 crash\-*
 __pycache__/
+\venv

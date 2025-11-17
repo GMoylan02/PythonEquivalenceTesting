@@ -4,6 +4,10 @@ from numbers import Number
 from typing import Any, Callable, Tuple, Iterable, get_origin, get_args
 from hypothesis import given, strategies as st
 from TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort, dedupe_correct, dedupe_buggy
+import ast
+import astroid
+from TypeInference import infer_argument_types
+from src.TypeInference import infer_argument_types
 
 """
 This file implements a very basic general equivalence check across
@@ -61,7 +65,9 @@ def generate_equivalence_test(f1, f2):
         Assumes equal arity and parameters across f1 and f2
         Ignore side effects"""
     # Should add check that strategy across f1 and f2 is equivalent or comparable in some way
-    strategy = build_args(f1)
+    #strategy = build_args(f1)
+    #strategy = infer_strategy(f1)
+    print(f"strategy = {strategy}")
 
     @given(strategy)
     def test(args):
@@ -86,6 +92,7 @@ def generate_equivalence_test(f1, f2):
     return test
 
 
+
 # Fails as both functions are not equivalent
 #test = generate_equivalence_test(add_A, add_B)
 
@@ -99,7 +106,13 @@ fine. Type annotations aren't enforced in any way by python."""
 
 #testSort = generate_equivalence_test(quickSort, mergeSort)
 
-testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
+#testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
+#infer_strategy(quickSort)
+
+infer_argument_types(mergeSort)
+
+
+
 
 
 

@@ -1,0 +1,10 @@
+goal:
+
+given two implementations of a function
+ascertain how many arguments each takes
+ascertain which types are meaningful to that argument, perhaps only support annotated functions
+fuzz inputs to the functions such that the fuzz framework is able to meaningfully find erroneous inputs (hard)
+
+questions: 
+in the context of equivalence verification, how are two functions with different numbers of arguments treated?
+what about differing type annotations?

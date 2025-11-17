@@ -8,6 +8,7 @@
 import sys
 import atheris
 import traceback
+from TestFunctions import mergeSort, quickSort
 
 # ----------------------------
 # Replace these two with your functions under test.
@@ -29,7 +30,7 @@ def func_b(*args, **kwargs):
     for x in args:
         try:
             total += int(x)
-            if int(x) == 14:
+            if int(x) == -14:
                 total += 1
         except Exception:
             pass
@@ -87,7 +88,7 @@ class Universal:
         if self._role == "string":
             return int(self._value)  # may raise ValueError
         # Lock as number and return integer
-        ok = self._ensure_locked("number", lambda: int(self.fdp.ConsumeIntInRange(-1000000, 1000000)))
+        ok = self._ensure_locked("number", lambda: int(self.fdp.ConsumeIntInRange(-1000, 1000)))
         if ok:
             return int(self._value)
         # if role differs, but maybe role == "iterable" etc -> try to behave like int(...) of that base
@@ -303,7 +304,7 @@ def TestOneInput(data: bytes):
     n_kw = fdp.ConsumeIntInRange(0, 3)
 
     # Build positional Universals
-    pos_args = [int(Universal(fdp)) for _ in range(n_pos)]
+    pos_args = [Universal(fdp) for _ in range(n_pos)]
 
     # Build kwargs with deterministic names (take fuzzed strings but sanitize)
     kwargs = {}
@@ -329,7 +330,9 @@ def TestOneInput(data: bytes):
     # Helper to call a function and capture outcome (value or exception)
     def call_and_capture(func):
         try:
-            out = func(*pos_args, **kwargs)
+            #out = func(*pos_args, **kwargs)
+            args, kw = build_args_for(func, fdp)
+            out = func(*args, **kw)
             return ("return", observe(out))
         except BaseException as e:
             # capture exception type and message and stack for diagnostics
@@ -337,8 +340,8 @@ def TestOneInput(data: bytes):
             return ("exception", {"type": type(e).__name__, "msg": str(e), "trace": tb})
 
     # Call both functions
-    a_out = call_and_capture(func_a)
-    b_out = call_and_capture(func_b)
+    a_out = call_and_capture(mergeSort)
+    b_out = call_and_capture(quickSort)
 
     # Compare observations
     if a_out != b_out:
@@ -352,6 +355,38 @@ def TestOneInput(data: bytes):
             f"kwargs repr: {{ {', '.join(f'{k}: {repr(v)}' for k, v in kwargs.items())} }}\n"
         )
         raise AssertionError(msg)
+
+
+import inspect
+
+def build_args_for(func, fdp):
+    sig = inspect.signature(func)
+    bound = sig.bind_partial()   # empty container
+
+    for name, param in sig.parameters.items():
+        if param.kind in (inspect.Parameter.VAR_POSITIONAL,
+                          inspect.Parameter.VAR_KEYWORD):
+            # Leave *args and **kwargs alone — fuzz them separately
+            continue
+        # For normal parameters, insert a Universal
+        bound.arguments[name] = Universal(fdp)
+
+    # Now produce final *args/**kwargs suitable for calling
+    args = []
+    kwargs = {}
+
+    for name, param in sig.parameters.items():
+        if param.kind == inspect.Parameter.POSITIONAL_ONLY:
+            args.append(bound.arguments[name])
+
+        elif param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            # stick to positional for simplicity
+            args.append(bound.arguments[name])
+
+        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+            kwargs[name] = bound.arguments[name]
+
+    return args, kwargs
 
 # ----------------------------
 # Main: set up atheris
