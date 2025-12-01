@@ -5,6 +5,11 @@ import operator
 import hashlib
 from functools import lru_cache
 
+"""
+GPT generated Universal object made to use Hypofuzz. 
+Doesn't seem to work.
+"""
+
 # helper: deterministic RNG from (seed, key)
 def _rng_for(seed: int, key: str) -> random.Random:
     # produce a deterministic 64-bit seed from (seed, key)

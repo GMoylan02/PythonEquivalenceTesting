@@ -6,6 +6,10 @@ import hashlib
 from functools import lru_cache
 from hypothesis import given, strategies as st
 
+"""
+Unfinished attempt at an implementation of the Universal object
+"""
+
 # helper: deterministic RNG from (seed, key)
 def _rng_for(seed: int, key: str) -> random.Random:
     # produce a deterministic 64-bit seed from (seed, key)
@@ -87,19 +91,3 @@ class Universal:
         if self._role in ("iter", "str"):
             return iter(self._value)
         raise TypeError(f"Universal locked as {self._role} cannot be cast to iter")
-
-    def apply(self, text):
-        if text == "int":
-            return self.__int__
-        if text == "float":
-            return self.__float__
-        if text == "str":
-            return self.__str__
-        if text == "bool":
-            return self.__bool__
-
-
-
-
-
-

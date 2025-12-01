@@ -50,24 +50,61 @@ def strategy(param):
 
 
 def build_args(func: Callable):
-    #import pdb;pdb.set_trace()
     signature = inspect.signature(func)
-    strats = []
+    # {funcName: parameterType}
+    strats = {}
     for name, param in signature.parameters.items():
         if param.annotation is not inspect._empty:
-            strats.append(strategy(param.annotation))
+            strats[name] = strategy(param.annotation)
+            #strats.append(strategy(param.annotation))
         else:
-            strats.append(st.none())
-    return st.tuples(*strats)
+            strats[name] = None
+            #strats.append(st.none())
+    return strats
 
-def generate_equivalence_test(f1, f2):
+def generate_equivalence_test(f1, f2, filename):
     """Simple equivalence test generator
         Assumes equal arity and parameters across f1 and f2
         Ignore side effects"""
     # Should add check that strategy across f1 and f2 is equivalent or comparable in some way
-    #strategy = build_args(f1)
+    strategy = build_args(f1)
+    python_code = ""
+    with open(filename, "r", encoding="utf-8") as f:
+        python_code = f.read()
+    argument_types = infer_argument_types(python_code, f1.__name__)
+    print(argument_types)
+
+    for argument in argument_types.keys():
+        print(argument)
+        print(argument_types[argument])
+        try:
+            match argument_types[argument]:
+                case "int":
+                    strategy[argument] = st.integers(-1000, 1000)
+                case "float":
+                    strategy[argument] = st.floats(allow_nan=False, allow_infinity=False)
+                case "bool":
+                    strategy[argument] = st.booleans()
+                case "str":
+                    strategy[argument] = st.text(string.ascii_letters)
+                case "list":
+                    print('got here')
+                    strategy[argument] = st.lists()
+                case "tuple":
+                    strategy[argument] = st.tuples()
+                case "dict":
+                    strategy[argument] = st.dictionaries()
+                case "set":
+                    strategy[argument] = st.sets()
+            #strategy[argument] = argument_types[argument]
+        except KeyError as e:
+            print(f"Expected argument {argument} not found in function {f1.__name__}")
+    #print(strategy)
+
     #strategy = infer_strategy(f1)
     print(f"strategy = {strategy}")
+    # TODO finish
+
 
     @given(strategy)
     def test(args):
@@ -109,7 +146,7 @@ fine. Type annotations aren't enforced in any way by python."""
 #testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
 #infer_strategy(quickSort)
 
-infer_argument_types(mergeSort)
+test = generate_equivalence_test(dedupe_correct, dedupe_buggy, "TestFunctions.py")
 
 
 
