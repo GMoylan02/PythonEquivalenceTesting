@@ -17,6 +17,8 @@ def get_universal_strategy():
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
+    # can be thought of as the following recursive definition
+    # strat = int|str|float|bool|None|list[strat]|dict[str,strat]|tuple[strat]
     return st.recursive(
         primitives,
         lambda children: st.one_of(
