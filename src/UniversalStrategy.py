@@ -49,6 +49,7 @@ def build_args_strategy(func):
                 arg_strategies.append(st.from_type(param.annotation))
             except Exception:
                 # fallback if the type hint is too complex or not supported
+                # todo add message saying that callables are not supported
                 arg_strategies.append(get_universal_strategy())
         else:
             # use universal strat if no type hint
@@ -74,6 +75,9 @@ def make_equivalence_test(func_a, func_b):
                      f"  {func_b.__name__} output: {out_b}\n"
                      f"  for inputs {args}")
 
+        # the "events" here are taken into account by the fuzzer, the fuzzer will optimise towards rare events
+        # this prevents the fuzzer from getting stuck constantly passing in nonsense arguments that result in both
+        # functions throwing the same exceptions and seems to lead the fuzzer towards inequivalences
         if status_a == "ok" and status_b == "ok":
             event("both succeeded")
             assert out_a == out_b, error_msg
