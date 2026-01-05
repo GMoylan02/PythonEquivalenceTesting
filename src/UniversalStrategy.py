@@ -1,5 +1,6 @@
 import inspect
-from hypothesis import given, strategies as st, settings, Phase, assume
+from hypothesis import given, strategies as st, settings, Phase, assume, event
+
 from TestFunctions import *
 
 """
@@ -60,34 +61,28 @@ def make_equivalence_test(func_a, func_b):
     @given(args_strategy)
     @settings(max_examples=1000)
     def test_equivalence(args):
-        try:
-            res_a = func_a(*args)
-        except TypeError:
-            # tell hypothesis to avoid this type in future iterations
-            # This should help to cut down on unnecessary iterations, but has the side effect of making it so
-            # hypothesis will not be able to catch situations where func_b handles a certain argument type, but func_a
-            # cannot handle this type. this is probably fine though, at least for now
-            assume(False)
-        except Exception as e_a:
-            # If A crashes with a non-TypeError, B must crash with the same type
+
+        def run(fn, args):
             try:
-                func_b(*args)
-            except Exception as e_b:
-                assert type(e_a) == type(e_b)
-                return
-            raise e_a
+                return ("ok", fn(*args))
+            except Exception as e:
+                return ("err", e)
+        status_a, out_a = run(func_a, args)
+        status_b, out_b = run(func_b, args)
+        error_msg = (f"Mismatch: \n"
+                     f"  {func_a.__name__} output: {out_a}\n"
+                     f"  {func_b.__name__} output: {out_b}\n"
+                     f"  for inputs {args}")
 
-        try:
-            res_b = func_b(*args)
-        except TypeError:
-            # If A succeeded but B failed with TypeError
-            # this implies A handled a type B couldn't
-            # This might need to be reconsidered in future
-            raise AssertionError(f"{func_a.__name__} accepted {args} but {func_b.__name__} raised TypeError")
-        except Exception as e_b:
-             raise AssertionError(f"{func_a.__name__} returned {res_a} but {func_b.__name__} crashed with {e_b}")
-
-        assert res_a == res_b, f"Mismatch: {res_a} != {res_b} for inputs {args}"
+        if status_a == "ok" and status_b == "ok":
+            event("both succeeded")
+            assert out_a == out_b, error_msg
+        elif status_a == "err" and status_b == "err":
+            event("both raised exception")
+            assert type(out_a) == type(out_b), error_msg
+        else:
+            event("domain mismatch")
+            raise AssertionError(error_msg)
 
     return test_equivalence
 
