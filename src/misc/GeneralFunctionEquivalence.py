@@ -1,13 +1,9 @@
 import inspect
 import string
-from numbers import Number
-from typing import Any, Callable, Tuple, Iterable, get_origin, get_args
+from typing import Callable, get_origin, get_args
 from hypothesis import given, strategies as st
-from TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort, dedupe_correct, dedupe_buggy
-import ast
-import astroid
-from TypeInference import infer_argument_types
-from src.TypeInference import infer_argument_types
+from src.TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort, dedupe_correct, dedupe_buggy
+from src.misc.TypeInference import infer_argument_types
 
 """
 This file implements a very basic general equivalence check across
@@ -146,7 +142,7 @@ fine. Type annotations aren't enforced in any way by python."""
 #testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
 #infer_strategy(quickSort)
 
-test = generate_equivalence_test(dedupe_correct, dedupe_buggy, "TestFunctions.py")
+test = generate_equivalence_test(dedupe_correct, dedupe_buggy, "../TestFunctions.py")
 
 
 

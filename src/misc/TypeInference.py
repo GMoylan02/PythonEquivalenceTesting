@@ -47,7 +47,7 @@ def infer_argument_types(code: str, function_name: str):
     return param_types
 
 
-with open("TestFunctions.py", "r", encoding="utf-8") as f:
+with open("../TestFunctions.py", "r", encoding="utf-8") as f:
     python_string = f.read()
 x = infer_argument_types(python_string, "mergeSort")
 print(x)

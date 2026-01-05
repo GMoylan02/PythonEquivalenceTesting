@@ -8,7 +8,7 @@
 import sys
 import atheris
 import traceback
-from TestFunctions import *
+from src.TestFunctions import *
 
 # ----------------------------
 # Replace these two with your functions under test.

@@ -90,7 +90,6 @@ def make_equivalence_test(func_a, func_b):
 
     return test_equivalence
 
-
 test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
 
 if __name__ == "__main__":

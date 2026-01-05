@@ -1,7 +1,7 @@
 # test_equiv.py
 from hypothesis import given, strategies as st
 from GPTUniversal import Universal
-from TestFunctions import *
+from src.TestFunctions import *
 
 """For use with GPTUniversal"""
 
