@@ -1,0 +1,2 @@
+class ClassMethodMismatch(Exception):
+    pass

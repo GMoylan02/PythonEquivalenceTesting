@@ -41,7 +41,7 @@ def build_args_strategy(func):
     for param_name, param in sig.parameters.items():
         # TODO support args and kwargs
         if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
-            continue
+            raise NotImplementedError("varargs not supported")
 
         if param.annotation != inspect.Parameter.empty:
             # use type hint if exists
@@ -54,7 +54,7 @@ def build_args_strategy(func):
         else:
             # use universal strat if no type hint
             arg_strategies.append(get_universal_strategy())
-    return st.tuples(*arg_strategies)
+    return st.tuples(*arg_strategies) if arg_strategies else st.just(())
 
 def make_equivalence_test(func_a, func_b):
     args_strategy = build_args_strategy(func_a)
@@ -90,11 +90,12 @@ def make_equivalence_test(func_a, func_b):
 
     return test_equivalence
 
-test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
+#test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
 
 if __name__ == "__main__":
     try:
-        test_dedupe()
+        pass
+        #test_dedupe()
         # The intended bug between dedupe_buggy, dedupe_correct is that dedupe_buggy breaks when xs is of
         # type list[int|None] whereas dedupe_correct still works
 

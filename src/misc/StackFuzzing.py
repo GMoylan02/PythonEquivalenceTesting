@@ -33,21 +33,21 @@ class Stack2:
     """Linked list implementation"""
     def __init__(self):
         self.head = None
-        self.size = 0
+        self._size = 0
 
     def push(self, value):
         new_node = Node(value)
         if self.head:
             new_node.next = self.head
         self.head = new_node
-        self.size += 1
+        self._size += 1
 
     def pop(self):
         if self.isEmpty():
             return None
         popped_node = self.head
         self.head = self.head.next
-        self.size -= 1
+        self._size -= 1
         return popped_node.value
 
     def peek(self):
@@ -56,10 +56,10 @@ class Stack2:
         return self.head.value
 
     def isEmpty(self):
-        return self.size == 0
+        return self._size == 0
 
     def size(self):
-        return self.size
+        return self._size
 
 operation_strategy = st.one_of(
     st.tuples(st.just("push"), st.integers(min_value=-10, max_value=10)),
