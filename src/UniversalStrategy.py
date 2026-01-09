@@ -1,5 +1,7 @@
 import inspect
+
 from hypothesis import given, strategies as st, settings, Phase, assume, event
+from typing import Callable, get_origin, get_args
 
 from TestFunctions import *
 
@@ -36,25 +38,65 @@ def build_args_strategy(func):
     a tuple of arguments matching the function's signature.
     """
     sig = inspect.signature(func)
-    arg_strategies = []
+    positional_strategies = []
+    has_varargs = False
+    has_kwargs = False
+    varargs_strategy = None
+    kwargs_strategy = None
 
     for param_name, param in sig.parameters.items():
-        # TODO support args and kwargs
-        if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
-            raise NotImplementedError("varargs not supported")
+        if param.kind == param.VAR_POSITIONAL:
+            has_varargs = True
+            elem_strategy = (
+                st.from_type(param.annotation)
+                if param.annotation is not inspect.Parameter.empty
+                else get_universal_strategy()
+            )
+            varargs_strategy = st.tuples(elem_strategy)
+            continue
+        if param.kind == param.VAR_KEYWORD:
+            has_kwargs = True
+            value_strategy = (
+                st.from_type(param.annotation)
+                if param.annotation is not inspect.Parameter.empty
+                else get_universal_strategy()
+            )
+            kwargs_strategy = st.dictionaries(
+                keys=st.text(min_size=1),
+                values=value_strategy,
+            )
+            continue
 
         if param.annotation != inspect.Parameter.empty:
-            # use type hint if exists
+            if param.annotation == Callable:
+                raise NotImplementedError(
+                    f"Callable annotation not supported for parameter '{param_name}'"
+                )
             try:
-                arg_strategies.append(st.from_type(param.annotation))
+                # use type hint if exists
+                positional_strategies.append(st.from_type(param.annotation))
             except Exception:
-                # fallback if the type hint is too complex or not supported
-                # todo add message saying that callables are not supported
-                arg_strategies.append(get_universal_strategy())
+                # fallback if the type hint is too complex or not supported (maybe change this to exception)
+                positional_strategies.append(get_universal_strategy())
         else:
             # use universal strat if no type hint
-            arg_strategies.append(get_universal_strategy())
-    return st.tuples(*arg_strategies) if arg_strategies else st.just(())
+            positional_strategies.append(get_universal_strategy())
+    args_strategy = st.tuples(*positional_strategies)
+    if has_varargs:
+        varargs_strategy = varargs_strategy or st.just(())
+        args_strategy = st.builds(
+            lambda a, v: a + v,
+            args_strategy,
+            varargs_strategy,
+        )
+
+        # ---- decide return shape ----
+    if not has_kwargs:
+        # No kwargs at all
+        return args_strategy
+
+    kwargs_strategy = kwargs_strategy or st.just({})
+    return st.tuples(args_strategy, kwargs_strategy)
 
 def make_equivalence_test(func_a, func_b):
     args_strategy = build_args_strategy(func_a)
@@ -65,9 +107,9 @@ def make_equivalence_test(func_a, func_b):
 
         def run(fn, args):
             try:
-                return ("ok", fn(*args))
+                return "ok", fn(*args)
             except Exception as e:
-                return ("err", e)
+                return "err", e
         status_a, out_a = run(func_a, args)
         status_b, out_b = run(func_b, args)
         error_msg = (f"Mismatch: \n"
@@ -90,12 +132,15 @@ def make_equivalence_test(func_a, func_b):
 
     return test_equivalence
 
-#test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
+
+def f(**m: int):
+    pass
 
 if __name__ == "__main__":
     try:
-        pass
-        #test_dedupe()
+        #build_args_strategy(f)
+        test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
+        test_dedupe()
         # The intended bug between dedupe_buggy, dedupe_correct is that dedupe_buggy breaks when xs is of
         # type list[int|None] whereas dedupe_correct still works
 
