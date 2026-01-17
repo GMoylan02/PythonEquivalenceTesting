@@ -1,9 +1,18 @@
 import inspect
 
-from hypothesis import given, strategies as st, settings, Phase, assume, event
+from hypothesis import given, strategies as st, settings, Phase, assume, event, HealthCheck
+from hypothesis.strategies import data as st_data
 from typing import Callable, get_origin, get_args
-
+from programs.equiv.bsearch_eq_1 import make_bsearch_eq_1, make_bsearch_eq_2
 from TestFunctions import *
+from src.programs.inequiv.bsearch_ineq_1 import make_bsearch_ineq_1_1, make_bsearch_ineq_1_2
+from src.programs.inequiv.bsearch_ineq_2 import make_bsearch_ineq_2_1, make_bsearch_ineq_2_2
+from src.programs.inequiv.bsearch_ineq_3 import make_bsearch_ineq_3_1, make_bsearch_ineq_3_2
+from src.programs.inequiv.bsearch_ineq_4 import make_bsearch_ineq_4_1, make_bsearch_ineq_4_2
+from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsearch_ineq_5_2
+
+MAX_CALLABLE_DEPTH = 2
+MAX_CALLABLE_CALLS = 20
 
 """
 Similar to GeneralFunctionEquivalence.py, except instead of performing type inference on function arguments to create
@@ -31,6 +40,7 @@ def get_universal_strategy():
         ),
         max_leaves=10
     )
+
 
 def build_args_strategy(func):
     """
@@ -90,63 +100,104 @@ def build_args_strategy(func):
             varargs_strategy,
         )
 
-        # ---- decide return shape ----
     if not has_kwargs:
-        # No kwargs at all
         return args_strategy
 
     kwargs_strategy = kwargs_strategy or st.just({})
     return st.tuples(args_strategy, kwargs_strategy)
 
+
 def make_equivalence_test(func_a, func_b):
     args_strategy = build_args_strategy(func_a)
 
-    @given(args_strategy)
-    @settings(max_examples=1000)
-    def test_equivalence(args):
-
-        def run(fn, args):
-            try:
-                return "ok", fn(*args)
-            except Exception as e:
-                return "err", e
+    @given(args_strategy, st_data())
+    @settings(max_examples=1000, deadline=None)
+    def test_equivalence(args, data):
         status_a, out_a = run(func_a, args)
         status_b, out_b = run(func_b, args)
-        error_msg = (f"Mismatch: \n"
-                     f"  {func_a.__name__} output: {out_a}\n"
-                     f"  {func_b.__name__} output: {out_b}\n"
-                     f"  for inputs {args}")
-
-        # the "events" here are taken into account by the fuzzer, the fuzzer will optimise towards rare events
-        # this prevents the fuzzer from getting stuck constantly passing in nonsense arguments that result in both
-        # functions throwing the same exceptions and seems to lead the fuzzer towards inequivalences
         if status_a == "ok" and status_b == "ok":
-            event("both succeeded")
-            assert out_a == out_b, error_msg
+            event(f"result:{out_a}, {out_b}")
+            assert_equivalent(out_a, out_b, data=data)
+
         elif status_a == "err" and status_b == "err":
-            event("both raised exception")
-            assert type(out_a) == type(out_b), error_msg
+
+            event(f"top-level both error: {repr(out_a)}, {repr(out_b)}")
+            assert type(out_a) is type(out_b)
+
         else:
-            event("domain mismatch")
-            raise AssertionError(error_msg)
+            event(f"top-level domain mismatch: {out_a}, {out_b}, args={args}")
+            raise AssertionError(
+                f"Mismatch:\n"
+                f"A: {out_a}\n"
+                f"B: {out_b}\n"
+                f"args={args}"
+            )
 
     return test_equivalence
 
 
-def f(**m: int):
-    pass
+def assert_equivalent(
+        out_a,
+        out_b,
+        *,
+        data,
+        depth=0,
+):
+    if not callable(out_a) or not callable(out_b):
+        assert out_a == out_b, f"{out_a!r} != {out_b!r}"
+        return
 
-if __name__ == "__main__":
+    if depth >= MAX_CALLABLE_DEPTH:
+        event("callable depth limit")
+        return
+
+    event(f"callable depth {depth}")
+
+    if inspect.signature(out_a) != inspect.signature(out_b):
+        raise AssertionError("Returned callables have different signatures")
+
+    args_strategy = build_args_strategy(out_a)
+
+    for _ in range(MAX_CALLABLE_CALLS):
+        args = data.draw(args_strategy, label=f"callable_args_d{depth}")
+        status_a, res_a = run(out_a, args)
+        status_b, res_b = run(out_b, args)
+
+        if status_a == "ok" and status_b == "ok":
+            event(f"callable both ok: {res_a}, {res_b}")
+            assert_equivalent(res_a, res_b, data=data, depth=depth + 1)
+
+        elif status_a == "err" and status_b == "err":
+            event(f"callable both error: {repr(res_a)}, {repr(res_b)}")
+            assert type(res_a) is type(res_b)
+
+        else:
+            raise AssertionError(
+                f"Callable mismatch:\n"
+                f"A: {res_a}\n"
+                f"B: {res_b}\n"
+                f"args={args}"
+            )
+
+
+def run(fn, args, kwargs=None):
     try:
-        #build_args_strategy(f)
-        test_dedupe = make_equivalence_test(dedupe_buggy, dedupe_correct)
-        test_dedupe()
-        # The intended bug between dedupe_buggy, dedupe_correct is that dedupe_buggy breaks when xs is of
-        # type list[int|None] whereas dedupe_correct still works
+        if kwargs is None:
+            return "ok", fn(*args)
+        return "ok", fn(*args, **kwargs)
+    except Exception as e:
+        return "err", e
 
-        # This framework instead finds that these dedupe functions differ when xs is a dict {'': 0}
-        # This is technically true, but i didnt write these functions expecting for a dict to be passed in
-        # I still think this is good behaviour though
-    except AssertionError as e:
-        print(f"Found bug\n{e}")
-        
+
+try:
+
+    bsearch_ineq_1 = make_equivalence_test(make_bsearch_ineq_1_1, make_bsearch_ineq_1_2)
+    bsearch_ineq_2 = make_equivalence_test(make_bsearch_ineq_2_1, make_bsearch_ineq_2_2)
+    bsearch_ineq_3 = make_equivalence_test(make_bsearch_ineq_3_1, make_bsearch_ineq_3_2)
+    #bsearch_ineq_4 = make_equivalence_test(make_bsearch_ineq_4_1, make_bsearch_ineq_4_2)   # this works with hypothesis but breaks hypofuzz and i cant figure out why
+    bsearch_ineq_5 = make_equivalence_test(make_bsearch_ineq_5_1, make_bsearch_ineq_5_2)
+
+
+except AssertionError as e:
+    print(f"Found bug\n{e}")
+

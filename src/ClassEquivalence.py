@@ -84,4 +84,3 @@ try:
     test_stacks()
 except AssertionError as e:
     print(f"Found bug\n{e}")
-
