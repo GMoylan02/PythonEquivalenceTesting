@@ -10,6 +10,7 @@ from src.programs.inequiv.bsearch_ineq_2 import make_bsearch_ineq_2_1, make_bsea
 from src.programs.inequiv.bsearch_ineq_3 import make_bsearch_ineq_3_1, make_bsearch_ineq_3_2
 from src.programs.inequiv.bsearch_ineq_4 import make_bsearch_ineq_4_1, make_bsearch_ineq_4_2
 from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsearch_ineq_5_2
+from src.programs.inequiv.call_nested_param_ineq import make_call_lhs, make_call_rhs
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
@@ -79,9 +80,9 @@ def build_args_strategy(func):
 
         if param.annotation != inspect.Parameter.empty:
             if param.annotation == Callable:
-                raise NotImplementedError(
-                    f"Callable annotation not supported for parameter '{param_name}'"
-                )
+                # TODO: NB experiment with hypothesis inbuilt functions strategy
+                positional_strategies.append(callable_strategy(func))
+                continue
             try:
                 # use type hint if exists
                 positional_strategies.append(st.from_type(param.annotation))
@@ -120,7 +121,6 @@ def make_equivalence_test(func_a, func_b):
             assert_equivalent(out_a, out_b, data=data)
 
         elif status_a == "err" and status_b == "err":
-
             event(f"top-level both error: {repr(out_a)}, {repr(out_b)}")
             assert type(out_a) is type(out_b)
 
@@ -159,10 +159,9 @@ def assert_equivalent(
     args_strategy = build_args_strategy(out_a)
 
     for _ in range(MAX_CALLABLE_CALLS):
-        args = data.draw(args_strategy, label=f"callable_args_d{depth}")
-        status_a, res_a = run(out_a, args)
-        status_b, res_b = run(out_b, args)
-
+        arguments = data.draw(args_strategy, label=f"callable_args_d{depth}")
+        status_a, res_a = run(out_a, arguments)
+        status_b, res_b = run(out_b, arguments)
         if status_a == "ok" and status_b == "ok":
             event(f"callable both ok: {res_a}, {res_b}")
             assert_equivalent(res_a, res_b, data=data, depth=depth + 1)
@@ -176,7 +175,7 @@ def assert_equivalent(
                 f"Callable mismatch:\n"
                 f"A: {res_a}\n"
                 f"B: {res_b}\n"
-                f"args={args}"
+                f"args={arguments}"
             )
 
 
@@ -188,14 +187,29 @@ def run(fn, args, kwargs=None):
     except Exception as e:
         return "err", e
 
+# plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
+# or f1, that f2 calls g with f1, f1 calls g with f0 and so on
+# i cant think of how to make this approach work if g takes more than 1 argument tho
+def construct_dummies(g):
+    def f0(): pass
+    def f1(): g(f0)
+    def f2(): g(f1)
+    def f3(): g(f2)
+    return [f0, f1, f2, f3]
+
+def callable_strategy(g):
+    return st.sampled_from(construct_dummies(g))
 
 try:
-
+    """
     bsearch_ineq_1 = make_equivalence_test(make_bsearch_ineq_1_1, make_bsearch_ineq_1_2)
     bsearch_ineq_2 = make_equivalence_test(make_bsearch_ineq_2_1, make_bsearch_ineq_2_2)
     bsearch_ineq_3 = make_equivalence_test(make_bsearch_ineq_3_1, make_bsearch_ineq_3_2)
     #bsearch_ineq_4 = make_equivalence_test(make_bsearch_ineq_4_1, make_bsearch_ineq_4_2)   # this works with hypothesis but breaks hypofuzz and i cant figure out why
     bsearch_ineq_5 = make_equivalence_test(make_bsearch_ineq_5_1, make_bsearch_ineq_5_2)
+    """
+    test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
+    test_nested()
 
 
 except AssertionError as e:

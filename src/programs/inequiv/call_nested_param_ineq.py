@@ -1,9 +1,10 @@
 from ..Ref import Ref
+from typing import Callable
 
 def make_call_lhs():
     x = Ref(0)
 
-    def call(f):
+    def call(f: Callable):
         x.v = x.v + 1
         f()
         x.v = x.v - 1
@@ -14,7 +15,7 @@ def make_call_lhs():
 def make_call_rhs():
     x = Ref(0)
 
-    def call(f):
+    def call(f: Callable):
         x.v = x.v + 1
         f()
         x.v = x.v - 1
