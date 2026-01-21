@@ -84,6 +84,9 @@ def build_args_strategy(func):
         if param.annotation != inspect.Parameter.empty:
             if param.annotation == Callable:
                 # TODO: NB experiment with hypothesis inbuilt functions strategy
+
+                # TODO: also very important that we add some mechanism for detecting callable arguments WITHOUT
+                #   type annotations
                 positional_strategies.append(callable_strategy(func))
                 continue
             try:
@@ -126,7 +129,10 @@ def make_equivalence_test(func_a, func_b):
             # callable are allowed to differ
             event(f"logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
         if status_a == "ok" and status_b == "ok":
-            event(f"result:{out_a}, {out_b}")
+            if callable(out_a) and callable(out_b):
+                event(f"result: {out_a.__name__}, {out_b.__name__}")
+            else:
+                event(f"result: {out_a!r}, {out_b!r}")
             assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
             assert_equivalent(out_a, out_b, data=data)
 
@@ -218,15 +224,26 @@ def run(fn, args, kwargs=None):
 # plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
 # or f1, that f2 calls g with f1, f1 calls g with f0 and so on
 # i cant think of how to make this approach work if g takes more than 1 argument though but its a start
-def construct_dummies(g):
+def construct_dummies(g, limit=10):
     def f0(): pass
-    def f1(): g(f0)
-    def f2(): g(f1)
-    def f3(): g(f2)
-    return [f0, f1, f2, f3]
+    functions = [f0]
+    for i in range(limit-1):
+        prev = functions[-1]
+        def make_f(prev_fn, idx):
+            def fi():
+                g(prev_fn)
+            fi.__name__ = f"f{idx+1}"
+            return fi
+        functions.append(make_f(prev, i))
+    return functions
 
-def callable_strategy(g):
-    return st.sampled_from(construct_dummies(g))
+@st.composite
+def callable_strategy(draw, g, min_limit=1, max_limit=100):
+    # this rarely if ever goes to max_limit=100, i assume because the fuzzer has no incentive to use higher numbers
+    # due to the lack of coverage feedback or any interesting differences
+    limit = draw(st.integers(min_value=min_limit, max_value=max_limit))
+    functions = construct_dummies(g, limit)
+    return draw(st.sampled_from(functions))
 
 try:
     """
@@ -250,7 +267,9 @@ try:
 
 
     test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
+    print(repr(test_nested))
     test_nested()
+
 
 
 except AssertionError as e:

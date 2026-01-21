@@ -15,7 +15,7 @@ def make_call_lhs():
         # similarly, it makes no sense to allow x to be infinitely large but without it being infinitely large we
         # always miss cases like this. at the heart of it, this pipeline can prove inequivalences by showing counter
         # examples, but it cannot prove equivalence
-        return x.v < 100
+        return x.v < 50
 
     return call1
 

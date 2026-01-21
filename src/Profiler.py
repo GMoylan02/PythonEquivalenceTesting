@@ -34,7 +34,7 @@ class Profiler:
 def are_equivalent(log_a, log_b):
     # we want to compare logs without caring about if the top level function names are the same
     # we also don't want to compare outputs here if the outputs are functions
-    if (len(log_a) != len(log_b)) or len(log_a) < 2:
+    if len(log_a) != len(log_b):
         # shouldn't be possible but just in case
         return False, -1
     top_func_name_a = log_a[0]['function']
