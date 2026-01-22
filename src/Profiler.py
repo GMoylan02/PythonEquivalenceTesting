@@ -40,7 +40,7 @@ def are_equivalent(log_a, log_b):
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
     is_top_level = lambda x, y: x == top_func_name_a and y == top_func_name_b
-    function_re = r"<function.{1,100}<locals>.{1,100}at 0x.{1,100}>"
+    function_re = r"<function.{1,100}<locals>.{1,100}at 0x.{1,100}>"    # todo something here is wrong
     is_function = lambda x, y: (re.match(function_re, x) is not None
                                 and re.match(function_re, y) is not None)
 
