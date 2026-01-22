@@ -23,13 +23,14 @@ Similar to GeneralFunctionEquivalence.py, except instead of performing type infe
 a fuzzing strategy, this approach creates a fuzzing strategy by just trying every type it can for function arguments
 """
 
-def get_universal_strategy():
+def get_universal_strategy(func):
     primitives = st.one_of(
         st.integers(),
         st.floats(allow_nan=False, allow_infinity=False),
         st.text(),
         st.booleans(),
         st.none(),
+        callable_strategy(func)
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
@@ -64,7 +65,7 @@ def build_args_strategy(func):
             elem_strategy = (
                 st.from_type(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
-                else get_universal_strategy()
+                else get_universal_strategy(func)
             )
             varargs_strategy = st.tuples(elem_strategy)
             continue
@@ -73,7 +74,7 @@ def build_args_strategy(func):
             value_strategy = (
                 st.from_type(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
-                else get_universal_strategy()
+                else get_universal_strategy(func)
             )
             kwargs_strategy = st.dictionaries(
                 keys=st.text(min_size=1),
@@ -94,10 +95,10 @@ def build_args_strategy(func):
                 positional_strategies.append(st.from_type(param.annotation))
             except Exception:
                 # fallback if the type hint is too complex or not supported (maybe change this to exception)
-                positional_strategies.append(get_universal_strategy())
+                positional_strategies.append(get_universal_strategy(func))
         else:
             # use universal strat if no type hint
-            positional_strategies.append(get_universal_strategy())
+            positional_strategies.append(get_universal_strategy(func))
     args_strategy = st.tuples(*positional_strategies)
     if has_varargs:
         varargs_strategy = varargs_strategy or st.just(())
@@ -265,9 +266,7 @@ try:
         print("fdghdfgfd")
     """
 
-
     test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
-    print(repr(test_nested))
     test_nested()
 
 
