@@ -135,7 +135,7 @@ def make_equivalence_test(func_a, func_b):
                 event(f"result: {out_a.__name__}, {out_b.__name__}")
             else:
                 event(f"result: {out_a!r}, {out_b!r}")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
+            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"#TODO this logic is wrong
             assert_equivalent(out_a, out_b, data=data)
 
         elif status_a == "err" and status_b == "err":
@@ -270,6 +270,7 @@ try:
     #test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
     #test_nested()
     test_ex3_4 = make_equivalence_test(make_v1_rhs, make_v1_lhs)
+    test_ex3_4()
 
 
 

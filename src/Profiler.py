@@ -32,34 +32,28 @@ class Profiler:
         self.call_stack = []
 
 def are_equivalent(log_a, log_b):
-    # we want to compare logs without caring about if the top level function names are the same
-    # we also don't want to compare outputs here if the outputs are functions
-    if len(log_a) != len(log_b):
-        # shouldn't be possible but just in case
-        return False, -1
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
-    is_top_level = lambda x, y: x == top_func_name_a and y == top_func_name_b
-    function_re = r"<function.{1,100}<locals>.{1,100}at 0x.{1,100}>"    # todo something here is wrong
-    is_function = lambda x, y: (re.match(function_re, x) is not None
-                                and re.match(function_re, y) is not None)
-
-    for i in range(len(log_a)):
-        if log_a[i].keys() != log_b[i].keys():
+    function_re = r"<function.{1,100}<locals>.{1,100}at 0x.{1,100}>"
+    is_function = lambda x: re.match(function_re, str(x)) is not None
+    log_a_returns = []
+    log_b_returns = []
+    i = 0
+    while i < max(len(log_a), len(log_b)):
+        # todo this needs to be refactored it is probably wrong
+        # for the nth return from top level in log_a, the nth return from top level in log_b needs to have same value unless func
+        # they also need same number of calls and returns to top level??
+        if i < len(log_a) and log_a[i]['event'] == 'return' and log_a[i]['function'] == top_func_name_a:
+            log_a_returns.append(log_a[i])
+        if i < len(log_b) and log_b[i]['event'] == 'return' and log_b[i]['function'] == top_func_name_b:
+            log_b_returns.append(log_b[i])
+        i += 1
+    if len(log_a_returns) != len(log_b_returns):
+        return False, -1
+    for i in range(len(log_a_returns)):
+        if is_function(log_a_returns[i]['return_value']) != is_function(log_b_returns[i]['return_value']):
             return False, i
-        if log_a[i]['event'] != log_b[i]['event']:
-            return False, i
-        if (log_a[i]['function'] != log_b[i]['function']
-                and not is_top_level(log_a[i]['function'], log_b[i]['function'])):
-            # function names in logs must be the same unless they refer to the top level functions
-            return False, i
-        if ('caller' in log_a[i] and log_a[i]['caller'] != log_b[i]['caller']
-                and not is_top_level(log_a[i]['caller'], log_b[i]['caller'])):
-            # callers must be the same unless the callers are the top level functions
-            return False, i
-        if ("return_value" in log_a[i] and log_a[i]['return_value'] != log_b[i]['return_value']
-                and not is_function(str(log_a[i]['return_value']), str(log_b[i]['return_value']))):
-            # return values must be the same unless return values are themselves functions
+        if log_a_returns[i]['return_value'] != log_b_returns[i]['return_value']:
             return False, i
 
     return True, -1
