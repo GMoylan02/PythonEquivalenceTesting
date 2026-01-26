@@ -13,6 +13,7 @@ from src.programs.inequiv.bsearch_ineq_4 import make_bsearch_ineq_4_1, make_bsea
 from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsearch_ineq_5_2
 from src.programs.inequiv.call_nested_param_ineq import make_call_lhs, make_call_rhs
 from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
+from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
 from Profiler import Profiler
 import sys
 
@@ -269,8 +270,10 @@ try:
 
     #test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
     #test_nested()
-    test_ex3_4 = make_equivalence_test(make_v1_rhs, make_v1_lhs)
-    test_ex3_4()
+    #test_ex3_4 = make_equivalence_test(make_v1_rhs, make_v1_lhs)
+    #test_ex3_4()
+    test_ex3_5 = make_equivalence_test(v2_rhs, v2_lhs)
+    test_ex3_5()
 
 
 
