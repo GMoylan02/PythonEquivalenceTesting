@@ -135,7 +135,7 @@ def make_equivalence_test(func_a, func_b):
                 event(f"result: {out_a.__name__}, {out_b.__name__}")
             else:
                 event(f"result: {out_a!r}, {out_b!r}")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"#TODO this logic is wrong
+            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
             assert_equivalent(out_a, out_b, data=data)
 
         elif status_a == "err" and status_b == "err":
