@@ -1,3 +1,4 @@
+import copy
 import inspect
 from dataclasses import dataclass
 
@@ -7,6 +8,7 @@ from typing import Callable, get_origin, get_args
 from programs.equiv.bsearch_eq_1 import make_bsearch_eq_1, make_bsearch_eq_2
 from TestFunctions import *
 from src.Profiler import are_equivalent
+from src.StateUtils import snapshot_module_state, restore_module_state
 from src.programs.inequiv.bsearch_ineq_1 import make_bsearch_ineq_1_1, make_bsearch_ineq_1_2
 from src.programs.inequiv.bsearch_ineq_2 import make_bsearch_ineq_2_1, make_bsearch_ineq_2_2
 from src.programs.inequiv.bsearch_ineq_3 import make_bsearch_ineq_3_1, make_bsearch_ineq_3_2
@@ -17,7 +19,7 @@ from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
 from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
 from Profiler import Profiler
 import sys
-
+from types import ModuleType
 from src.programs.inequiv.tmp_call_nested import make_call_lhs, make_call_rhs
 
 MAX_CALLABLE_DEPTH = 2
@@ -152,12 +154,22 @@ def build_args_strategy(func):
     return st.tuples(args_strategy, kwargs_strategy)
 
 
-def make_equivalence_test(func_a, func_b):
+def make_equivalence_test(func_a, func_b, reset_state=False):
     input_strategy = build_args_strategy(func_a)
+
+    module_a = sys.modules.get(func_a.__module__)
+    module_b = sys.modules.get(func_b.__module__)
+
+    if reset_state:
+        snap_a = snapshot_module_state(module_a) if module_a else {}
+        snap_b = snapshot_module_state(module_b) if module_b else {}
 
     @given(input_strategy, st_data())
     @settings(max_examples=1000, deadline=None)
     def equivalence_test(inputs, data):
+        if reset_state:
+            if module_a: restore_module_state(module_a, snap_a)
+            if module_b: restore_module_state(module_b, snap_b)
         raw_args, raw_kwargs = inputs
         # todo make this bit of code less duplicated
         args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
@@ -166,8 +178,6 @@ def make_equivalence_test(func_a, func_b):
         status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
         equivalent_logs, index = are_equivalent(log_a, log_b)
         if not equivalent_logs:
-            # This condition has 2 caveats. the top level function name can differ, and any return values that are
-            # callable are allowed to differ
             event(f"logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
         if status_a == "ok" and status_b == "ok":
             if callable(out_a) and callable(out_b):
@@ -285,6 +295,8 @@ def callable_strategy(draw, min_limit=1, max_limit=100):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
 
+
+"""
 try:
 
     test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
@@ -293,3 +305,4 @@ try:
 except AssertionError as e:
     print(f"Found bug\n{e}")
 
+"""
