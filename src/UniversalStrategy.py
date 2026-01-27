@@ -19,8 +19,6 @@ from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
 from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
 from Profiler import Profiler
 import sys
-from types import ModuleType
-from src.programs.inequiv.tmp_call_nested import make_call_lhs, make_call_rhs
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20

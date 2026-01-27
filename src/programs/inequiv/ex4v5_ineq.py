@@ -1,0 +1,24 @@
+from ..Ref import Ref
+
+# refs
+x = Ref(0)
+c = Ref(0)
+
+
+def lhs(f):
+    x.v = 0
+    c.v = c.v + 1
+    f()
+
+    if c.v < 5:
+        x.v = 1
+
+    c.v = 0
+    f()
+    return x.v
+
+
+def rhs(f):
+    f()
+    f()
+    return 1
