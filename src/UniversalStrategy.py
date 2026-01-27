@@ -1,4 +1,5 @@
 import inspect
+from dataclasses import dataclass
 
 from hypothesis import given, strategies as st, settings, Phase, assume, event, HealthCheck
 from hypothesis.strategies import data as st_data
@@ -11,11 +12,13 @@ from src.programs.inequiv.bsearch_ineq_2 import make_bsearch_ineq_2_1, make_bsea
 from src.programs.inequiv.bsearch_ineq_3 import make_bsearch_ineq_3_1, make_bsearch_ineq_3_2
 from src.programs.inequiv.bsearch_ineq_4 import make_bsearch_ineq_4_1, make_bsearch_ineq_4_2
 from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsearch_ineq_5_2
-from src.programs.inequiv.call_nested_param_ineq import make_call_lhs, make_call_rhs
+from src.programs.inequiv import call_nested_param_ineq_B, call_nested_param_ineq_A
 from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
 from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
 from Profiler import Profiler
 import sys
+
+from src.programs.inequiv.tmp_call_nested import make_call_lhs, make_call_rhs
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
@@ -25,6 +28,37 @@ Similar to GeneralFunctionEquivalence.py, except instead of performing type infe
 a fuzzing strategy, this approach creates a fuzzing strategy by just trying every type it can for function arguments
 """
 
+
+@dataclass
+class RecursiveRef:
+    index: int
+
+
+def instantiate_value(val, target_func):
+    """
+    Recursively traverses val. If a RecursiveRef is found, constructs the
+    dummy functions bound to target_func and returns the specific index
+    """
+    if isinstance(val, RecursiveRef):
+        dummies = construct_dummies(target_func, limit=val.index + 1)
+        return dummies[val.index]
+
+    if isinstance(val, list):
+        return [instantiate_value(x, target_func) for x in val]
+    if isinstance(val, tuple):
+        return tuple(instantiate_value(x, target_func) for x in val)
+    if isinstance(val, dict):
+        return {k: instantiate_value(v, target_func) for k, v in val.items()}
+
+    return val
+
+
+def instantiate_args(args, kwargs, target_func):
+    return (
+        instantiate_value(args, target_func),
+        instantiate_value(kwargs, target_func)
+    )
+
 def get_universal_strategy(func):
     primitives = st.one_of(
         st.integers(),
@@ -32,7 +66,7 @@ def get_universal_strategy(func):
         st.text(),
         st.booleans(),
         st.none(),
-        callable_strategy(func)
+        callable_strategy()
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
@@ -69,7 +103,7 @@ def build_args_strategy(func):
                 if param.annotation is not inspect.Parameter.empty
                 else get_universal_strategy(func)
             )
-            varargs_strategy = st.tuples(elem_strategy)
+            varargs_strategy = elem_strategy
             continue
         if param.kind == param.VAR_KEYWORD:
             has_kwargs = True
@@ -79,9 +113,10 @@ def build_args_strategy(func):
                 else get_universal_strategy(func)
             )
             kwargs_strategy = st.dictionaries(
-                keys=st.text(min_size=1),
-                values=value_strategy,
-            )
+                    keys=st.text(min_size=1),
+                    values=value_strategy,
+                )
+
             continue
 
         if param.annotation != inspect.Parameter.empty:
@@ -111,21 +146,24 @@ def build_args_strategy(func):
         )
 
     if not has_kwargs:
-        return args_strategy
+        return st.tuples(args_strategy, st.just({}))
 
     kwargs_strategy = kwargs_strategy or st.just({})
     return st.tuples(args_strategy, kwargs_strategy)
 
 
 def make_equivalence_test(func_a, func_b):
-    args_strategy = build_args_strategy(func_a)
+    input_strategy = build_args_strategy(func_a)
 
-    @given(args_strategy, st_data())
+    @given(input_strategy, st_data())
     @settings(max_examples=1000, deadline=None)
-    def test_equivalence(args, data):
+    def equivalence_test(inputs, data):
+        raw_args, raw_kwargs = inputs
         # todo make this bit of code less duplicated
-        status_a, out_a, log_a = run(func_a, args)
-        status_b, out_b, log_b = run(func_b, args)
+        args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
+        args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
+        status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
+        status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
         equivalent_logs, index = are_equivalent(log_a, log_b)
         if not equivalent_logs:
             # This condition has 2 caveats. the top level function name can differ, and any return values that are
@@ -145,15 +183,15 @@ def make_equivalence_test(func_a, func_b):
             assert type(out_a) is type(out_b)
 
         else:
-            event(f"top-level domain mismatch: {out_a}, {out_b}, args={args}")
+            event(f"top-level domain mismatch: {out_a}, {out_b}, args={raw_args}")
             raise AssertionError(
                 f"Mismatch:\n"
                 f"A: {out_a}\n"
                 f"B: {out_b}\n"
-                f"args={args}"
+                f"args={raw_args}"
             )
 
-    return test_equivalence
+    return equivalence_test
 
 
 def assert_equivalent(
@@ -176,12 +214,14 @@ def assert_equivalent(
     if inspect.signature(out_a) != inspect.signature(out_b):
         raise AssertionError("Returned callables have different signatures")
 
-    args_strategy = build_args_strategy(out_a)
+    input_strategy = build_args_strategy(out_a)
 
     for _ in range(MAX_CALLABLE_CALLS):
-        arguments = data.draw(args_strategy, label=f"callable_args_d{depth}")
-        status_a, res_a, log_a = run(out_a, arguments)
-        status_b, res_b, log_b = run(out_b, arguments)
+        raw_args, raw_kwargs = data.draw(input_strategy, label=f"callable_args_d{depth}")
+        args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, out_a)
+        args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, out_b)
+        status_a, res_a, log_a = run(out_a, args_a, kwargs_a)
+        status_b, res_b, log_b = run(out_b, args_b, kwargs_b)
         equivalent_logs, index = are_equivalent(log_a, log_b)
         if not equivalent_logs:
             event(f"logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
@@ -201,7 +241,7 @@ def assert_equivalent(
                 f"Callable mismatch:\n"
                 f"A: {res_a}\n"
                 f"B: {res_b}\n"
-                f"args={arguments}"
+                f"args={raw_args}"
             )
 
 
@@ -241,41 +281,14 @@ def construct_dummies(g, limit=10):
     return functions
 
 @st.composite
-def callable_strategy(draw, g, min_limit=1, max_limit=100):
-    # this rarely if ever goes to max_limit=100, i assume because the fuzzer has no incentive to use higher numbers
-    # due to the lack of coverage feedback or any interesting differences
-    limit = draw(st.integers(min_value=min_limit, max_value=max_limit))
-    functions = construct_dummies(g, limit)
-    return draw(st.sampled_from(functions))
+def callable_strategy(draw, min_limit=1, max_limit=100):
+    idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
+    return RecursiveRef(index=idx)
 
 try:
-    """
-    bsearch_ineq_1 = make_equivalence_test(make_bsearch_ineq_1_1, make_bsearch_ineq_1_2)
-    bsearch_ineq_2 = make_equivalence_test(make_bsearch_ineq_2_1, make_bsearch_ineq_2_2)
-    bsearch_ineq_3 = make_equivalence_test(make_bsearch_ineq_3_1, make_bsearch_ineq_3_2)
-    # this works with hypothesis but breaks hypofuzz and i cant figure out why
-    #bsearch_ineq_4 = make_equivalence_test(make_bsearch_ineq_4_1, make_bsearch_ineq_4_2)   
-    bsearch_ineq_5 = make_equivalence_test(make_bsearch_ineq_5_1, make_bsearch_ineq_5_2)
-    """
-    """
-    func_a = make_call_lhs()
-    func_b = make_call_rhs()
-    dummies = construct_dummies(func_a)
-    args = dummies[3]
-    _, result, logs = run(func_a, [args])
-    _, result2, logs2 = run(func_b, [args])
-    if logs != logs2:
-        print("fdghdfgfd")
-    """
 
-    #test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
-    #test_nested()
-    #test_ex3_4 = make_equivalence_test(make_v1_rhs, make_v1_lhs)
-    #test_ex3_4()
-    test_ex3_5 = make_equivalence_test(v2_rhs, v2_lhs)
-    test_ex3_5()
-
-
+    test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
+    test_nested()
 
 except AssertionError as e:
     print(f"Found bug\n{e}")
