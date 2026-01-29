@@ -1,7 +1,7 @@
 import inspect
-from hypothesis import given, strategies as st, settings, Phase, assume, event
-from UniversalStrategy import build_args_strategy, get_universal_strategy
-from TestDataStructures import Stack1, Stack2
+from hypothesis import given, strategies as st, settings, event
+from UniversalStrategy import build_args_strategy
+from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
 from EquivTestingExceptions import ClassMethodMismatch
 
 def generate_operation_strategy(obj1, obj2, supported_operations=None):

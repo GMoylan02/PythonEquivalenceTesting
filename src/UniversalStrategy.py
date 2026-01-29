@@ -1,23 +1,12 @@
-import copy
 import inspect
 from dataclasses import dataclass
 
-from hypothesis import given, strategies as st, settings, Phase, assume, event, HealthCheck
+from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from typing import Callable, get_origin, get_args
-from programs.equiv.bsearch_eq_1 import make_bsearch_eq_1, make_bsearch_eq_2
-from TestFunctions import *
+from typing import Callable
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
-from src.programs.inequiv.bsearch_ineq_1 import make_bsearch_ineq_1_1, make_bsearch_ineq_1_2
-from src.programs.inequiv.bsearch_ineq_2 import make_bsearch_ineq_2_1, make_bsearch_ineq_2_2
-from src.programs.inequiv.bsearch_ineq_3 import make_bsearch_ineq_3_1, make_bsearch_ineq_3_2
-from src.programs.inequiv.bsearch_ineq_4 import make_bsearch_ineq_4_1, make_bsearch_ineq_4_2
-from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsearch_ineq_5_2
-from src.programs.inequiv import call_nested_param_ineq_B, call_nested_param_ineq_A
-from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
-from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
-from Profiler import Profiler, datastruct_equivalence, supported_datastructures, return_value_equivalence
+from Profiler import Profiler, return_value_equivalence
 import sys
 
 MAX_CALLABLE_DEPTH = 2

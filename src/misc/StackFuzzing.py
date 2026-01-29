@@ -1,5 +1,5 @@
 from hypothesis import given, strategies as st
-from src.TestDataStructures import Stack1, Stack2
+from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
 
 operation_strategy = st.one_of(
     st.tuples(st.just("push"), st.integers(min_value=-10, max_value=10)),

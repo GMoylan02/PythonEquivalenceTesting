@@ -2,7 +2,7 @@ import inspect
 import string
 from typing import Callable, get_origin, get_args
 from hypothesis import given, strategies as st
-from src.TestFunctions import quickSort, add_A, add_B, add_C, add_D, mergeSort, dedupe_correct, dedupe_buggy
+from src.SampleCodeForEquivTest.TestFunctions import dedupe_correct, dedupe_buggy
 from src.misc.TypeInference import infer_argument_types
 
 """
@@ -142,7 +142,7 @@ fine. Type annotations aren't enforced in any way by python."""
 #testDedupe = generate_equivalence_test(dedupe_correct, dedupe_buggy)
 #infer_strategy(quickSort)
 
-test = generate_equivalence_test(dedupe_correct, dedupe_buggy, "../TestFunctions.py")
+test = generate_equivalence_test(dedupe_correct, dedupe_buggy, "../SampleCodeForEquivTest/TestFunctions.py")
 
 
 

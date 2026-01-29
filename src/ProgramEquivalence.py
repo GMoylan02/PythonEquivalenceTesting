@@ -1,19 +1,9 @@
-from hypothesis import given, strategies as st, settings, Phase, assume, event, HealthCheck
-from hypothesis.strategies import data as st_data
 import inspect
 import UniversalStrategy
 import os
 from types import ModuleType
 from typing import Callable, Dict
-from programs.inequiv import (holik_file_lock_param_e_large_A,
-                              holik_file_lock_param_e_large_B,
-                              ex4v1_ineq_A, ex4v1_ineq_B,
-                              call_nested_param_ineq_A,
-                              call_nested_param_ineq_B)
-import random
-from src.EquivTestingExceptions import ClassMethodMismatch
-from src.programs.Ref import Ref
-import importlib
+from src.SampleCodeForEquivTest import TestFunctions
 import sys
 
 
@@ -46,26 +36,27 @@ def pair_functions(module_a: ModuleType, module_b: ModuleType):
     paired = {name: (funcs_a[name], funcs_b[name]) for name in names_a}
     return paired
 
-def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, *, iterations=10):
+def create_program_equivalence_suite(module_a: ModuleType, module_b: ModuleType, *, iterations=10):
     paired_funcs = pair_functions(module_a, module_b)
-    func_names = list(paired_funcs.keys())
-    test_fns = {}
+    test_suite = {}
+    for name, (fn_a, fn_b) in paired_funcs.items():
 
-    for i in range(iterations):
-        name = random.choice(func_names)
-        fn_a, fn_b = paired_funcs[name]
+        test_fn = UniversalStrategy.make_equivalence_test(
+            fn_a,
+            fn_b,
+            reset_state=True
+        )
+        test_suite[name] = test_fn
 
-        print(f"Testing function equivalence for: {name}")
-        test_fn = UniversalStrategy.make_equivalence_test(fn_a, fn_b, reset_state=True)
-        test_fns[i] = test_fn
+    return test_suite
 
-    return test_fns
+test_suite = create_program_equivalence_suite(TestFunctions, TestFunctions)
 
-test_fns = create_program_equivalence_test(call_nested_param_ineq_A, call_nested_param_ineq_B, iterations=1)
-for j in test_fns.keys():
-    print(f"running iteration {j}")
-    try:
-        test_fn = test_fns[j]
-        test_fn()
-    except:
-        print(f"failed iteration {j}")
+current_module = sys.modules[__name__]
+
+for func_name, test_func in test_suite.items():
+    test_name = f"test_equivalence_{func_name}"
+
+    test_func.__name__ = test_name
+
+    setattr(current_module, test_name, test_func)
