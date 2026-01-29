@@ -17,7 +17,7 @@ from src.programs.inequiv.bsearch_ineq_5 import make_bsearch_ineq_5_1, make_bsea
 from src.programs.inequiv import call_nested_param_ineq_B, call_nested_param_ineq_A
 from src.programs.inequiv.ex3_4_e_ineq import make_v1_lhs, make_v1_rhs
 from src.programs.inequiv.ex3_5_e_ineq import v2_lhs, v2_rhs
-from Profiler import Profiler
+from Profiler import Profiler, datastruct_equivalence, supported_datastructures, return_value_equivalence
 import sys
 
 MAX_CALLABLE_DEPTH = 2
@@ -59,7 +59,7 @@ def instantiate_args(args, kwargs, target_func):
         instantiate_value(kwargs, target_func)
     )
 
-def get_universal_strategy(func):
+def get_universal_strategy():
     primitives = st.one_of(
         st.integers(),
         st.floats(allow_nan=False, allow_infinity=False),
@@ -101,7 +101,7 @@ def build_args_strategy(func):
             elem_strategy = (
                 st.from_type(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
-                else get_universal_strategy(func)
+                else get_universal_strategy()
             )
             varargs_strategy = elem_strategy
             continue
@@ -110,7 +110,7 @@ def build_args_strategy(func):
             value_strategy = (
                 st.from_type(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
-                else get_universal_strategy(func)
+                else get_universal_strategy()
             )
             kwargs_strategy = st.dictionaries(
                     keys=st.text(min_size=1),
@@ -132,10 +132,10 @@ def build_args_strategy(func):
                 positional_strategies.append(st.from_type(param.annotation))
             except Exception:
                 # fallback if the type hint is too complex or not supported (maybe change this to exception)
-                positional_strategies.append(get_universal_strategy(func))
+                positional_strategies.append(get_universal_strategy())
         else:
             # use universal strat if no type hint
-            positional_strategies.append(get_universal_strategy(func))
+            positional_strategies.append(get_universal_strategy())
     args_strategy = st.tuples(*positional_strategies)
     if has_varargs:
         varargs_strategy = varargs_strategy or st.just(())
@@ -176,22 +176,22 @@ def make_equivalence_test(func_a, func_b, reset_state=False):
         status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
         equivalent_logs, index = are_equivalent(log_a, log_b)
         if not equivalent_logs:
-            event(f"logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
+            event(f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
         if status_a == "ok" and status_b == "ok":
             if callable(out_a) and callable(out_b):
-                event(f"result: {out_a.__name__}, {out_b.__name__}")
+                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
             else:
-                event(f"result: {out_a!r}, {out_b!r}")
+                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
             assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
             assert_equivalent(out_a, out_b, data=data)
 
         elif status_a == "err" and status_b == "err":
-            event(f"top-level both error: {out_a!r}, {out_b!r}")
+            event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
             assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
             assert type(out_a) is type(out_b)
 
         else:
-            event(f"top-level domain mismatch: {out_a}, {out_b}, args={raw_args}")
+            event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={raw_args}")
             raise AssertionError(
                 f"Mismatch:\n"
                 f"A: {out_a}\n"
@@ -210,7 +210,8 @@ def assert_equivalent(
         depth=0,
 ):
     if not callable(out_a) or not callable(out_b):
-        assert out_a == out_b, f"{out_a!r} != {out_b!r}"
+        # todo this kind of check is a repeating pattern and should be abstracted
+        assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
 
     if depth >= MAX_CALLABLE_DEPTH:
@@ -232,19 +233,19 @@ def assert_equivalent(
         status_b, res_b, log_b = run(out_b, args_b, kwargs_b)
         equivalent_logs, index = are_equivalent(log_a, log_b)
         if not equivalent_logs:
-            event(f"logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
+            event(f"{out_a.__name__}, {out_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
         if status_a == "ok" and status_b == "ok":
-            event(f"callable both ok: {res_a}, {res_b}")
+            event(f"{out_a.__name__}, {out_b.__name__}: callable both ok: {res_a}, {res_b}")
             assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
             assert_equivalent(res_a, res_b, data=data, depth=depth + 1)
 
         elif status_a == "err" and status_b == "err":
-            event(f"callable both error: {res_a!r}, {res_b!r}")
+            event(f"{out_a.__name__}, {out_b.__name__}: callable both error: {res_a!r}, {res_b!r}")
             assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"    # duplicated assert to ensure event() called
             assert type(res_a) is type(res_b)
 
         else:
-            event(f"Status mismatch: {status_a}, {status_b}")
+            event(f"{out_a.__name__}, {out_b.__name__} Status mismatch: {status_a}, {status_b}")
             raise AssertionError(
                 f"Callable mismatch:\n"
                 f"A: {res_a}\n"
@@ -293,11 +294,11 @@ def callable_strategy(draw, min_limit=1, max_limit=100):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
 
-
 """
+
 try:
 
-    test_nested = make_equivalence_test(make_call_lhs, make_call_rhs)
+    test_nested = make_equivalence_test(add_C, add_C)
     test_nested()
 
 except AssertionError as e:
