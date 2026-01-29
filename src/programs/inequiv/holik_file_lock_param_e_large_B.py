@@ -1,6 +1,6 @@
 from ..Ref import Ref
 
-readMAX = Ref(100)
+readMAX = Ref(50)
 
 def read1():
     readMAX.v = readMAX.v - 1

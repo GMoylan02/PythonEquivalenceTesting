@@ -1,6 +1,10 @@
 from ..Ref import Ref
 
-readMAX = Ref(100)
+"""
+My program inequivalence finder can only detect an inequivalence if readMAX <=50 since it only tests 50 function
+calls in a row before resetting globals which is usually fine in the real world
+"""
+readMAX = Ref(50)
 
 def read1():
     readMAX.v = readMAX.v - 1

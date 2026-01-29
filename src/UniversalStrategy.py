@@ -112,7 +112,7 @@ def build_args_strategy(func):
             if param.annotation == Callable:
                 # TODO: NB experiment with hypothesis inbuilt functions strategy
 
-                # TODO: also very important that we add some mechanism for detecting callable arguments WITHOUT
+                # TODO: for performance we can add some mechanism for detecting callable arguments WITHOUT
                 #   type annotations
                 positional_strategies.append(callable_strategy(func))
                 continue
@@ -158,35 +158,7 @@ def make_equivalence_test(func_a, func_b, reset_state=False):
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
         raw_args, raw_kwargs = inputs
-        # todo make this bit of code less duplicated
-        args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
-        args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
-        status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
-        status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
-        equivalent_logs, index = are_equivalent(log_a, log_b)
-        if not equivalent_logs:
-            event(f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
-        if status_a == "ok" and status_b == "ok":
-            if callable(out_a) and callable(out_b):
-                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
-            else:
-                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
-            assert_equivalent(out_a, out_b, data=data)
-
-        elif status_a == "err" and status_b == "err":
-            event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
-            assert type(out_a) is type(out_b)
-
-        else:
-            event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={raw_args}")
-            raise AssertionError(
-                f"Mismatch:\n"
-                f"A: {out_a}\n"
-                f"B: {out_b}\n"
-                f"args={raw_args}"
-            )
+        run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
 
     return equivalence_test
 
@@ -199,7 +171,6 @@ def assert_equivalent(
         depth=0,
 ):
     if not callable(out_a) or not callable(out_b):
-        # todo this kind of check is a repeating pattern and should be abstracted
         assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
 
@@ -216,31 +187,7 @@ def assert_equivalent(
 
     for _ in range(MAX_CALLABLE_CALLS):
         raw_args, raw_kwargs = data.draw(input_strategy, label=f"callable_args_d{depth}")
-        args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, out_a)
-        args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, out_b)
-        status_a, res_a, log_a = run(out_a, args_a, kwargs_a)
-        status_b, res_b, log_b = run(out_b, args_b, kwargs_b)
-        equivalent_logs, index = are_equivalent(log_a, log_b)
-        if not equivalent_logs:
-            event(f"{out_a.__name__}, {out_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
-        if status_a == "ok" and status_b == "ok":
-            event(f"{out_a.__name__}, {out_b.__name__}: callable both ok: {res_a}, {res_b}")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
-            assert_equivalent(res_a, res_b, data=data, depth=depth + 1)
-
-        elif status_a == "err" and status_b == "err":
-            event(f"{out_a.__name__}, {out_b.__name__}: callable both error: {res_a!r}, {res_b!r}")
-            assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"    # duplicated assert to ensure event() called
-            assert type(res_a) is type(res_b)
-
-        else:
-            event(f"{out_a.__name__}, {out_b.__name__} Status mismatch: {status_a}, {status_b}")
-            raise AssertionError(
-                f"Callable mismatch:\n"
-                f"A: {res_a}\n"
-                f"B: {res_b}\n"
-                f"args={raw_args}"
-            )
+        run_and_test_equivalence(out_a, out_b, raw_args, raw_kwargs, data)
 
 
 def run(fn, args, kwargs=None):
@@ -278,10 +225,42 @@ def construct_dummies(g, limit=10):
         functions.append(make_f(prev, i))
     return functions
 
+
 @st.composite
 def callable_strategy(draw, min_limit=1, max_limit=100):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
+
+
+def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
+    args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
+    args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
+    status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
+    status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
+    equivalent_logs, index = are_equivalent(log_a, log_b)
+    if not equivalent_logs:
+        event(f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
+    if status_a == "ok" and status_b == "ok":
+        if callable(out_a) and callable(out_b):
+            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
+        else:
+            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
+        assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
+        assert_equivalent(out_a, out_b, data=data)
+
+    elif status_a == "err" and status_b == "err":
+        event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
+        assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
+        assert type(out_a) is type(out_b)
+
+    else:
+        event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
+        raise AssertionError(
+            f"Mismatch:\n"
+            f"A: {out_a}\n"
+            f"B: {out_b}\n"
+            f"args={args_a}"
+        )
 
 """
 
