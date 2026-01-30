@@ -69,9 +69,3 @@ def create_stateful_tester(module_a, module_b):
             run_and_test_equivalence(funcs_a[fn_name], funcs_b[fn_name], raw_args, raw_kwargs, data)
 
     return ProgramEquivalenceMachine
-
-
-EquivalenceStateMachine = create_stateful_tester(holik_file_lock_param_e_large_A, holik_file_lock_param_e_large_B)
-
-class TestProgramEquivalence(EquivalenceStateMachine.TestCase):
-    pass
