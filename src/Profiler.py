@@ -10,10 +10,19 @@ class Profiler:
     def profile(self, frame, event, arg):
         if event == "call":
             func_name = frame.f_code.co_name
+            filter_re = r"<.{0,200} at 0x.{0,200}>"
+            args_snapshot = {}
+            for k, v in frame.f_locals.items():
+                # generally speaking this should work. assume every local that is not a reference is an argument
+                # todo that said, this is probably prone to error and should be made more robust in future
+                # todo this can be used in future for a more correct contextual equivalence
+                if not re.match(filter_re, str(v)):
+                    args_snapshot[k] = v
             self.call_stack.append(func_name)
             self.trace_log.append({
                 "event": "call",
                 "function": func_name,
+                "arguments": args_snapshot,
                 # perhaps re-examine this in future as it might be wrong
                 "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None
             })
@@ -103,9 +112,6 @@ def are_equivalent(log_a, log_b):
     log_b_returns = []
     i = 0
     while i < max(len(log_a), len(log_b)):
-        # for the nth return from top level in log_a, the nth return from top level in log_b needs to have same value
-        # unless it is a func
-        # they also need same number of calls and returns to top level??
         if i < len(log_a) and log_a[i]['event'] == 'return' and log_a[i]['function'] == top_func_name_a:
             log_a_returns.append((i, log_a[i]))
         if i < len(log_b) and log_b[i]['event'] == 'return' and log_b[i]['function'] == top_func_name_b:

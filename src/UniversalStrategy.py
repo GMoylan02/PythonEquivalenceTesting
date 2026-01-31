@@ -8,6 +8,15 @@ from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from Profiler import Profiler, return_value_equivalence
 import sys
+from src.programs.inequiv import (call_nested_param_ineq_B,
+                                  call_nested_param_ineq_A,
+                                  holik_file_lock_param_e_large_A,
+                                  holik_file_lock_param_e_large_B,
+                                  bsearch_ineq_1_A,
+                                  bsearch_ineq_1_B,
+                                  bsearch_ineq_2_A,
+                                  bsearch_ineq_2_B,
+                                  bsearch_ineq_3_A, bsearch_ineq_4_A)
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
@@ -238,19 +247,23 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
     equivalent_logs, index = are_equivalent(log_a, log_b)
+    if index == -1:
+        logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs have different number of returns"
+    else:
+        logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]!r}, {log_b[index]!r}"
     if not equivalent_logs:
-        event(f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]}, {log_b[index]}")
+        event(logs_error_msg)
     if status_a == "ok" and status_b == "ok":
         if callable(out_a) and callable(out_b):
             event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
         else:
             event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
-        assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
+        assert equivalent_logs, logs_error_msg
         assert_equivalent(out_a, out_b, data=data)
 
     elif status_a == "err" and status_b == "err":
         event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
-        assert equivalent_logs, f"index {index}, {log_a[index]!r} != {log_b[index]!r}"
+        assert equivalent_logs, logs_error_msg
         assert type(out_a) is type(out_b)
 
     else:
@@ -262,14 +275,13 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"args={args_a}"
         )
 
-"""
 
+"""
 try:
 
-    test_nested = make_equivalence_test(add_C, add_C)
+    test_nested = make_equivalence_test(bsearch_ineq_3.make_bsearch_ineq_3_1, bsearch_ineq_3.make_bsearch_ineq_3_2)
     test_nested()
 
 except AssertionError as e:
     print(f"Found bug\n{e}")
-
 """

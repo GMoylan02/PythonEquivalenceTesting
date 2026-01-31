@@ -1,21 +1,21 @@
+from hypothesis import given, strategies as st, settings, Phase, assume, event, HealthCheck
+from hypothesis.strategies import data as st_data
 import inspect
-import UniversalStrategy
 import os
 from types import ModuleType
 from typing import Callable, Dict
-from src.SampleCodeForEquivTest import TestFunctions
-from src.UniversalStrategy import run_and_test_equivalence
-from src.programs.inequiv import (call_nested_param_ineq_B,
-                                  call_nested_param_ineq_A,
-                                  holik_file_lock_param_e_large_A,
-                                  holik_file_lock_param_e_large_B)
+from programs.inequiv import (holik_file_lock_param_e_large_A,
+                              holik_file_lock_param_e_large_B,
+                              ex4v1_ineq_A, ex4v1_ineq_B,
+                              call_nested_param_ineq_A,
+                              call_nested_param_ineq_B)
+from UniversalStrategy import build_args_strategy, make_equivalence_test, run_and_test_equivalence
+import random
+from src.EquivTestingExceptions import ClassMethodMismatch
+from src.StateUtils import snapshot_module_state, restore_module_state
+from src.programs.Ref import Ref
+import importlib
 import sys
-from StateUtils import snapshot_module_state, restore_module_state
-from hypothesis.stateful import RuleBasedStateMachine, rule, consumes
-from hypothesis.stateful import multiple
-from hypothesis import strategies as st
-from UniversalStrategy import are_equivalent, run, build_args_strategy, instantiate_args, assert_equivalent
-from hypothesis import event
 
 
 def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
@@ -29,43 +29,62 @@ def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
 
     return functions
 
-
-def create_stateful_tester(module_a, module_b):
-    """
-    Returns a Hypothesis RuleBasedStateMachine class configured to
-    test the two modules against each other in sequences
-    """
+def pair_functions(module_a: ModuleType, module_b: ModuleType):
     funcs_a = get_module_functions(module_a)
     funcs_b = get_module_functions(module_b)
 
-    common_names = sorted(list(set(funcs_a.keys()) & set(funcs_b.keys())))
-    if not common_names:
-        raise ValueError("No common functions found between modules")
+    names_a = set(funcs_a.keys())
+    names_b = set(funcs_b.keys())
 
-    arg_strategies = {
-        name: build_args_strategy(funcs_a[name])
-        for name in common_names
-    }
-
-    snap_a = snapshot_module_state(module_a)
-    snap_b = snapshot_module_state(module_b)
-
-    class ProgramEquivalenceMachine(RuleBasedStateMachine):
-
-        def __init__(self):
-            super().__init__()
-            restore_module_state(module_a, snap_a)
-            restore_module_state(module_b, snap_b)
-
-        @rule(
-            data=st.data(),
-            fn_name=st.sampled_from(common_names)
+    if names_a != names_b:
+        missing_in_a = names_b - names_a
+        missing_in_b = names_a - names_b
+        raise ValueError(
+            f"Modules have different top-level functions.\n"
+            f"Missing in A: {missing_in_a}\n"
+            f"Missing in B: {missing_in_b}"
         )
-        def call_function(self, data, fn_name):
-            raw_args, raw_kwargs = data.draw(
-                arg_strategies[fn_name],
-                label=f"args_for_{fn_name}"
-            )
-            run_and_test_equivalence(funcs_a[fn_name], funcs_b[fn_name], raw_args, raw_kwargs, data)
+    paired = {name: (funcs_a[name], funcs_b[name]) for name in names_a}
+    return paired
 
-    return ProgramEquivalenceMachine
+def generate_operation_strategy(module_a: ModuleType, module_b: ModuleType):
+    paired_funcs = pair_functions(module_a, module_b)
+
+    strats = []
+    for name in paired_funcs.keys():
+        strats.append(st.tuples(st.just(name), build_args_strategy(paired_funcs[name][0])))
+    operation_strategy = st.one_of(strats)
+    return operation_strategy
+
+def generate_sequence_strategy(module_a: ModuleType, module_b: ModuleType, max_size=20):
+    operation_strategy = generate_operation_strategy(module_a, module_b)
+    sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=max_size)
+    return sequence_strategy
+
+def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, *, iterations=10, reset_state=False):
+    sequence_strategy = generate_sequence_strategy(module_a, module_b, iterations)
+
+    if reset_state:
+        snap_a = snapshot_module_state(module_a) if module_a else {}
+        snap_b = snapshot_module_state(module_b) if module_b else {}
+
+    @given(sequence_strategy, st_data())
+    @settings(max_examples=1000)
+    def test_program_equivalence(ops, data):
+        """
+        ops should be in the form [(method, args), (method, args)]
+        """
+        if reset_state:
+            if module_a: restore_module_state(module_a, snap_a)
+            if module_b: restore_module_state(module_b, snap_b)
+        METHOD = 0
+        ARGS = 1
+        paired_funcs = pair_functions(module_a, module_b)
+        for op in ops:
+            func_name = op[METHOD]
+            func_a, func_b = paired_funcs[func_name]
+            raw_args, raw_kwargs = op[ARGS]
+            run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+    return test_program_equivalence
+
+test_fns = create_program_equivalence_test(call_nested_param_ineq_A, call_nested_param_ineq_B, iterations=10)
