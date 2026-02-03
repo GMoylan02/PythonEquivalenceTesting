@@ -1,0 +1,22 @@
+x = 0
+c = 0
+
+def g(f):
+    global x, c
+    x = 0
+    c += 1
+    f()
+    if c < 1:
+        x = 1
+    c = 0
+    f()
+    return x
+
+
+|||
+
+
+def g(f):
+    f()
+    f()
+    return 1

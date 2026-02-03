@@ -1,0 +1,25 @@
+x = 0
+c = 0
+
+
+def ex4v5(f):
+    global x, c
+    x = 0
+    c = c + 1
+    f()
+
+    if c < 5:
+        x = 1
+
+    c = 0
+    f()
+    return x
+
+
+|||
+
+
+def ex4v5(f):
+    f()
+    f()
+    return 1

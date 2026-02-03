@@ -1,0 +1,20 @@
+def v1(f):
+    f()
+    return True
+
+
+|||
+
+
+flag = True
+
+def v1(f):
+    global flag
+    if flag:
+        flag = False
+        f()
+        flag = True
+        return True
+    else:
+        f()
+        return False

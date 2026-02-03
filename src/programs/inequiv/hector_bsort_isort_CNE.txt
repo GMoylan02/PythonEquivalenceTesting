@@ -1,0 +1,74 @@
+def hector_bsort_isort_CNE(args):
+    compare, write_x, length, a_get, a_set = args
+    i = 0
+    flag = 1
+
+    def while2():
+        nonlocal i, flag
+        if flag == 1:
+            i = 0
+            flag = 0
+
+            def while3():
+                nonlocal i, flag
+                if i < length - 1:
+                    if compare(a_get(i), a_get(i + 1)):
+                        temp = 0
+                        flag = 1
+                        temp = a_get(i)
+                        a_set(i, a_get(i + 1))
+                        a_set(i + 1, temp)
+                    i = i + 1
+                    while3()
+            while3()
+            while2()
+    while2()
+
+    i = 0
+
+    def while4():
+        nonlocal i
+        if i < length:
+            write_x(a_get(i))
+            i = i + 1
+            while4()
+    while4()
+
+
+|||
+
+
+def hector_bsort_isort_CNE(args):
+    compare, write_x, length, a_get, a_set = args
+    i = 0
+    i = 1
+
+    def while2():
+        nonlocal i
+        if i < length:
+            val = 0
+            j = 0
+            val = a_get(i)
+            j = i
+
+            def while3():
+                nonlocal j
+                if j > 0 and compare(a_get(j - 1), val):
+                    a_set(j, a_get(j - 1))
+                    j = j - 1
+                    while3()
+            while3()
+            a_set(j, val)
+            i = i + 1
+            while2()
+    while2()
+
+    i = 0
+
+    def while4():
+        nonlocal i
+        if i < length:
+            write_x(a_get(i))
+            i = i + 1
+            while4()
+    while4()

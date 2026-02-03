@@ -4,27 +4,21 @@ import inspect
 import os
 from types import ModuleType
 from typing import Callable, Dict
-from programs.inequiv import (holik_file_lock_param_e_large_A,
-                              holik_file_lock_param_e_large_B,
-                              ex4v1_ineq_A, ex4v1_ineq_B,
-                              call_nested_param_ineq_A,
-                              call_nested_param_ineq_B)
-from UniversalStrategy import build_args_strategy, make_equivalence_test, run_and_test_equivalence
+
+
 import random
 from src.EquivTestingExceptions import ClassMethodMismatch
 from src.StateUtils import snapshot_module_state, restore_module_state
-from src.programs.Ref import Ref
+from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
 import importlib
 import sys
 
 
 def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
-    module_file = os.path.abspath(module.__file__)
-
     functions = {
         name: fn
         for name, fn in inspect.getmembers(module, inspect.isfunction)
-        if inspect.getsourcefile(fn) == module_file
+        if fn.__module__ == module.__name__
     }
 
     return functions
@@ -69,11 +63,12 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
         snap_b = snapshot_module_state(module_b) if module_b else {}
 
     @given(sequence_strategy, st_data())
-    @settings(max_examples=1000)
+    @settings(max_examples=500)
     def test_program_equivalence(ops, data):
         """
         ops should be in the form [(method, args), (method, args)]
         """
+        # todo can try to find a way to generalise this slightly, as this pattern is repeated in ClassEquivalence
         if reset_state:
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
@@ -87,4 +82,4 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
             run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
     return test_program_equivalence
 
-test_fns = create_program_equivalence_test(call_nested_param_ineq_A, call_nested_param_ineq_B, iterations=10)
+#test_fns = create_program_equivalence_test(call_nested_param_ineq_A, call_nested_param_ineq_B, iterations=10)

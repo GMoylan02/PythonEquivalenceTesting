@@ -1,30 +1,30 @@
 import inspect
 from dataclasses import dataclass
+from pathlib import Path
 
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
 from typing import Callable
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
-from Profiler import Profiler, return_value_equivalence
+from src.Profiler import Profiler, return_value_equivalence
 import sys
-from src.programs.inequiv import (call_nested_param_ineq_B,
-                                  call_nested_param_ineq_A,
-                                  holik_file_lock_param_e_large_A,
-                                  holik_file_lock_param_e_large_B,
-                                  bsearch_ineq_1_A,
-                                  bsearch_ineq_1_B,
-                                  bsearch_ineq_2_A,
-                                  bsearch_ineq_2_B,
-                                  bsearch_ineq_3_A, bsearch_ineq_4_A)
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 
-"""
-Similar to GeneralFunctionEquivalence.py, except instead of performing type inference on function arguments to create
-a fuzzing strategy, this approach creates a fuzzing strategy by just trying every type it can for function arguments
-"""
+# we currently log failures to count the no. of ineqs in a test suite, this ensures we only log
+# once per failure
+already_logged = False
+
+FAIL_MARKER = Path("hypofuzz_failures.log")
+
+def record_failure(exc):
+    global already_logged
+    if not already_logged:
+        with FAIL_MARKER.open("a") as f:
+            f.write(repr(exc) + "\n")
+            already_logged = True
 
 
 @dataclass
@@ -161,7 +161,7 @@ def make_equivalence_test(func_a, func_b, reset_state=False):
         snap_b = snapshot_module_state(module_b) if module_b else {}
 
     @given(input_strategy, st_data())
-    @settings(max_examples=1000, deadline=None)
+    @settings(max_examples=500, deadline=None)
     def equivalence_test(inputs, data):
         if reset_state:
             if module_a: restore_module_state(module_a, snap_a)
@@ -180,7 +180,11 @@ def assert_equivalent(
         depth=0,
 ):
     if not callable(out_a) or not callable(out_b):
-        assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
+        try:
+            assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
+        except AssertionError as e:
+            record_failure(e)
+            raise
         return
 
     if depth >= MAX_CALLABLE_DEPTH:
@@ -188,7 +192,6 @@ def assert_equivalent(
         return
 
     event(f"callable depth {depth}")
-
     if inspect.signature(out_a) != inspect.signature(out_b):
         raise AssertionError("Returned callables have different signatures")
 
@@ -236,7 +239,7 @@ def construct_dummies(g, limit=10):
 
 
 @st.composite
-def callable_strategy(draw, min_limit=1, max_limit=100):
+def callable_strategy(draw, min_limit=1, max_limit=50):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
 
@@ -253,33 +256,38 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
         logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]!r}, {log_b[index]!r}"
     if not equivalent_logs:
         event(logs_error_msg)
-    if status_a == "ok" and status_b == "ok":
-        if callable(out_a) and callable(out_b):
-            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
+    try:
+        if status_a == "ok" and status_b == "ok":
+            if callable(out_a) and callable(out_b):
+                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
+            else:
+                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
+            assert equivalent_logs, logs_error_msg
+            assert_equivalent(out_a, out_b, data=data)
+
+        elif status_a == "err" and status_b == "err":
+            event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
+            assert equivalent_logs, logs_error_msg
+            assert type(out_a) is type(out_b)
+
         else:
-            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
-        assert equivalent_logs, logs_error_msg
-        assert_equivalent(out_a, out_b, data=data)
+            event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
+            raise AssertionError(
+                f"Mismatch:\n"
+                f"A: {out_a}\n"
+                f"B: {out_b}\n"
+                f"args={args_a}"
+            )
+    except AssertionError as e:
+        record_failure(e)
+        raise
 
-    elif status_a == "err" and status_b == "err":
-        event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
-        assert equivalent_logs, logs_error_msg
-        assert type(out_a) is type(out_b)
-
-    else:
-        event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
-        raise AssertionError(
-            f"Mismatch:\n"
-            f"A: {out_a}\n"
-            f"B: {out_b}\n"
-            f"args={args_a}"
-        )
 
 
 """
 try:
 
-    test_nested = make_equivalence_test(bsearch_ineq_3.make_bsearch_ineq_3_1, bsearch_ineq_3.make_bsearch_ineq_3_2)
+    test_nested = make_equivalence_test(bsearch_ineq_3.txt.make_bsearch_ineq_3_1, bsearch_ineq_3.txt.make_bsearch_ineq_3_2)
     test_nested()
 
 except AssertionError as e:

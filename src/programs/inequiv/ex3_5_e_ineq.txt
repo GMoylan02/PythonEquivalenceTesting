@@ -1,0 +1,17 @@
+def v2():
+    return True
+
+
+|||
+
+
+flag = True
+
+
+def v2():
+    global flag
+    if flag:
+        flag = False
+        return True
+    else:
+        return False
