@@ -15,19 +15,6 @@ import sys
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 
-# we currently log failures to count the no. of ineqs in a test suite, this ensures we only log
-# once per failure
-already_logged = False
-
-FAIL_MARKER = Path("hypofuzz_failures.log")
-
-def record_failure(exc):
-    global already_logged
-    if not already_logged:
-        with FAIL_MARKER.open("a") as f:
-            f.write(repr(exc) + "\n")
-            already_logged = True
-
 
 def get_universal_strategy():
     primitives = st.one_of(
@@ -165,11 +152,7 @@ def assert_equivalent(
         depth=0,
 ):
     if not callable(out_a) or not callable(out_b):
-        try:
-            assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
-        except AssertionError as e:
-            record_failure(e)
-            raise
+        assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
 
     if depth >= MAX_CALLABLE_DEPTH:
@@ -293,31 +276,27 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
         logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]!r}, {log_b[index]!r}"
     if not equivalent_logs:
         event(logs_error_msg)
-    try:
-        if status_a == "ok" and status_b == "ok":
-            if callable(out_a) and callable(out_b):
-                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
-            else:
-                event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
-            assert equivalent_logs, logs_error_msg
-            assert_equivalent(out_a, out_b, data=data)
-
-        elif status_a == "err" and status_b == "err":
-            event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
-            assert equivalent_logs, logs_error_msg
-            assert type(out_a) is type(out_b)
-
+    if status_a == "ok" and status_b == "ok":
+        if callable(out_a) and callable(out_b):
+            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
         else:
-            event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
-            raise AssertionError(
-                f"Mismatch:\n"
-                f"A: {out_a}\n"
-                f"B: {out_b}\n"
-                f"args={args_a}"
-            )
-    except AssertionError as e:
-        record_failure(e)
-        raise
+            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
+        assert equivalent_logs, logs_error_msg
+        assert_equivalent(out_a, out_b, data=data)
+
+    elif status_a == "err" and status_b == "err":
+        event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
+        assert equivalent_logs, logs_error_msg
+        assert type(out_a) is type(out_b)
+
+    else:
+        event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
+        raise AssertionError(
+            f"Mismatch:\n"
+            f"A: {out_a}\n"
+            f"B: {out_b}\n"
+            f"args={args_a}"
+        )
 
 
 

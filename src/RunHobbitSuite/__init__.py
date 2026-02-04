@@ -31,4 +31,4 @@ def initialise_test(index):
     module_b = load_module_from_string(mod_name_b, program_b)
 
     name = str(path).split("\\")[-1].split(".")[0]
-    return name, create_program_equivalence_test(module_a, module_b, iterations=10)
+    return name, create_program_equivalence_test(module_a, module_b, iterations=10, reset_state=True)
