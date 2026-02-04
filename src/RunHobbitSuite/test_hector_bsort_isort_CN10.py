@@ -1,5 +1,5 @@
 from . import initialise_test
 
-name, fn = initialise_test(16)
+name, fn = initialise_test("hector_bsort_isort_CN10.txt")
 fn.__name__ = f"test_{name}"
 globals()[fn.__name__] = fn

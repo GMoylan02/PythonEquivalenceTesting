@@ -101,6 +101,9 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
                 
                 if module_a alters a global string variable s after running n steps, but module_b alters a global int
                 variable x after running n steps, they are INEQUIVALENT.
+                
+                This can be boiled down to checking if state_A equals state_B after n steps, given 
+                neither are the starting state.
                 """
                 current_state_a = snapshot_module_state(module_a) if module_a else {}
                 current_state_b = snapshot_module_state(module_b) if module_b else {}

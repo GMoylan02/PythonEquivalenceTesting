@@ -1,5 +1,5 @@
 from . import initialise_test
 
-name, fn = initialise_test(7)
+name, fn = initialise_test("ex3_4_e_ineq.txt")
 fn.__name__ = f"test_{name}"
 globals()[fn.__name__] = fn

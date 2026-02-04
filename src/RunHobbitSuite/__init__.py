@@ -18,10 +18,9 @@ def load_module_from_string(name: str, code: str):
     exec(compile(code, module.__file__, "exec"), module.__dict__)
     return module
 
-def initialise_test(index):
+def initialise_test(filename):
     # todo this should be optimised
-    path = paths[index]
-
+    path = INEQUIV_DIR / filename
     program_text = path.read_text(encoding="utf-8")
     program_a, program_b = program_text.split("\n|||\n", 1)
     mod_name_a = f"program_a"
