@@ -1,5 +1,6 @@
 import inspect
 from dataclasses import dataclass
+from functools import wraps
 from pathlib import Path
 
 from hypothesis import given, strategies as st, settings, event
@@ -9,6 +10,7 @@ from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence
 import sys
+
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
@@ -27,36 +29,6 @@ def record_failure(exc):
             already_logged = True
 
 
-@dataclass
-class RecursiveRef:
-    index: int
-
-
-def instantiate_value(val, target_func):
-    """
-    Recursively traverses val. If a RecursiveRef is found, constructs the
-    dummy functions bound to target_func and returns the specific index
-    """
-    if isinstance(val, RecursiveRef):
-        dummies = construct_dummies(target_func, limit=val.index + 1)
-        return dummies[val.index]
-
-    if isinstance(val, list):
-        return [instantiate_value(x, target_func) for x in val]
-    if isinstance(val, tuple):
-        return tuple(instantiate_value(x, target_func) for x in val)
-    if isinstance(val, dict):
-        return {k: instantiate_value(v, target_func) for k, v in val.items()}
-
-    return val
-
-
-def instantiate_args(args, kwargs, target_func):
-    return (
-        instantiate_value(args, target_func),
-        instantiate_value(kwargs, target_func)
-    )
-
 def get_universal_strategy():
     primitives = st.one_of(
         st.integers(),
@@ -64,7 +36,9 @@ def get_universal_strategy():
         st.text(),
         st.booleans(),
         st.none(),
-        callable_strategy()
+        callable_strategy(),
+        preset_functions()
+        #st.functions()
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
@@ -123,7 +97,18 @@ def build_args_strategy(func):
 
                 # TODO: for performance we can add some mechanism for detecting callable arguments WITHOUT
                 #   type annotations
-                positional_strategies.append(callable_strategy(func))
+                #positional_strategies.append(st.one_of(callable_strategy(func), st.functions()))
+                #positional_strategies.append(st.functions())
+                #positional_strategies.append(callable_strategy(func))
+                return_strat = st.integers()
+
+                positional_strategies.append(
+                    st.one_of(
+                        callable_strategy(),
+                        preset_functions(),
+                        #st.functions(like=lambda *args, **kwargs: None, returns=return_strat)
+                    )
+                )
                 continue
             try:
                 # use type hint if exists
@@ -206,7 +191,7 @@ def run(fn, args, kwargs=None):
     profiler = Profiler()
     try:
         sys.setprofile(profiler.profile)
-        if kwargs is None:
+        if kwargs == {} or kwargs is None:
             result = fn(*args)
         else:
             result = fn(*args, **kwargs)
@@ -219,6 +204,11 @@ def run(fn, args, kwargs=None):
         sys.setprofile(None)
         profiler.clear_logs()
         return "err", e, log
+
+
+@dataclass
+class RecursiveRef:
+    index: int
 
 
 # plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
@@ -242,6 +232,53 @@ def construct_dummies(g, limit=10):
 def callable_strategy(draw, min_limit=1, max_limit=50):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
+
+
+def h1(n):
+    return n
+
+def h2(g):
+    g()
+
+def h3(g):
+    g(5)
+    return g(5)
+
+def h4(f, g):
+    f()
+    g()
+
+
+@st.composite
+def preset_functions(draw):
+    funcs = [h1, h2, h3, h4]
+    return draw(st.sampled_from(funcs))
+
+
+def instantiate_value(val, target_func):
+    """
+    Recursively traverses val. If a RecursiveRef is found, constructs the
+    dummy functions bound to target_func and returns the specific index
+    """
+    if isinstance(val, RecursiveRef):
+        dummies = construct_dummies(target_func, limit=val.index + 1)
+        return dummies[val.index]
+
+    if isinstance(val, list):
+        return [instantiate_value(x, target_func) for x in val]
+    if isinstance(val, tuple):
+        return tuple(instantiate_value(x, target_func) for x in val)
+    if isinstance(val, dict):
+        return {k: instantiate_value(v, target_func) for k, v in val.items()}
+
+    return val
+
+
+def instantiate_args(args, kwargs, target_func):
+    return (
+        instantiate_value(args, target_func),
+        instantiate_value(kwargs, target_func)
+    )
 
 
 def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):

@@ -42,7 +42,7 @@ class Profiler:
         self.trace_log = []
         self.call_stack = []
 
-function_re = r"<function.{1,100}<locals>.{1,100}at 0x.{1,100}>"
+function_re = r"<function.{1,100}at 0x.{1,100}>"
 
 def is_function(val):
     return re.match(function_re, str(val)) is not None

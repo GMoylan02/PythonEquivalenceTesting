@@ -48,7 +48,7 @@ if (-not (Test-Path -Path $targetDir)) {
 $pythonFiles = Get-ChildItem -Path $targetDir -Filter "*.py"
 
 $terminatedCount = 0
-$timeoutSeconds = 120
+$timeoutSeconds = 20
 
 Write-Host "Found $($pythonFiles.Count) Python files. Starting fuzzing..." -ForegroundColor Cyan
 
@@ -83,7 +83,7 @@ foreach ($file in $pythonFiles) {
 
         }
     }
-    
+
     $process.Dispose()
 }
 
