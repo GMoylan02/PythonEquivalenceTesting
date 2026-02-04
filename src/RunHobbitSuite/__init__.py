@@ -6,8 +6,9 @@ from src.ProgramEquivalence import create_program_equivalence_test
 
 BASE_DIR = Path(__file__).resolve().parent
 INEQUIV_DIR = BASE_DIR / ".." / "programs" / "inequiv"
+paths = list(INEQUIV_DIR.glob("*.txt"))
 
-# TODO UPDATE THE PS SCRIPT FOR BATCH PROCESSING!!!!
+# TODO see if you can update the ps script for batch processing
 
 def load_module_from_string(name: str, code: str):
     module = types.ModuleType(name)
@@ -19,7 +20,7 @@ def load_module_from_string(name: str, code: str):
 
 def initialise_test(index):
     # todo this should be optimised
-    path = list(INEQUIV_DIR.glob("*.txt"))[index]
+    path = paths[index]
 
     program_text = path.read_text(encoding="utf-8")
     program_a, program_b = program_text.split("\n|||\n", 1)
