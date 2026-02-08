@@ -1,0 +1,183 @@
+def mk_array(n):
+    if n < 1 or n > 10:
+        raise RuntimeError()
+    a = (0,0,0,0,0,0,0,0,0,0)
+    def a_size(_=None):
+        return n
+    def a_get(i):
+        nonlocal a
+        if i < 1 or i > n:
+            raise RuntimeError()
+        a0,a1,a2,a3,a4,a5,a6,a7,a8,a9 = a
+        if i == 0: return a0
+        if i == 1: return a1
+        if i == 2: return a2
+        if i == 3: return a3
+        if i == 4: return a4
+        if i == 5: return a5
+        if i == 6: return a6
+        if i == 7: return a7
+        if i == 8: return a8
+        if i == 9: return a9
+        raise RuntimeError()
+    def a_set(i):
+        def setter(m):
+            nonlocal a
+            if i < 1 or i > n:
+                raise RuntimeError()
+            a0,a1,a2,a3,a4,a5,a6,a7,a8,a9 = a
+            if i == 0: a = (m,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 1: a = (a0,m,a2,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 2: a = (a0,a1,m,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 3: a = (a0,a1,a2,m,a4,a5,a6,a7,a8,a9)
+            elif i == 4: a = (a0,a1,a2,a3,m,a5,a6,a7,a8,a9)
+            elif i == 5: a = (a0,a1,a2,a3,a4,m,a6,a7,a8,a9)
+            elif i == 6: a = (a0,a1,a2,a3,a4,a5,m,a7,a8,a9)
+            elif i == 7: a = (a0,a1,a2,a3,a4,a5,a6,m,a8,a9)
+            elif i == 8: a = (a0,a1,a2,a3,a4,a5,a6,a7,m,a9)
+            elif i == 9: a = (a0,a1,a2,a3,a4,a5,a6,a7,a8,m)
+            else:
+                raise RuntimeError()
+        return setter
+    return (a_size, a_get, a_set)
+
+def ar_size(ar):
+    a_size,_,_ = ar
+    return a_size()
+
+def ar_get(ar):
+    _,a_get,_ = ar
+    return lambda i: a_get(i)
+
+def ar_set(ar):
+    _,_,a_set = ar
+    return lambda i: lambda m: a_set(i)(m)
+
+def ar_copy(ar1):
+    def inner(ar2):
+        s1 = ar_size(ar1)
+        if s1 == ar_size(ar2):
+            def while_(i):
+                if i < s1:
+                    ar_set(ar2)(i)(ar_get(ar1)(i))
+                    while_(i+1)
+            while_(0)
+        else:
+            raise RuntimeError()
+    return inner
+
+def program(inout_ar):
+    a = mk_array(ar_size(inout_ar))
+    ar_copy(inout_ar)(a)
+    flag = 1
+    def while2():
+        nonlocal flag
+        if flag == 1:
+            i = 0
+            flag = 0
+            def while3():
+                nonlocal i, flag
+                if i < ar_size(a) - 1:
+                    if ar_get(a)(i) > ar_get(a)(i+1):
+                        temp = ar_get(a)(i)
+                        flag = 1
+                        ar_set(a)(i)(ar_get(a)(i+1))
+                        ar_set(a)(i+1)(temp)
+                    i = i + 1
+                    while3()
+            while3()
+            while2()
+    while2()
+    ar_copy(a)(inout_ar)
+
+|||
+
+def mk_array(n):
+    if n < 1 or n > 10:
+        raise RuntimeError()
+    a = (0,0,0,0,0,0,0,0,0,0)
+    def a_size(_=None):
+        return 5
+    def a_get(i):
+        nonlocal a
+        if i < 1 or i > n:
+            raise RuntimeError()
+        a0,a1,a2,a3,a4,a5,a6,a7,a8,a9 = a
+        if i == 0: return a0
+        if i == 1: return a1
+        if i == 2: return a2
+        if i == 3: return a3
+        if i == 4: return a4
+        if i == 5: return a5
+        if i == 6: return a6
+        if i == 7: return a7
+        if i == 8: return a8
+        if i == 9: return a9
+        raise RuntimeError()
+    def a_set(i):
+        def setter(m):
+            nonlocal a
+            if i < 1 or i > n:
+                raise RuntimeError()
+            a0,a1,a2,a3,a4,a5,a6,a7,a8,a9 = a
+            if i == 0: a = (m,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 1: a = (a0,m,a2,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 2: a = (a0,a1,m,a3,a4,a5,a6,a7,a8,a9)
+            elif i == 3: a = (a0,a1,a2,m,a4,a5,a6,a7,a8,a9)
+            elif i == 4: a = (a0,a1,a2,a3,m,a5,a6,a7,a8,a9)
+            elif i == 5: a = (a0,a1,a2,a3,a4,m,a6,a7,a8,a9)
+            elif i == 6: a = (a0,a1,a2,a3,a4,a5,m,a7,a8,a9)
+            elif i == 7: a = (a0,a1,a2,a3,a4,a5,a6,m,a8,a9)
+            elif i == 8: a = (a0,a1,a2,a3,a4,a5,a6,a7,m,a9)
+            elif i == 9: a = (a0,a1,a2,a3,a4,a5,a6,a7,a8,m)
+            else:
+                raise RuntimeError()
+        return setter
+    return (a_size, a_get, a_set)
+
+def ar_size(ar):
+    a_size,_,_ = ar
+    return a_size()
+
+def ar_get(ar):
+    _,a_get,_ = ar
+    return lambda i: a_get(i)
+
+def ar_set(ar):
+    _,_,a_set = ar
+    return lambda i: lambda m: a_set(i)(m)
+
+def ar_copy(ar1):
+    def inner(ar2):
+        s1 = ar_size(ar1)
+        if s1 == ar_size(ar2):
+            def while_(i):
+                if i < s1:
+                    ar_set(ar2)(i)(ar_get(ar1)(i))
+                    while_(i+1)
+            while_(0)
+        else:
+            raise RuntimeError()
+    return inner
+
+def program(inout_ar):
+    a = mk_array(ar_size(inout_ar))
+    ar_copy(inout_ar)(a)
+    i = 1
+    def while2():
+        nonlocal i
+        if i < ar_size(a):
+            val = ar_get(a)(i)
+            j = i
+            def while3():
+                nonlocal j
+                if j > 0 and ar_get(a)(j-1) <= val:
+                    ar_set(a)(j)(ar_get(a)(j-1))
+                    j = j - 1
+                    while3()
+            while3()
+            ar_set(a)(j)(val)
+            i = i + 1
+            while2()
+    while2()
+    ar_copy(a)(inout_ar)

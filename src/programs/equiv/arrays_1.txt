@@ -1,0 +1,26 @@
+def f(ar):
+    def inner(i):
+        if 0 <= i:
+            if i < 10:
+                return ar(i)
+            else:
+                return 0
+        else:
+            return 0
+    return inner
+
+|||
+
+
+def f(ar):
+    def rev(ar):
+        def inner(i):
+            if 0 <= i:
+                if i < 10:
+                    return ar(9 - i)
+                else:
+                    return 0
+            else:
+                return 0
+        return inner
+    return rev(rev(ar))

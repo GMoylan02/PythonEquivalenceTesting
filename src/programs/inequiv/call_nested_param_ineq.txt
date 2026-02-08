@@ -1,5 +1,4 @@
 x = 0
-
 def call(f):
     global x
     x = x + 1
@@ -14,9 +13,7 @@ def call(f):
     # examples, but it cannot prove equivalence
     return x < 100
 
-
 |||
-
 
 x = 0
 

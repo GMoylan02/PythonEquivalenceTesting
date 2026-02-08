@@ -1,4 +1,4 @@
-from . import initialise_test
+from src.RunHobbitSuite import initialise_test
 
 name, fn = initialise_test("ex3_5_e_ineq.txt")
 fn.__name__ = f"test_{name}"

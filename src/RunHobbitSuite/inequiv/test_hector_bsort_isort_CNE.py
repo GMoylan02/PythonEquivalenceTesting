@@ -1,4 +1,4 @@
-from . import initialise_test
+from src.RunHobbitSuite import initialise_test
 
 name, fn = initialise_test("hector_bsort_isort_CNE.txt")
 fn.__name__ = f"test_{name}"
