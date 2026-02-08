@@ -6,6 +6,8 @@ from pathlib import Path
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
 from typing import Callable
+
+from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence
@@ -189,55 +191,6 @@ def run(fn, args, kwargs=None):
         return "err", e, log
 
 
-@dataclass
-class RecursiveRef:
-    index: int
-
-
-# plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
-# or f1, that f2 calls g with f1, f1 calls g with f0 and so on
-# i cant think of how to make this approach work if g takes more than 1 argument though but its a start
-def construct_dummies(g, limit=10):
-    def f0(): pass
-    functions = [f0]
-    for i in range(limit-1):
-        prev = functions[-1]
-        def make_f(prev_fn, idx):
-            def fi():
-                g(prev_fn)
-            fi.__name__ = f"f{idx+1}"
-            return fi
-        functions.append(make_f(prev, i))
-    return functions
-
-
-@st.composite
-def callable_strategy(draw, min_limit=1, max_limit=50):
-    idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
-    return RecursiveRef(index=idx)
-
-
-def h1(n):
-    return n
-
-def h2(g):
-    g()
-
-def h3(g):
-    g(5)
-    return g(5)
-
-def h4(f, g):
-    f()
-    g()
-
-
-@st.composite
-def preset_functions(draw):
-    funcs = [h1, h2, h3, h4]
-    return draw(st.sampled_from(funcs))
-
-
 def instantiate_value(val, target_func):
     """
     Recursively traverses val. If a RecursiveRef is found, constructs the
@@ -269,11 +222,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
-    equivalent_logs, index = are_equivalent(log_a, log_b)
-    if index == -1:
-        logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs have different number of returns"
-    else:
-        logs_error_msg = f"{func_a.__name__}, {func_b.__name__}: logs mismatch at index {index}: {log_a[index]!r}, {log_b[index]!r}"
+    equivalent_logs, logs_error_msg = are_equivalent(log_a, log_b)
     if not equivalent_logs:
         event(logs_error_msg)
     if status_a == "ok" and status_b == "ok":
@@ -292,20 +241,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     else:
         event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
         raise AssertionError(
-            f"Mismatch:\n"
-            f"A: {out_a}\n"
-            f"B: {out_b}\n"
-            f"args={args_a}"
+            f"Mismatch: "
+            f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
+            f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
-
-
-
-"""
-try:
-
-    test_nested = make_equivalence_test(bsearch_ineq_3.txt.make_bsearch_ineq_3_1, bsearch_ineq_3.txt.make_bsearch_ineq_3_2)
-    test_nested()
-
-except AssertionError as e:
-    print(f"Found bug\n{e}")
-"""

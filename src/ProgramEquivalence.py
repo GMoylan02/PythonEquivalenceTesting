@@ -22,11 +22,11 @@ already_logged = False
 
 FAIL_MARKER = Path("hypofuzz_failures.log")
 
-def record_failure(exc):
+def record_failure(module_name, exc):
     global already_logged
     if not already_logged:
         with FAIL_MARKER.open("a") as f:
-            f.write(repr(exc) + "\n")
+            f.write(module_name + ": " + repr(exc) + "\n")
             already_logged = True
 
 
@@ -111,7 +111,7 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
                     # todo also might need to think about nonlocal variables for nested functions
                     event(f"State of {module_a.__name__} and {module_b.__name__} are different")
                     raise AssertionError(f"State of {module_a.__name__} and {module_b.__name__} are different:"
-                                         f"{current_state_a} != {current_state_b}")
+                                         f"A: {current_state_a} != B: {current_state_b}")
                 if module_a: restore_module_state(module_a, snap_a)
                 if module_b: restore_module_state(module_b, snap_b)
             METHOD = 0
@@ -123,7 +123,7 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
                 raw_args, raw_kwargs = op[ARGS]
                 run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
         except AssertionError as e:
-            record_failure(e)
+            record_failure(module_a.__name__, e)
             raise
 
 

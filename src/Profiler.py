@@ -15,7 +15,7 @@ class Profiler:
             for k, v in frame.f_locals.items():
                 # generally speaking this should work. assume every local that is not a reference is an argument
                 # todo that said, this is probably prone to error and should be made more robust in future
-                # todo this can be used in future for a more correct contextual equivalence
+                # todo this can be used in future for a more correct contextual equivalence, but it is currently not used in any logic
                 if not re.match(filter_re, str(v)):
                     args_snapshot[k] = v
             self.call_stack.append(func_name)
@@ -105,25 +105,68 @@ def return_value_equivalence(return_a, return_b):
 
 
 def are_equivalent(log_a, log_b):
+    """
+    Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
+    1. Check that the final return value of func_a() `eq` func_b()
+    2. Check that forall f in f_functions, f() in log_a `eq` f() in log_b
+            where f_functions are 'observer' functions to func_a and func_b defined in construct_dummies()
+            for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
+
+    todo im also pretty sure 2. is wrong. this needs to be investigated further and fixed
+    """
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
-
     log_a_returns = []
     log_b_returns = []
+
+    # check that the final return value from top_func_name_a should be equal to the final return from top_func_name_b
     i = 0
     while i < max(len(log_a), len(log_b)):
         if i < len(log_a) and log_a[i]['event'] == 'return' and log_a[i]['function'] == top_func_name_a:
-            log_a_returns.append((i, log_a[i]))
+            log_a_returns.append(log_a[i])
         if i < len(log_b) and log_b[i]['event'] == 'return' and log_b[i]['function'] == top_func_name_b:
-            log_b_returns.append((i, log_b[i]))
+            log_b_returns.append(log_b[i])
         i += 1
-    if len(log_a_returns) != len(log_b_returns):
-        return False, -1
-    for i in range(len(log_a_returns)):
-        return_a = log_a_returns[i][1]['return_value']
-        return_b = log_b_returns[i][1]['return_value']
-        index = log_a_returns[i][0]
-        if not return_value_equivalence(return_a, return_b):
-            return False, index
 
-    return True, -1
+    # this checks that neither func_a nor func_b exceeded the python recursion limit. if one or both DID exceed it,
+    # we still want to proceed with the checks after this
+    if len(log_a_returns) > 0 and len(log_b_returns) > 0:
+
+        if not return_value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
+            return False, (f"Mismatch: "
+                f"Function A: {top_func_name_a} = {log_a_returns[-1]['return_value']!r}, "
+                f"Function B: {top_func_name_b} = {log_b_returns[-1]['return_value']!r}")
+
+    # f_functions are functions used for testing deep recursion. this logic serves to check that
+    # forall f in f_functions, f in log_a == f in log_b
+    # this is only a valid equivalence check because we know that each f{i} is defined as: return g(f{i-1})
+    # where g is the top level function in log_a and log_b that we are testing for equivalence.
+    # thus, if the return value of f{i} differs across log_a and log_b, we know that an observable call to g resulted in
+    # a different output, implying the two implementations of g are not contextually equivalent
+    f_functions = []
+    for i in range(100):
+        f_functions.append(f"f{i}")
+
+    f_function_returns_in_log_A = {}    # return values of each of the f within log A
+    for i in range(len(log_a)):
+        if log_a[i]['event'] == 'return' and log_a[i]['function'] in f_functions:
+            if log_a[i]['function'] in f_function_returns_in_log_A:     # skip functions we have already seen
+                continue
+            f_function_returns_in_log_A[log_a[i]['function']] = log_a[i]['return_value']
+
+    f_functions_seen_in_B = []      # used to skip functions in b we have already seen
+    for i in range(len(log_b)):
+        if log_b[i]['event'] == 'return' and log_b[i]['function'] in f_functions:
+            if log_b[i]['function'] in f_functions_seen_in_B:   # skip functions we have already seen
+                continue
+            if log_b[i]['function'] not in f_function_returns_in_log_A.keys():
+                # we should never get here, this means that log_b called some f_function that log_a never called
+                raise AssertionError(f"Function {log_b[i]['function']} not called by {top_func_name_a}, this should never happen")
+
+            if not return_value_equivalence(log_b[i]['return_value'], f_function_returns_in_log_A[log_a[i]['function']]):
+                return False, (f"Mismatch: Observer {log_a[i]['function']} observed {top_func_name_a} giving differing outputs "
+                    f"Within Function A: {log_a[i]['function']} => {f_function_returns_in_log_A[log_a[i]['function']]!r}, "
+                    f"Within Function B: {log_b[i]['function']} => {log_b[i]['return_value']!r}")
+            f_functions_seen_in_B.append(log_b[i]['function'])
+
+    return True, ""
