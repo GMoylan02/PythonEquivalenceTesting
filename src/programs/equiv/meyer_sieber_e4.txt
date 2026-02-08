@@ -1,0 +1,17 @@
+def f(q):
+    x = 0
+    y = 0
+    def twice():
+        nonlocal y
+        y = 2 * y
+    # this is supposed to be equivalent, but if q is not a function then this crashes with typeError, causing an inequiv
+    q(twice)
+    if x == 0:
+        raise RuntimeError()
+    else:
+        return None
+
+|||
+
+def f(q):
+    raise RuntimeError()

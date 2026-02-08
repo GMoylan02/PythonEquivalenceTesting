@@ -236,7 +236,12 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     elif status_a == "err" and status_b == "err":
         event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
         assert equivalent_logs, logs_error_msg
-        assert type(out_a) is type(out_b)
+        # todo stop copy pasting this error message
+        assert type(out_a) is type(out_b), (
+            f"Mismatch: "
+            f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
+            f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
+        )
 
     else:
         event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
