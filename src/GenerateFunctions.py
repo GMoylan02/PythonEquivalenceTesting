@@ -65,7 +65,10 @@ class GlobalMutatorPlan:
     Represents a deterministic sequence of mutations to apply.
     Hypothesis generates this. instantiate_value consumes it.
     """
+    # todo come up with sensible mutations for other types
     increments: List[int]
+    string_concats: List[str]
+
 
 
 def create_global_mutator(target_func, plan: GlobalMutatorPlan):
@@ -76,17 +79,40 @@ def create_global_mutator(target_func, plan: GlobalMutatorPlan):
     if not module:
         return lambda *a, **k: None
 
-    stream = iter(plan.increments)
+    increments_stream = iter(plan.increments)
+    string_concats_stream = iter(plan.string_concats)
 
     def mutator(*args, **kwargs):
         """
         The function that gets passed as an argument when testing, mutates global variables in its scope
         """
         for name, value in list(vars(module).items()):
+            # todo probably exclude upper snake case variables as well (constants)
+            # todo can streamline this flow
             if type(value) is int and not name.startswith("__"):
                 try:
-                    inc = next(stream)
+                    inc = next(increments_stream)
                     setattr(module, name, value + inc)
+                except StopIteration:
+                    return None
+            if type(value) is bool and not name.startswith("__"):
+                setattr(module, name, not value)
+            if type(value) is str and not name.startswith("__"):
+                try:
+                    concat = next(string_concats_stream)
+                    setattr(module, name, value + concat)
+                except StopIteration:
+                    return None
+            if type(value) is list and not name.startswith("__"):
+                try:
+                    concat = next(increments_stream)
+                    setattr(module, name, value + concat)
+                except StopIteration:
+                    return None
+            if value is None and not name.startswith("__"):
+                try:
+                    num = next(increments_stream)
+                    setattr(module, name, num)
                 except StopIteration:
                     return None
         return None

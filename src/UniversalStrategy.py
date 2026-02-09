@@ -28,7 +28,9 @@ def get_universal_strategy():
         st.none(),
         #callable_strategy(),
         preset_functions(),
-        st.builds(GlobalMutatorPlan, increments=st.lists(st.integers(min_value=-10, max_value=105)))
+        st.builds(GlobalMutatorPlan,
+                  increments=st.lists(st.integers(min_value=-10, max_value=105)),
+                  string_concats=st.lists(st.text()))
         #st.functions()
     )
 
