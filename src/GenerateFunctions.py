@@ -1,4 +1,9 @@
+import inspect
+import sys
+import types
 from dataclasses import dataclass
+from typing import Callable, List, Any
+
 from hypothesis import strategies as st
 
 
@@ -48,8 +53,42 @@ def h4(f, g):
     f()
     g()
 
-
 @st.composite
 def preset_functions(draw):
     funcs = [h1, h2, h3, h4]
     return draw(st.sampled_from(funcs))
+
+
+@dataclass
+class GlobalMutatorPlan:
+    """
+    Represents a deterministic sequence of mutations to apply.
+    Hypothesis generates this. instantiate_value consumes it.
+    """
+    increments: List[int]
+
+
+def create_global_mutator(target_func, plan: GlobalMutatorPlan):
+    """
+    Creates a function that gets passed as an argument to the function being tested that mutates global state
+    """
+    module = inspect.getmodule(target_func)
+    if not module:
+        return lambda *a, **k: None
+
+    stream = iter(plan.increments)
+
+    def mutator(*args, **kwargs):
+        """
+        The function that gets passed as an argument when testing, mutates global variables in its scope
+        """
+        for name, value in list(vars(module).items()):
+            if type(value) is int and not name.startswith("__"):
+                try:
+                    inc = next(stream)
+                    setattr(module, name, value + inc)
+                except StopIteration:
+                    return None
+        return None
+
+    return mutator

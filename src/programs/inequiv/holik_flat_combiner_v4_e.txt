@@ -24,7 +24,7 @@ def run():
         list_fn(cnt)
         cnt = cnt - 1
         if cnt < 0:
-            _bot_
+            raise Exception()
         else:
             pass
         return run()

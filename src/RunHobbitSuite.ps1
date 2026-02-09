@@ -38,7 +38,7 @@ if (-not (Test-Path $HypothesisExe)) {
 }
 
 # define target dir
-$targetDir = Join-Path -Path $PSScriptRoot -ChildPath "RunHobbitSuite"
+$targetDir = Join-Path -Path $PSScriptRoot -ChildPath "RunHobbitSuite\inequiv"
 
 if (-not (Test-Path -Path $targetDir)) {
     Write-Error "Directory '$targetDir' not found."

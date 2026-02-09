@@ -7,7 +7,8 @@ from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
 from typing import Callable
 
-from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions
+from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
+    GlobalMutatorPlan, create_global_mutator
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence
@@ -25,8 +26,9 @@ def get_universal_strategy():
         st.text(),
         st.booleans(),
         st.none(),
-        callable_strategy(),
-        preset_functions()
+        #callable_strategy(),
+        preset_functions(),
+        st.builds(GlobalMutatorPlan, increments=st.lists(st.integers(min_value=-10, max_value=105)))
         #st.functions()
     )
 
@@ -93,8 +95,9 @@ def build_args_strategy(func):
 
                 positional_strategies.append(
                     st.one_of(
-                        callable_strategy(),
+                        #callable_strategy(),
                         preset_functions(),
+                        st.builds(GlobalMutatorPlan, increments=st.lists(st.integers(min_value=-10, max_value=105)))
                         #st.functions(like=lambda *args, **kwargs: None, returns=return_strat)
                     )
                 )
@@ -200,6 +203,9 @@ def instantiate_value(val, target_func):
         dummies = construct_dummies(target_func, limit=val.index + 1)
         return dummies[val.index]
 
+    if isinstance(val, GlobalMutatorPlan):
+        return create_global_mutator(target_func, val)
+
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
     if isinstance(val, tuple):
@@ -250,3 +256,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
+
+
+
+

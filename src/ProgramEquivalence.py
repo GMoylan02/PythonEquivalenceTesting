@@ -10,6 +10,7 @@ from typing import Callable, Dict
 
 import random
 from src.EquivTestingExceptions import ClassMethodMismatch
+from src.Profiler import return_value_equivalence
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
 import importlib
@@ -84,48 +85,37 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
         """
         ops should be in the form [(method, args), (method, args)]
         """
+        snap_a = snapshot_module_state(module_a) if module_a and reset_state else {}
+        snap_b = snapshot_module_state(module_b) if module_b and reset_state else {}
         try:
-            # todo can try to find a way to generalise this slightly, as this pattern is repeated in ClassEquivalence
-            if reset_state:
-                """
-                Some ramblings/examples for global variable equivalence in plain english for my own sanity: 
-                
-                if module_a alters a global variable x after running n steps, but module_b
-                does not alter any global variable x after running n steps, they are INEQUIVALENT.
-                
-                if they both alter a global variable x in the same way after n steps, they are EQUIVALENT.
-                
-                if module_a contains the definition of a global variable x, but it does not change, and module_b does not
-                define any global variables, then both modules states have changed (or not changed) in the same way and 
-                they are INEQUIVALENT.
-                
-                if module_a alters a global string variable s after running n steps, but module_b alters a global int
-                variable x after running n steps, they are INEQUIVALENT.
-                
-                This can be boiled down to checking if state_A equals state_B after n steps, given 
-                neither are the starting state.
-                """
-                current_state_a = snapshot_module_state(module_a) if module_a else {}
-                current_state_b = snapshot_module_state(module_b) if module_b else {}
-                if current_state_a != current_state_b and (current_state_a != snap_a and current_state_b != snap_a):
-                    # todo also might need to think about nonlocal variables for nested functions
-                    event(f"State of {module_a.__name__} and {module_b.__name__} are different")
-                    raise AssertionError(f"State of {module_a.__name__} and {module_b.__name__} are different:"
-                                         f"A: {current_state_a} != B: {current_state_b}")
-                if module_a: restore_module_state(module_a, snap_a)
-                if module_b: restore_module_state(module_b, snap_b)
             METHOD = 0
             ARGS = 1
             paired_funcs = pair_functions(module_a, module_b)
+
             for op in ops:
                 func_name = op[METHOD]
                 func_a, func_b = paired_funcs[func_name]
                 raw_args, raw_kwargs = op[ARGS]
                 run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+
+                if reset_state:
+                    current_state_a = snapshot_module_state(module_a) if module_a else {}
+                    current_state_b = snapshot_module_state(module_b) if module_b else {}
+                    if not return_value_equivalence(current_state_a, current_state_b):
+                        msg = (f"State Divergence in {func_name}:\n"
+                               f"A: {current_state_a}\n"
+                               f"B: {current_state_b}")
+                        event(msg)
+                        raise AssertionError(msg)
+
         except AssertionError as e:
             record_failure(module_a.__name__, e)
             raise
 
+        finally:
+            if reset_state:
+                if module_a: restore_module_state(module_a, snap_a)
+                if module_b: restore_module_state(module_b, snap_b)
 
     return test_program_equivalence
 
