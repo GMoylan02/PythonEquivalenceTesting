@@ -11,10 +11,10 @@ from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_stra
     GlobalMutatorPlan, create_global_mutator
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
-from src.Profiler import Profiler, return_value_equivalence
+from src.Profiler import Profiler, return_value_equivalence, record_failure
 import sys
 
-
+already_logged = False
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 
@@ -129,7 +129,7 @@ def build_args_strategy(func):
     return st.tuples(args_strategy, kwargs_strategy)
 
 
-def make_equivalence_test(func_a, func_b, reset_state=False):
+def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failure=False):
     input_strategy = build_args_strategy(func_a)
 
     module_a = sys.modules.get(func_a.__module__)
@@ -146,7 +146,16 @@ def make_equivalence_test(func_a, func_b, reset_state=False):
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
         raw_args, raw_kwargs = inputs
-        run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+        if log_failure:
+            try:
+                run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+            except AssertionError as e:
+                global already_logged
+                record_failure(module_a.__name__, e, already_logged)
+                already_logged = True
+                raise
+        else:
+            run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
 
     return equivalence_test
 

@@ -1,5 +1,6 @@
 import math
 import re
+from pathlib import Path
 
 
 class Profiler:
@@ -170,3 +171,9 @@ def are_equivalent(log_a, log_b):
             f_functions_seen_in_B.append(log_b[i]['function'])
 
     return True, ""
+
+FAIL_MARKER = Path("hypofuzz_failures.log")
+def record_failure(module_name, exc, already_logged):
+    if not already_logged:
+        with FAIL_MARKER.open("a") as f:
+            f.write(module_name + ": " + repr(exc) + "\n")

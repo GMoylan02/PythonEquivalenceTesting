@@ -7,3 +7,5 @@ __pycache__/
 ~$sters project notes.docx
 *.tmp
 *.log
+mutmut_test/*
+!mutmut_test.gitkeep

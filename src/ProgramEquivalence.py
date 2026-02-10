@@ -10,7 +10,7 @@ from typing import Callable, Dict
 
 import random
 from src.EquivTestingExceptions import ClassMethodMismatch
-from src.Profiler import return_value_equivalence
+from src.Profiler import return_value_equivalence, record_failure
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
 import importlib
@@ -20,15 +20,6 @@ import sys
 # we currently log failures to count the no. of ineqs in a test suite, this ensures we only log
 # once per failure
 already_logged = False
-
-FAIL_MARKER = Path("hypofuzz_failures.log")
-
-def record_failure(module_name, exc):
-    global already_logged
-    if not already_logged:
-        with FAIL_MARKER.open("a") as f:
-            f.write(module_name + ": " + repr(exc) + "\n")
-            already_logged = True
 
 
 def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
@@ -109,7 +100,9 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
                         raise AssertionError(msg)
 
         except AssertionError as e:
-            record_failure(module_a.__name__, e)
+            global already_logged
+            record_failure(module_a.__name__, e, already_logged)
+            already_logged = True
             raise
 
         finally:
