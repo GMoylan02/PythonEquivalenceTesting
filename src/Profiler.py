@@ -173,7 +173,22 @@ def are_equivalent(log_a, log_b):
     return True, ""
 
 FAIL_MARKER = Path("hypofuzz_failures.log")
-def record_failure(module_name, exc, already_logged):
-    if not already_logged:
-        with FAIL_MARKER.open("a") as f:
-            f.write(module_name + ": " + repr(exc) + "\n")
+def record_failure(module_name, exc, unique_id):
+    """
+        Uses a filesystem marker to ensure we only log once per test ID,
+        even across processes/forks.
+        """
+    # Create a unique marker filename in the temp dir
+    marker_file = Path(f".fail_marker_{unique_id}")
+
+    # Atomic check: try to create the file. If it exists, we already logged.
+    try:
+        # 'x' mode fails if file exists
+        marker_file.touch(exist_ok=False)
+    except FileExistsError:
+        return  # Already logged by another process/run
+
+    # If we got here, we are the first to fail
+    with FAIL_MARKER.open("a") as f:
+        f.write(f"{module_name}: {repr(exc)}\n")
+        f.flush()

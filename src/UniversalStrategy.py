@@ -135,6 +135,8 @@ def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failur
     module_a = sys.modules.get(func_a.__module__)
     module_b = sys.modules.get(func_b.__module__)
 
+    unique_test_id = f"{func_a.__name__}_{func_b.__name__}"
+
     if reset_state:
         snap_a = snapshot_module_state(module_a) if module_a else {}
         snap_b = snapshot_module_state(module_b) if module_b else {}
@@ -150,9 +152,7 @@ def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failur
             try:
                 run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
             except AssertionError as e:
-                global already_logged
-                record_failure(module_a.__name__, e, already_logged)
-                already_logged = True
+                record_failure(module_a.__name__, e, unique_test_id)
                 raise
         else:
             run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
