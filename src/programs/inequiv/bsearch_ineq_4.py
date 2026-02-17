@@ -1,4 +1,7 @@
-def make_bsearch():
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def make_bsearch_4_lhs():
     array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     length = 10
 
@@ -41,9 +44,8 @@ def make_bsearch():
 
     return bsearch
 
-|||
 
-def make_bsearch():
+def make_bsearch_4_rhs():
     array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     length = 10
 
@@ -85,3 +87,5 @@ def make_bsearch():
     bsearch = lambda key: bsearch_loop(key)(0)(length)
 
     return bsearch
+
+test_bsearch_ineq_4 = make_function_equivalence_test(make_bsearch_4_lhs, make_bsearch_4_rhs, log_failure=True)

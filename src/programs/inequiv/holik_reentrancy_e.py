@@ -1,23 +1,30 @@
-funds = 100
+from src.UniversalStrategy import make_function_equivalence_test
 
-def withdraw1(send1):
-    global funds
-    if not (funds < 1):
-        send1()
-        funds = funds - 1
-    else:
-        pass
-    return funds
 
-|||
+def holik_reentrancy_e_lhs():
+    funds = [100]
 
-funds = 4
+    def withdraw1(send1):
+        if not (funds[0] < 1):
+            send1()
+            funds[0] = funds[0] - 1
+        return funds[0]
 
-def withdraw1(send1):
-    global funds
-    if not (funds < 1):
-        funds = funds - 1
-        send1()
-    else:
-        pass
-    return funds
+    return withdraw1
+
+
+def holik_reentrancy_e_rhs():
+    funds = [4]
+
+    def withdraw1(send1):
+        if not (funds[0] < 1):
+            funds[0] = funds[0] - 1
+            send1()
+        return funds[0]
+
+    return withdraw1
+
+test_holik_reentrancy_e \
+    = make_function_equivalence_test(holik_reentrancy_e_lhs,
+                                     holik_reentrancy_e_rhs,
+                                     log_failure=True)

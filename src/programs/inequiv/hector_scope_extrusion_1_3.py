@@ -1,4 +1,7 @@
-def hector_scope_extrusion_1_3(f):
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def hector_scope_extrusion_1_3_lhs(f):
     x = 0
 
     def inner(y):
@@ -12,12 +15,11 @@ def hector_scope_extrusion_1_3(f):
     return f(inner)
 
 
-|||
-
-
-def hector_scope_extrusion_1_3(f):
+def hector_scope_extrusion_1_3_rhs(f):
 
     def inner(y):
         return y
 
     return f(inner)
+
+test_hector_scope_extrusion_1_2 = make_function_equivalence_test(hector_scope_extrusion_1_3_lhs, hector_scope_extrusion_1_3_rhs, log_failure=True)

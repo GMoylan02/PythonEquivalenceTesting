@@ -1,5 +1,7 @@
+from src.UniversalStrategy import make_function_equivalence_test
 
-def program(g):
+
+def meyer_sieber_v2_ineq_lhs(g):
     def even(x):
         return (x - ((x // 2) * 2)) == 0
     l = 0
@@ -12,8 +14,9 @@ def program(g):
     else:
         raise RuntimeError()
 
-|||
 
-def program(g):
+def meyer_sieber_v2_ineq_rhs(g):
     g(lambda: None)
     return lambda: None
+
+test_meyer_sieber_v2_ineq = make_function_equivalence_test(meyer_sieber_v2_ineq_lhs, meyer_sieber_v2_ineq_rhs, log_failure=True)

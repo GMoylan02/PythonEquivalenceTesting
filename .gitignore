@@ -9,3 +9,5 @@ __pycache__/
 *.log
 mutmut_test/*
 !mutmut_test.gitkeep
+RunMutationTests.py
+MutationTestDir/RunMutationTests.py

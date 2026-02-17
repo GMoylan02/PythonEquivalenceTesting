@@ -1,68 +1,55 @@
-def program():
-    # ref list' = (fun x -> ())
-    list_ref = {'val': lambda x: None}
+from src.UniversalStrategy import make_function_equivalence_test
 
-    # ref cnt = 0
-    cnt = {'val': 0}
 
-    # ref running = 0
-    running = {'val': 0}
+def holik_flat_combiner_e_lhs():
+    list_ref = [lambda x: None]
+    cnt = [0]
+    running = [0]
 
-    # let enlist = ...
     def enlist(f):
-        if not (running['val'] == 0):
-            return None
+        if not (running[0] == 0):
+            pass
         else:
-            cnt['val'] = cnt['val'] + 1
-            c = cnt['val']
-            l = list_ref['val']
-            list_ref['val'] = lambda z: f() if z == c else l(z)
+            cnt[0] = cnt[0] + 1
+            c = cnt[0]
+            l = list_ref[0]
+            list_ref[0] = lambda z: f() if z == c else l(z)
 
-    # let rec run () = ...
     def run():
-        running['val'] = 1
-        if 0 < cnt['val']:
-            list_ref['val'](cnt['val'])
-            cnt['val'] = cnt['val'] - 1
-            if cnt['val'] < 0:
-                raise Exception("_bot_")  # _bot_ represents bottom/error
-            else:
-                pass
+        running[0] = 1
+        if 0 < cnt[0]:
+            list_ref[0](cnt[0])
+            cnt[0] = cnt[0] - 1
+            if cnt[0] < 0:
+                raise Exception("_bot_")
             run()
         else:
-            list_ref['val'] = lambda x: None
-            running['val'] = 0
+            list_ref[0] = lambda x: None
+            running[0] = 0
 
-    # (fun f -> (f enlist) run)
-    return lambda f: f(enlist)(run)
+    return lambda f: (f(enlist), run)[1]
 
-|||
 
-def program():
-    # ref list' = (fun x -> ())
-    list_ref = {'val': lambda x: None}
+def holik_flat_combiner_e_rhs():
+    list_ref = [lambda x: None]
+    cnt = [0]
+    running = [0]
 
-    # ref cnt = 0
-    cnt = {'val': 0}
-
-    # ref running = 0
-    running = {'val': 0}
-
-    # let enlist = ...
     def enlist(f):
-        if not (running['val'] == 0):
-            return None
+        if not (running[0] == 0):
+            pass
         else:
-            cnt['val'] = cnt['val'] + 1
-            c = cnt['val']
-            l = list_ref['val']
-            list_ref['val'] = lambda z: f() if z == c else l(z)
+            cnt[0] = cnt[0] + 1
+            c = cnt[0]
+            l = list_ref[0]
+            list_ref[0] = lambda z: f() if z == c else l(z)
 
-    # let rec run () = ...
-    # The body is commented out in the original
     def run():
-        running['val'] = 1
-        # The rest of the function body is commented out
+        running[0] = 1
 
-    # (fun f -> (f enlist) run)
-    return lambda f: f(enlist)(run)
+    return lambda f: (f(enlist), run)[1]
+
+test_holik_flat_combiner_e \
+    = make_function_equivalence_test(holik_flat_combiner_e_lhs,
+                                     holik_flat_combiner_e_rhs,
+                                     log_failure=True)

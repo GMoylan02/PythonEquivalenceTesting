@@ -1,10 +1,12 @@
-def program():
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def ex3_4_e_ineq_lhs():
     v1 = lambda f: (f(), True)[1]
     return v1
 
-|||
 
-def program():
+def ex3_4_e_ineq_rhs():
     flag = [True]
 
     def v1(f):
@@ -18,3 +20,5 @@ def program():
             return False
 
     return v1
+
+test_ex3_4_e_ineq = make_function_equivalence_test(ex3_4_e_ineq_lhs, ex3_4_e_ineq_rhs, log_failure=True)

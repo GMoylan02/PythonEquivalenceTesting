@@ -1,4 +1,7 @@
-def make_call():
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def make_call_lhs():
     x = [0]
 
     def call(f):
@@ -9,9 +12,8 @@ def make_call():
 
     return call
 
-|||
 
-def make_call():
+def make_call_rhs():
     x = [0]
 
     def call(f):
@@ -21,3 +23,5 @@ def make_call():
         return True
 
     return call
+
+test_call_nested_param_ineq = make_function_equivalence_test(make_call_lhs, make_call_rhs, log_failure=True)

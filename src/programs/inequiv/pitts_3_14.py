@@ -1,99 +1,78 @@
-def empty(x):
-    return -99
+from src.UniversalStrategy import make_function_equivalence_test
 
-def cons(hd):
-    def inner(tl):
-        def lst(x):
-            if x == 0:
-                return hd
+
+def pitts_3_14_lhs():
+    empty = lambda x: -99
+
+    def cons(hd):
+        return lambda tl: lambda x: hd if x == 0 else tl(x - 1)
+
+    head = lambda ls: ls(0)
+    tail = lambda ls: lambda x: ls(x + 1)
+
+    def map_f(f):
+        def map_inner(l):
+            if head(l) == head(empty):
+                return empty
             else:
-                return tl(x - 1)
-        return lst
-    return inner
+                return cons(f(head(l)))(map_f(f)(tail(l)))
 
-def head(ls):
-    return ls(0)
+        return map_inner
 
-def tail(ls):
-    def t(x):
-        return ls(x - 1)
-    return t
-
-def map_(f):
-    def mapper(l):
-        if head(l) == head(empty):
-            return empty
-        else:
-            return cons(f(head(l)))(map_(f)(tail(l)))
-    return mapper
-
-def filter_(u):
-    def filt(l):
-        if head(l) == head(empty):
-            return empty
-        elif u(head(l)):
-            return cons(head(l))(filter_(u)(tail(l)))
-        else:
-            return filter_(u)(tail(l))
-    return filt
-
-def ml_function(u):
-    def inner_v(v):
-        def inner_l(l):
-            return filter_(u)(map_(v)(l))
-        return inner_l
-    return inner_v
-
-|||
-
-def empty(x):
-    return -99
-
-def cons(hd):
-    def inner(tl):
-        def lst(x):
-            if x == 0:
-                return hd
+    def filter_f(u):
+        def filter_inner(l):
+            if head(l) == head(empty):
+                return empty
             else:
-                return tl(x - 1)
-        return lst
-    return inner
+                if u(head(l)):
+                    return cons(head(l))(filter_f(u)(tail(l)))
+                else:
+                    return filter_f(u)(tail(l))
 
-def head(ls):
-    return ls(0)
+        return filter_inner
 
-def tail(ls):
-    def t(x):
-        return ls(x - 1)
-    return t
+    def func(u):
+        return lambda v: lambda l: filter_f(u)(map_f(v)(l))
 
-def map_(f):
-    def mapper(l):
-        if head(l) == head(empty):
-            return empty
-        else:
-            return cons(f(head(l)))(map_(f)(tail(l)))
-    return mapper
+    return func
 
-def filter_(u):
-    def filt(l):
-        if head(l) == head(empty):
-            return empty
-        elif u(head(l)):
-            return cons(head(l))(filter_(u)(tail(l)))
-        else:
-            return filter_(u)(tail(l))
-    return filt
 
-def ml_function(u):
+def pitts_3_14_rhs():
+    empty = lambda x: -99
+
+    def cons(hd):
+        return lambda tl: lambda x: hd if x == 0 else tl(x - 1)
+
+    head = lambda ls: ls(0)
+    tail = lambda ls: lambda x: ls(x + 1)
+
+    def map_f(f):
+        def map_inner(l):
+            if head(l) == head(empty):
+                return empty
+            else:
+                return cons(f(head(l)))(map_f(f)(tail(l)))
+
+        return map_inner
+
+    def filter_f(u):
+        def filter_inner(l):
+            if head(l) == head(empty):
+                return empty
+            else:
+                if u(head(l)):
+                    return cons(head(l))(filter_f(u)(tail(l)))
+                else:
+                    return filter_f(u)(tail(l))
+
+        return filter_inner
+
     def compose(u):
-        def inner(v):
-            def inner_x(x):
-                return u(v(x))
-            return inner_x
-        return inner
-    def inner_v(v):
-        def inner_l(l):
-            return map_(v)(filter_(compose(u)(v))(l))
-        return inner_l
-    return inner_v
+        return lambda v: lambda x: u(v(x))
+
+    def func(u):
+        return lambda v: lambda l: map_f(v)(filter_f(compose(u)(v))(l))
+
+    return func
+
+test_pitts_3_14 = make_function_equivalence_test(pitts_3_14_lhs, pitts_3_14_rhs, log_failure=True)

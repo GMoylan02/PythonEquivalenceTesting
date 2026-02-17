@@ -1,4 +1,7 @@
-def f(nc):
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def reve_barthe_ineq_lhs(nc):
     n, c = nc
     i = 0
     j = 0
@@ -15,9 +18,8 @@ def f(nc):
     while_()
     return x
 
-|||
 
-def f(nc):
+def reve_barthe_ineq_rhs(nc):
     n, c = nc
     i = 0
     j = c
@@ -35,3 +37,5 @@ def f(nc):
             return None
     while_()
     return x
+
+test_reve_barthe_ineq = make_function_equivalence_test(reve_barthe_ineq_lhs, reve_barthe_ineq_rhs, log_failure=True)

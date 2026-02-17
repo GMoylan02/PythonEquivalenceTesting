@@ -1,71 +1,62 @@
-list_fn = lambda x: None
-cnt = 0
-running = 0
+from src.UniversalStrategy import make_function_equivalence_test
 
-def enlist(f):
-    global cnt, list_fn, running
-    if not (running == 0):
-        return None
-    else:
-        cnt = cnt + 1
-        c = cnt
-        l = list_fn
-        def new_list(z):
-            if z == c:
-                return f()
-            else:
-                return l(z)
-        list_fn = new_list
 
-def run():
-    global cnt, list_fn, running
-    running = 1
-    if 0 < cnt:
-        list_fn(cnt)
-        cnt = cnt - 1
-        if cnt < 0:
-            raise Exception()
-        else:
+def holik_flat_combiner_v4_e_lhs():
+    list_ref = [lambda x: None]
+    cnt = [0]
+    running = [0]
+
+    def enlist(f):
+        if not (running[0] == 0):
             pass
-        return run()
-    else:
-        list_fn = lambda x: None
-        running = 0
+        else:
+            cnt[0] = cnt[0] + 1
+            c = cnt[0]
+            l = list_ref[0]
+            list_ref[0] = lambda z: f() if z == c else l(z)
 
-def program(f):
-    return f(enlist)(run)
+    def run():
+        running[0] = 1
+        if 0 < cnt[0]:
+            list_ref[0](cnt[0])
+            cnt[0] = cnt[0] - 1
+            if cnt[0] < 0:
+                raise Exception("_bot_")
+            run()
+        else:
+            list_ref[0] = lambda x: None
+            running[0] = 0
 
-|||
+    return lambda f: (f(enlist), run)[1]
 
-list_fn = lambda x: None
-cnt = 0
-running = 0
 
-def enlist(f):
-    global cnt, list_fn, running
-    if not (running == 0):
-        return None
-    else:
-        cnt = cnt + 1
-        c = cnt
-        l = list_fn
-        def new_list(z):
-            if z == c:
-                return f()
-            else:
-                return l(z)
-        list_fn = new_list
+def holik_flat_combiner_v4_e_rhs():
+    list_ref = [lambda x: None]
+    cnt = [0]
+    running = [0]
 
-def run():
-    global cnt, list_fn, running
-    running = 1
-    if 0 < cnt:
-        list_fn(cnt)
-        cnt = cnt - 1
-        return run()
-    else:
-        list_fn = lambda x: None
-        running = 0
+    def enlist(f):
+        if not (running[0] == 0):
+            pass
+        else:
+            cnt[0] = cnt[0] + 1
+            c = cnt[0]
+            l = list_ref[0]
+            list_ref[0] = lambda z: f() if z == c else l(z)
 
-def program(f):
-    return f(enlist)(run)
+    def run():
+        running[0] = 1
+        if 0 < cnt[0]:
+            list_ref[0](cnt[0])
+            cnt[0] = cnt[0] - 1
+            run()
+        else:
+            list_ref[0] = lambda x: None
+            running[0] = 0
+
+    return lambda f: (f(enlist), run)[1]
+
+test_holik_flat_combiner_v4_e \
+    = make_function_equivalence_test(holik_flat_combiner_v4_e_lhs,
+                                     holik_flat_combiner_v4_e_rhs,
+                                     log_failure=True)

@@ -1,4 +1,7 @@
-def program():
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def ex4v2_ineq_lhs():
     x = [0]
     c = [0]
 
@@ -14,12 +17,13 @@ def program():
 
     return func
 
-|||
 
-def program():
+def ex4v2_ineq_rhs():
     def func(f):
         f()
         f()
         return 1
 
     return func
+
+test_ex4v2_ineq = make_function_equivalence_test(ex4v2_ineq_lhs, ex4v2_ineq_rhs, log_failure=True)

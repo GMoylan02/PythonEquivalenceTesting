@@ -1,0 +1,29 @@
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def yy_17_feb_23_1_lhs(f):
+    def inner_ab(ab):
+        def inner_c(c):
+            a, b = ab
+            if a == []:
+                return f(b)
+            else:
+                x, *xs = a
+                return f([])
+        return inner_c
+    return inner_ab
+
+
+def yy_17_feb_23_1_rhs(f):
+    def inner_ab(ab):
+        def inner_c(c):
+            a, b = ab
+            if b == []:
+                return f(b)
+            else:
+                x, *xs = b
+                return f([])
+        return inner_c
+    return inner_ab
+
+test_yy_17_feb_23_1 = make_function_equivalence_test(yy_17_feb_23_1_lhs, yy_17_feb_23_1_rhs, log_failure=True)

@@ -1,137 +1,164 @@
-max_array_size = 100
+from src.UniversalStrategy import make_function_equivalence_test
 
-def mk_array(n):
-    if n < 1 or n > max_array_size:
-        raise RuntimeError()
-    a = [0] * 100
-    a_size = n
 
-    def a_get(i):
-        if i < 0 or i > a_size:
-            raise RuntimeError()
-        return a[i]
+def qsort_isort_N100_lhs():
+    max_array_size = 100
 
-    def a_set(i):
-        def inner(m):
-            if i < 0 or i > a_size:
-                raise RuntimeError()
-            a[i] = m
-        return inner
+    def mk_array(n):
+        if n < 1 or n > max_array_size:
+            raise Exception("_bot_")
 
-    return (a_size, a_get, a_set)
+        a = [[0] * 100]
+        a_size = n
 
-def ar_size(ar):
-    a_size, _, _ = ar
-    return a_size
+        def a_get(i):
+            if i < 0 or i >= a_size:
+                raise Exception("_bot_")
+            return a[0][i]
 
-def ar_get(ar):
-    _, a_get, _ = ar
-    return a_get
+        def a_set(i, m):
+            if i < 0 or i >= a_size:
+                raise Exception("_bot_")
+            a[0][i] = m
 
-def ar_set(ar):
-    _, _, a_set = ar
-    return a_set
+        return (a_size, a_get, a_set)
 
-def ar_copy(ar1):
-    def inner(ar2):
-        size1 = ar_size(ar1)
-        if size1 == ar_size(ar2):
-            i = 0
-            while i < size1:
-                ar_set(ar2)(i)(ar_get(ar1)(i))
-                i += 1
+    def ar_size(ar):
+        return ar[0]
+
+    def ar_get(ar, i):
+        return ar[1](i)
+
+    def ar_set(ar, i, m):
+        ar[2](i, m)
+
+    def ar_copy(ar1, ar2):
+        ar1_size = ar_size(ar1)
+        if ar1_size == ar_size(ar2):
+            def copy_loop(i):
+                if i < ar1_size:
+                    ar_set(ar2, i, ar_get(ar1, i))
+                    copy_loop(i + 1)
+
+            copy_loop(0)
         else:
-            raise RuntimeError()
-    return inner
+            raise Exception("_bot_")
 
-def ml_function(inout_ar):
-    a = mk_array(ar_size(inout_ar))
-    ar_copy(inout_ar)(a)
+    def func(inout_ar):
+        a = mk_array(ar_size(inout_ar))
+        ar_copy(inout_ar, a)
 
-    def qsort(a, first, length):
-        if length < 2:
-            return
-        pivot = ar_get(a)(length // 2)
-        i = 0
-        j = length - 1
+        def qsort(arr, first, len_):
+            if len_ < 2:
+                return
 
-        while True:
-            while ar_get(a)(i) < pivot:
-                i += 1
-            while ar_get(a)(j) > pivot:
-                j -= 1
-            if i >= j:
-                break
-            temp = ar_get(a)(i)
-            ar_set(a)(i)(ar_get(a)(j))
-            ar_set(a)(j)(temp)
+            pivot = [ar_get(arr, len_ // 2)]
+            i = [0]
+            j = [len_ - 1]
 
-        qsort(a, first, i)
-        qsort(a, first + i, length - i)
+            def partition_loop():
+                def while_i():
+                    if ar_get(arr, i[0]) < pivot[0]:
+                        i[0] = i[0] + 1
+                        while_i()
 
-    qsort(a, 0, ar_size(a))
-    ar_copy(a)(inout_ar)
+                while_i()
 
-|||
+                def while_j():
+                    if ar_get(arr, j[0]) > pivot[0]:
+                        j[0] = j[0] - 1
+                        while_j()
 
-max_array_size = 100
+                while_j()
 
-def mk_array(n):
-    if n < 1 or n > max_array_size:
-        raise RuntimeError()
-    a = [0] * 100
-    a_size = n
+                if i[0] >= j[0]:
+                    return
+                else:
+                    temp = ar_get(arr, i[0])
+                    ar_set(arr, i[0], ar_get(arr, j[0]))
+                    ar_set(arr, j[0], temp)
+                    partition_loop()
 
-    def a_get(i):
-        if i < 0 or i > a_size:
-            raise RuntimeError()
-        return a[i]
+            partition_loop()
+            qsort(arr, first, i[0])
+            qsort(arr, first + i[0], len_ - i[0])
 
-    def a_set(i):
-        def inner(m):
-            if i < 0 or i > a_size:
-                raise RuntimeError()
-            a[i] = m
-        return inner
+        qsort(a, 0, ar_size(a))
+        ar_copy(a, inout_ar)
 
-    return (a_size, a_get, a_set)
+    return func
 
-def ar_size(ar):
-    a_size, _, _ = ar
-    return a_size
 
-def ar_get(ar):
-    _, a_get, _ = ar
-    return a_get
+def qsort_isort_N100_rhs():
+    max_array_size = 100
 
-def ar_set(ar):
-    _, _, a_set = ar
-    return a_set
+    def mk_array(n):
+        if n < 1 or n > max_array_size:
+            raise Exception("_bot_")
 
-def ar_copy(ar1):
-    def inner(ar2):
-        size1 = ar_size(ar1)
-        if size1 == ar_size(ar2):
-            i = 0
-            while i < size1:
-                ar_set(ar2)(i)(ar_get(ar1)(i))
-                i += 1
+        a = [[0] * 100]
+        a_size = n
+
+        def a_get(i):
+            if i < 0 or i >= a_size:
+                raise Exception("_bot_")
+            return a[0][i]
+
+        def a_set(i, m):
+            if i < 0 or i >= a_size:
+                raise Exception("_bot_")
+            a[0][i] = m
+
+        return (a_size, a_get, a_set)
+
+    def ar_size(ar):
+        return ar[0]
+
+    def ar_get(ar, i):
+        return ar[1](i)
+
+    def ar_set(ar, i, m):
+        ar[2](i, m)
+
+    def ar_copy(ar1, ar2):
+        ar1_size = ar_size(ar1)
+        if ar1_size == ar_size(ar2):
+            def copy_loop(i):
+                if i < ar1_size:
+                    ar_set(ar2, i, ar_get(ar1, i))
+                    copy_loop(i + 1)
+
+            copy_loop(0)
         else:
-            raise RuntimeError()
-    return inner
+            raise Exception("_bot_")
 
-def ml_function(inout_ar):
-    a = mk_array(ar_size(inout_ar))
-    ar_copy(inout_ar)(a)
+    def func(inout_ar):
+        a = mk_array(ar_size(inout_ar))
+        ar_copy(inout_ar, a)
 
-    i = 1
-    while i < ar_size(a):
-        val = ar_get(a)(i)
-        j = i
-        while j > 0 and ar_get(a)(j - 1) <= val:
-            ar_set(a)(j)(ar_get(a)(j - 1))
-            j -= 1
-        ar_set(a)(j)(val)
-        i += 1
+        i = [1]
 
-    ar_copy(a)(inout_ar)
+        def while2():
+            if i[0] < ar_size(a):
+                val = [0]
+                j = [0]
+                val[0] = ar_get(a, i[0])
+                j[0] = i[0]
+
+                def while3():
+                    if j[0] > 0 and ar_get(a, j[0] - 1) <= val[0]:
+                        ar_set(a, j[0], ar_get(a, j[0] - 1))
+                        j[0] = j[0] - 1
+                        while3()
+
+                while3()
+                ar_set(a, j[0], val[0])
+                i[0] = i[0] + 1
+                while2()
+
+        while2()
+        ar_copy(a, inout_ar)
+
+    return func
+
+test_qsort_isort_N100 = make_function_equivalence_test(qsort_isort_N100_lhs, qsort_isort_N100_rhs, log_failure=True)

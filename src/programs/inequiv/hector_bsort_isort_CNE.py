@@ -1,4 +1,7 @@
-def program():
+from src.UniversalStrategy import make_function_equivalence_test
+
+
+def hector_bsort_isort_CNE_lhs():
     def func(args):
         compare, write_x, length, a_get, a_set = args
         i = [0]
@@ -36,9 +39,8 @@ def program():
 
     return func
 
-|||
 
-def program():
+def hector_bsort_isort_CNE_rhs():
     def func(args):
         compare, write_x, length, a_get, a_set = args
         i = [0]
@@ -74,3 +76,5 @@ def program():
         while4()
 
     return func
+
+test_hector_bsort_isort_CNE = make_function_equivalence_test(hector_bsort_isort_CNE_lhs, hector_bsort_isort_CNE_rhs, log_failure=True)

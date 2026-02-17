@@ -1,18 +1,25 @@
-x = 0
-def g():
-    global x
-    x = x + 1
-    if x > 10:
-        x = 0
-    g()
-    if x <= 10:
-        x = x + 1
-        return None
-    else:
-        raise Exception()
+from src.UniversalStrategy import make_function_equivalence_test
 
-|||
 
-def g():
-    g()
-    return None
+def invariants_1_lhs():
+    x = [0]
+
+    def func(g):
+        x[0] = x[0] + 1
+        if x[0] > 10:
+            x[0] = 0
+        g()
+        if x[0] <= 10:
+            x[0] = x[0] + 1
+        else:
+            raise Exception("_bot_")
+
+    return func
+
+def invariants_1_rhs():
+    def func(g):
+        g()
+
+    return func
+
+test_invariants_1 = make_function_equivalence_test(invariants_1_lhs, invariants_1_rhs, log_failure=True)
