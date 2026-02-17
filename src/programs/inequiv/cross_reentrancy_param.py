@@ -1,6 +1,9 @@
 from src.UniversalStrategy import make_function_equivalence_test
 
-
+# possible only if we set MAX_TUPLE_CALLS to 100 in UniversalStrategy and
+# get unreasonably lucky that the fuzzer draws even,odd in sequence 100 times
+# this is not quite accurate, but if we assume a random fuzzer, the odds are
+# 7.89 x 10^-31 or 1 in 1,267,650,600,228,229,401,496,703,205,376
 def cross_reentrancy_param_lhs():
     x = [0]
 

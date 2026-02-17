@@ -17,6 +17,7 @@ import sys
 already_logged = False
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
+MAX_TUPLE_CALLS = 30
 
 
 def get_universal_strategy():
@@ -167,6 +168,13 @@ def assert_equivalent(
         data,
         depth=0,
 ):
+    if _is_callable_tuple(out_a) and _is_callable_tuple(out_b):
+        if depth >= MAX_CALLABLE_DEPTH:
+            event("callable tuple depth limit")
+            return
+        assert_equivalent_callable_tuple(out_a, out_b, data=data, depth=depth)
+        return
+
     if not callable(out_a) or not callable(out_b):
         assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
@@ -268,6 +276,41 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
 
+def _is_callable_tuple(val):
+    """Given a tuple, returns true if every element is a function"""
+    return isinstance(val, tuple) and len(val) > 0 and all(callable(f) for f in val)
 
+def assert_equivalent_callable_tuple(tuple_a, tuple_b, *, data, depth=0):
+    """
+    Given two tuples of callables that share state internally, test them by
+    drawing a random interleaved call sequence and asserting that each paired
+    call produces equivalent outputs on both sides.
+    """
+    if len(tuple_a) != len(tuple_b):
+        raise AssertionError(
+            f"Returned tuples have different lengths: {len(tuple_a)} vs {len(tuple_b)}"
+        )
 
+    # Verify all signatures match pairwise
+    for i, (fa, fb) in enumerate(zip(tuple_a, tuple_b)):
+        if inspect.signature(fa) != inspect.signature(fb):
+            raise AssertionError(
+                f"Returned callables at index {i} have different signatures: "
+                f"{inspect.signature(fa)} vs {inspect.signature(fb)}"
+            )
 
+    operation_strategy = generate_tuple_operation_strategy(tuple_a, tuple_b)
+    sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=MAX_TUPLE_CALLS)
+
+    ops = data.draw(sequence_strategy)
+    for op in ops:
+        idx = op[0]
+        raw_args, raw_kwargs = op[1]
+        run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, data)
+
+def generate_tuple_operation_strategy(tuple_a, tuple_b):
+    strats = []
+    for i, function in enumerate(tuple_a):
+        strats.append(st.tuples(st.just(i), build_args_strategy(function)))
+    operation_strategy = st.one_of(strats)
+    return operation_strategy
