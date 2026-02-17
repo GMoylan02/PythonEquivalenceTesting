@@ -17,11 +17,6 @@ import importlib
 import sys
 
 
-# we currently log failures to count the no. of ineqs in a test suite, this ensures we only log
-# once per failure
-already_logged = False
-
-
 def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
     functions = {
         name: fn
@@ -30,6 +25,34 @@ def get_module_functions(module: ModuleType) -> Dict[str, Callable]:
     }
 
     return functions
+
+
+def get_module_methods(module):
+    """
+        Returns a dictionary of all functions and class methods in the module.
+        Keys are 'FunctionName' or 'ClassName.MethodName'.
+        """
+    found_funcs = {}
+
+    # 1. Scan Top-Level Functions
+    for name, obj in inspect.getmembers(module, inspect.isfunction):
+        found_funcs[name] = obj
+
+    # 2. Scan Classes
+    for cls_name, cls_obj in inspect.getmembers(module, inspect.isclass):
+        # Only scan classes defined in this module (skip imports)
+        if cls_obj.__module__ != module.__name__:
+            continue
+
+        # Scan methods inside the class
+        for method_name, method_obj in inspect.getmembers(cls_obj):
+            # We want functions (unbound methods)
+            if inspect.isfunction(method_obj) or inspect.ismethod(method_obj):
+                # Create a unique key: "ClassName.MethodName"
+                key_name = f"{cls_name}.{method_name}"
+                found_funcs[key_name] = method_obj
+
+    return found_funcs
 
 def pair_functions(module_a: ModuleType, module_b: ModuleType):
     funcs_a = get_module_functions(module_a)
@@ -78,6 +101,8 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
         """
         snap_a = snapshot_module_state(module_a) if module_a and reset_state else {}
         snap_b = snapshot_module_state(module_b) if module_b and reset_state else {}
+
+        unique_test_id = f"{module_a.__name__}_{module_b.__name__}"
         try:
             METHOD = 0
             ARGS = 1
@@ -100,9 +125,7 @@ def create_program_equivalence_test(module_a: ModuleType, module_b: ModuleType, 
                         raise AssertionError(msg)
 
         except AssertionError as e:
-            global already_logged
-            record_failure(module_a.__name__, e, already_logged)
-            already_logged = True
+            record_failure(module_a.__name__, e, unique_test_id)
             raise
 
         finally:

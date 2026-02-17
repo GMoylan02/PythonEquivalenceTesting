@@ -1,10 +1,14 @@
 import inspect
 from hypothesis import given, strategies as st, settings, event
-from UniversalStrategy import build_args_strategy
+from hypothesis.strategies import data as st_data
+from UniversalStrategy import build_args_strategy, run_and_test_equivalence
+from src.Profiler import return_value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
 from EquivTestingExceptions import ClassMethodMismatch
+from src.StateUtils import snapshot_object_state, restore_object_state
 
-def generate_operation_strategy(obj1, obj2, supported_operations=None):
+
+def generate_operation_strategy(obj1, obj2):
     # for now, only consider take non-dunder methods
     all_methods = get_object_methods(obj1)
     # for now, we work with a strict notion of class equivalence, reject if their methods don't align
@@ -15,55 +19,66 @@ def generate_operation_strategy(obj1, obj2, supported_operations=None):
 
     strats = []
     for method in all_methods.keys():
-        if not supported_operations or method in supported_operations:
-            strats.append(st.tuples(st.just(method), build_args_strategy(getattr(obj1, method))))
+        strats.append(st.tuples(st.just(method), build_args_strategy(getattr(obj1, method))))
     operation_strategy = st.one_of(strats)
     return operation_strategy
 
-def generate_sequence_strategy(obj1, obj2, max_size=20, supported_operations=None):
-    operation_strategy = generate_operation_strategy(obj1, obj2, supported_operations)
+def generate_sequence_strategy(obj1, obj2, max_size=20):
+    operation_strategy = generate_operation_strategy(obj1, obj2)
     sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=max_size)
     return sequence_strategy
 
-def create_class_equivalence_test(class1, class2, max_size=20, supported_operations=None):
-    obj1, obj2 = class1(), class2()
-    sequence_strategy = generate_sequence_strategy(obj1, obj2, max_size=max_size,
-                                                   supported_operations=supported_operations)
+def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True):
+    object_a, object_b = class1(), class2()
+    sequence_strategy = generate_sequence_strategy(object_a, object_b, max_size=max_size)
 
-    @given(sequence_strategy)
+    if reset_state:
+        snap_a = snapshot_object_state(object_a) if object_a else {}
+        snap_b = snapshot_object_state(object_b) if object_b else {}
+
+    @given(sequence_strategy, st_data())
     @settings(max_examples=1000)
-    def test_class_equivalence(ops):
+    def test_class_equivalence(ops, data):
         """
         ops should be in the form [(method, args), (method, args)]
         """
-        METHOD = 0
-        ARGS = 1
-        for op in ops:
-            func_a = getattr(obj1, op[METHOD])
-            func_b = getattr(obj2, op[METHOD])
-            status_a, out_a = run(func_a, op[ARGS])
-            status_b, out_b = run(func_b, op[ARGS])
-            error_msg = (f"Mismatch: \n"
-                         f"  {func_a.__name__} output: {out_a}\n"
-                         f"  {func_b.__name__} output: {out_b}\n"
-                         f"  for inputs {op[ARGS]}")
-            if status_a == "ok" and status_b == "ok":
-                event("both succeeded")
-                assert out_a == out_b, error_msg
-            elif status_a == "err" and status_b == "err":
-                event("both raised exception")
-                assert type(out_a) == type(out_b), error_msg
-            else:
-                event("domain mismatch")
-                raise AssertionError(error_msg)
+        snap_a = snapshot_object_state(object_a) if object_a and reset_state else {}
+        snap_b = snapshot_object_state(object_b) if object_b and reset_state else {}
+
+        unique_test_id = f"{object_a.__name__}_{object_b.__name__}"
+
+        try:
+            METHOD = 0
+            ARGS = 1
+
+            for op in ops:
+                func_name = op[METHOD]
+                func_a = getattr(object_a, func_name)
+                func_b = getattr(object_b, func_name)
+                raw_args, raw_kwargs = op[ARGS]
+                run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+
+                if reset_state:
+                    current_state_a = snapshot_object_state(object_a) if object_a else {}
+                    current_state_b = snapshot_object_state(object_b) if object_b else {}
+                    if not return_value_equivalence(current_state_a, current_state_b):
+                        msg = (f"State Divergence in {func_name}:\n"
+                               f"A: {current_state_a}\n"
+                               f"B: {current_state_b}")
+                        event(msg)
+                        raise AssertionError(msg)
+
+        except AssertionError as e:
+            record_failure(object_a.__name__, e, unique_test_id)
+            raise
+
+        finally:
+            if reset_state:
+                if object_a: restore_object_state(object_a, snap_a)
+                if object_b: restore_object_state(object_b, snap_b)
 
     return test_class_equivalence
 
-def run(fn, args):
-    try:
-        return "ok", fn(*args)
-    except Exception as e:
-        return "err", e
 
 def get_object_methods(obj):
     methods = {}

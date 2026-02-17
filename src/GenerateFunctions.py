@@ -38,7 +38,6 @@ def callable_strategy(draw, min_limit=1, max_limit=20):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
 
-# limitation: need some function that can alter global variables in the program
 def h1(n):
     return n
 
