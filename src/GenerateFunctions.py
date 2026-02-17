@@ -59,6 +59,32 @@ def preset_functions(draw):
 
 
 @dataclass
+class InterleavedCallerPlan:
+    """
+    Describes an interleaved call sequence for a function.
+    call_sequence is a list of indices (into *funcs) dictating which argument
+    to call at each step, in order
+    """
+    call_sequence: list[int]  # e.g. [0, 1, 0, 0, 1, 2]
+
+
+def create_interleaved_caller(plan: InterleavedCallerPlan):
+    """
+    returns a function that accepts any number of callables and calls them
+    in the order given by plan.call_sequence
+    """
+    def interleaved_caller(*funcs):
+        if not funcs:
+            return
+        results = []
+        for idx in plan.call_sequence:
+            results.append(funcs[idx % len(funcs)]())
+        return results[-1] if results else None
+
+    return interleaved_caller
+
+
+@dataclass
 class GlobalMutatorPlan:
     """
     Represents a deterministic sequence of mutations to apply.

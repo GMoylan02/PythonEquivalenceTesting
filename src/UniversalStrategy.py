@@ -8,7 +8,7 @@ from hypothesis.strategies import data as st_data
 from typing import Callable
 
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
-    GlobalMutatorPlan, create_global_mutator
+    GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller
 from src.Profiler import are_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence, record_failure
@@ -29,9 +29,8 @@ def get_universal_strategy():
         st.none(),
         callable_strategy(),
         preset_functions(),
-        st.builds(GlobalMutatorPlan,
-                  increments=st.lists(st.integers(min_value=-10, max_value=105)),
-                  string_concats=st.lists(st.text()))
+        interleaved_caller_strategy(),
+        global_mutator_strategy()   # not applicable for hobbit suite
         #st.functions()
     )
 
@@ -48,6 +47,20 @@ def get_universal_strategy():
         max_leaves=10
     )
 
+def global_mutator_strategy():
+    return st.builds(GlobalMutatorPlan,
+                  increments=st.lists(st.integers(min_value=-10, max_value=105)),
+                  string_concats=st.lists(st.text()))
+
+def interleaved_caller_strategy():
+    return st.builds(
+        InterleavedCallerPlan,
+        call_sequence=st.lists(
+            st.integers(min_value=0, max_value=9),
+            min_size=0,
+            max_size=20,
+        )
+    )
 
 def build_args_strategy(func):
     """
@@ -142,6 +155,8 @@ def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failur
         snap_a = snapshot_module_state(module_a) if module_a else {}
         snap_b = snapshot_module_state(module_b) if module_b else {}
 
+    # todo add module wide global state check (not applicable to hobbit suite)
+
     @given(input_strategy, st_data())
     @settings(max_examples=500, deadline=None)
     def equivalence_test(inputs, data):
@@ -224,6 +239,9 @@ def instantiate_value(val, target_func):
 
     if isinstance(val, GlobalMutatorPlan):
         return create_global_mutator(target_func, val)
+
+    if isinstance(val, InterleavedCallerPlan):
+        return create_interleaved_caller(val)
 
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
