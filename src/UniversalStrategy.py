@@ -8,9 +8,10 @@ from hypothesis.strategies import data as st_data
 from typing import Callable
 
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
-    GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller
+    GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
+    create_curried_interaction
 from src.Profiler import are_equivalent
-from src.StateUtils import snapshot_module_state, restore_module_state
+from src.StateUtils import snapshot_module_state, restore_module_state, snapshot_object_state
 from src.Profiler import Profiler, return_value_equivalence, record_failure
 import sys
 
@@ -30,6 +31,7 @@ def get_universal_strategy():
         callable_strategy(),
         preset_functions(),
         interleaved_caller_strategy(),
+        curried_interaction_strategy(),
         global_mutator_strategy()   # not applicable for hobbit suite
         #st.functions()
     )
@@ -60,6 +62,14 @@ def interleaved_caller_strategy():
             min_size=0,
             max_size=20,
         )
+    )
+
+def curried_interaction_strategy():
+    return st.builds(
+        CurriedInteractionPlan,
+        enlist_calls=st.integers(min_value=1, max_value=5),
+        run_calls=st.integers(min_value=1, max_value=3),
+        post_run_enlist_calls=st.integers(min_value=0, max_value=3),
     )
 
 def build_args_strategy(func):
@@ -107,13 +117,15 @@ def build_args_strategy(func):
                 #positional_strategies.append(st.one_of(callable_strategy(func), st.functions()))
                 #positional_strategies.append(st.functions())
                 #positional_strategies.append(callable_strategy(func))
-                return_strat = st.integers()
+                #return_strat = st.integers()
 
                 positional_strategies.append(
                     st.one_of(
                         #callable_strategy(),
                         preset_functions(),
-                        st.builds(GlobalMutatorPlan, increments=st.lists(st.integers(min_value=-10, max_value=105)))
+                        interleaved_caller_strategy(),
+                        global_mutator_strategy(),
+                        curried_interaction_strategy()
                         #st.functions(like=lambda *args, **kwargs: None, returns=return_strat)
                     )
                 )
@@ -129,7 +141,7 @@ def build_args_strategy(func):
             positional_strategies.append(get_universal_strategy())
     args_strategy = st.tuples(*positional_strategies)
     if has_varargs:
-        varargs_strategy = varargs_strategy or st.just(())
+        varargs_strategy = varargs_strategy if varargs_strategy else st.just(())
         args_strategy = st.builds(
             lambda a, v: a + v,
             args_strategy,
@@ -139,11 +151,11 @@ def build_args_strategy(func):
     if not has_kwargs:
         return st.tuples(args_strategy, st.just({}))
 
-    kwargs_strategy = kwargs_strategy or st.just({})
+    kwargs_strategy = kwargs_strategy if kwargs_strategy else st.just({})
     return st.tuples(args_strategy, kwargs_strategy)
 
 
-def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failure=False):
+def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False):
     input_strategy = build_args_strategy(func_a)
 
     module_a = sys.modules.get(func_a.__module__)
@@ -151,7 +163,7 @@ def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failur
 
     unique_test_id = f"{func_a.__name__}_{func_b.__name__}"
 
-    if reset_state:
+    if reset_module_state:
         snap_a = snapshot_module_state(module_a) if module_a else {}
         snap_b = snapshot_module_state(module_b) if module_b else {}
 
@@ -160,7 +172,7 @@ def make_function_equivalence_test(func_a, func_b, reset_state=False, log_failur
     @given(input_strategy, st_data())
     @settings(max_examples=500, deadline=None)
     def equivalence_test(inputs, data):
-        if reset_state:
+        if reset_module_state:
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
         raw_args, raw_kwargs = inputs
@@ -243,6 +255,9 @@ def instantiate_value(val, target_func):
     if isinstance(val, InterleavedCallerPlan):
         return create_interleaved_caller(val)
 
+    if isinstance(val, CurriedInteractionPlan):
+        return create_curried_interaction(val)
+
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
     if isinstance(val, tuple):
@@ -266,6 +281,12 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
     equivalent_logs, logs_error_msg = are_equivalent(log_a, log_b)
+
+    # todo low hanging fruit: we can check if the console output of both funcs is equivalent
+    # todo low hanging fruit: need to check that if the args to both funcs are altered, they are altered equivalently
+
+    # check that if the function(s) lie in a class, that every class attribute
+    # is equivalent
     if not equivalent_logs:
         event(logs_error_msg)
     if status_a == "ok" and status_b == "ok":
@@ -274,11 +295,13 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
         else:
             event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
         assert equivalent_logs, logs_error_msg
+        assert_instance_states_equivalent(func_a, func_b)
         assert_equivalent(out_a, out_b, data=data)
 
     elif status_a == "err" and status_b == "err":
         event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
         assert equivalent_logs, logs_error_msg
+        assert_instance_states_equivalent(func_a, func_b)
         # todo stop copy pasting this error message
         assert type(out_a) is type(out_b), (
             f"Mismatch: "
@@ -293,6 +316,43 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
+
+def get_instance_state(func):
+    """If func is a bound method, return its instance's __dict__, else None."""
+    if inspect.ismethod(func):
+        return vars(func.__self__).copy()
+    return None
+
+def assert_instance_states_equivalent(func_a, func_b):
+    """
+    If func_a and func_b are bound to an object, assert that every instance variable of their objects are equivalent
+    """
+    state_a = get_instance_state(func_a)
+    state_b = get_instance_state(func_b)
+
+    # neither is a bound method, nothing to check
+    if state_a is None and state_b is None:
+        return
+
+    # one is a method and one isn't
+    if (state_a is None) != (state_b is None):
+        raise AssertionError(
+            f"One function is a bound method and the other is not: "
+            f"{func_a!r} vs {func_b!r}"
+        )
+
+    # compare field by field for a useful error message
+    all_keys = set(state_a) | set(state_b)
+    for key in sorted(all_keys):
+        if key not in state_a:
+            raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
+        if key not in state_b:
+            raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
+        if not return_value_equivalence(state_a[key], state_b[key]):
+            raise AssertionError(
+                f"Instance state mismatch on field {key!r}: "
+                f"{state_a[key]!r} != {state_b[key]!r}"
+            )
 
 def _is_callable_tuple(val):
     """Given a tuple, returns true if every element is a function"""

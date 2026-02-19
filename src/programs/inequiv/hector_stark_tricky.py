@@ -1,4 +1,3 @@
-from src.GenerateFunctions import h5
 from src.UniversalStrategy import make_function_equivalence_test
 
 
@@ -20,4 +19,4 @@ def hector_stark_tricky_rhs(f):
     return f(1)
 
 
-test_hector_snapback = make_function_equivalence_test(hector_stark_tricky_lhs, hector_stark_tricky_rhs, log_failure=True)
+test_hector_stark_tricky = make_function_equivalence_test(hector_stark_tricky_lhs, hector_stark_tricky_rhs, log_failure=True)

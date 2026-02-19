@@ -47,7 +47,8 @@ function_re = r"<function.{1,100}at 0x.{1,100}>"
 
 def is_function(val):
     return re.match(function_re, str(val)) is not None
-supported_datastructures = (list, tuple, dict)
+
+supported_containers = (list, tuple, dict)
 
 def datastruct_equivalence(ds_a, ds_b):
     if type(ds_a) == type(ds_b):
@@ -63,13 +64,7 @@ def list_equivalence(list_a, list_b):
     if len(list_a) != len(list_b):
         return False
     for i in range(len(list_a)):
-        if is_function(list_a[i]) and is_function(list_b[i]):
-            continue
-        if is_function(list_a[i]) or is_function(list_b[i]):
-            return False
-        if type(list_a[i]) == type(list_b[i]) and type(list_a[i]) in supported_datastructures:
-            return datastruct_equivalence(list_a[i], list_b[i])
-        if list_a[i] != list_b[i]:
+        if not return_value_equivalence(list_a[i], list_b[i]):
             return False
     return True
 
@@ -78,18 +73,21 @@ def dict_equivalence(dict_a, dict_b):
     if len(dict_a.keys()) != len(dict_b.keys()):
         return False
     for k in dict_a.keys():
-        if is_function(dict_a[k]) and is_function(dict_b[k]):
-            continue
-        if is_function(dict_a[k]) or is_function(dict_b[k]):
-            return False
-        if type(dict_a[k]) == type(dict_b[k]) and type(dict_a[k]) in supported_datastructures:
-            return datastruct_equivalence(dict_a[k], dict_b[k])
-        if dict_a[k] != dict_b[k]:
+        if not return_value_equivalence(dict_a[k], dict_b[k]):
             return False
     return True
 
 
 def return_value_equivalence(return_a, return_b):
+    """
+    Recursively check if two return values are equivalent, allowing them to any combination of primitives,
+    objects of a user-defined class, or containers of these
+    """
+
+    # Generally speaking we don't reach this condition unless return_a and return_b are one of the numbered dummies
+    # from callable_strategy, in which case we should correctly consider them equivalent.
+    # there is a very niche possibility that we reach here without dummy functions, in which case we should still
+    # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
     if is_function(return_a) and is_function(return_b):
         return True
     if is_function(return_a) != is_function(return_b):
@@ -98,11 +96,28 @@ def return_value_equivalence(return_a, return_b):
         return False
     if type(return_a) == float and (math.isnan(return_a) and math.isnan(return_b)):
         return True
-    if type(return_a) in supported_datastructures:
+    if type(return_a) in supported_containers:
         return datastruct_equivalence(return_a, return_b)
+    # this works in most cases, unless these are any objects that contain cycles like DLLs, then we can potentially
+    # recurse infinitely here trying to check equivalence
+    if is_user_object(return_a) and is_user_object(return_b):
+        return instance_vars_equal(return_a, return_b)
     if return_a != return_b:
         return False
     return True
+
+def instance_vars_equal(obj1, obj2):
+    vars1 = vars(obj1)
+    vars2 = vars(obj2)
+
+    return return_value_equivalence(vars1, vars2)
+
+def is_user_object(var):
+    # checks if a variable is a user-defined object
+    builtin_types = (int, float, complex, str, bool, bytes,
+                     list, tuple, set, dict, frozenset, type(None))
+
+    return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
 
 
 def are_equivalent(log_a, log_b):
@@ -113,7 +128,6 @@ def are_equivalent(log_a, log_b):
             where f_functions are 'observer' functions to func_a and func_b defined in construct_dummies()
             for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
 
-    todo im also pretty sure 2. is wrong. this needs to be investigated further and fixed
     """
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
@@ -178,11 +192,11 @@ def record_failure(module_name, exc, unique_id):
 
     FAIL_MARKER.touch(exist_ok=True)
 
-    with FAIL_MARKER.open("r") as f:
+    with FAIL_MARKER.open("r", encoding="utf-8") as f:
         for line in f:
             if line.startswith(f"{unique_id}|"):
                 return
 
-    with FAIL_MARKER.open("a") as f:
+    with FAIL_MARKER.open("a", encoding="utf-8") as f:
         f.write(entry)
         f.flush()

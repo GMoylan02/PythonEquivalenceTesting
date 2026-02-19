@@ -26,7 +26,7 @@ def holik_flat_combiner_v2_e_lhs():
             list_ref[0] = lambda x: None
             running[0] = 0
 
-    return lambda f: (f(enlist), run)[1]
+    return lambda f: f(enlist)(run)
 
 
 def holik_flat_combiner_v2_e_rhs():
@@ -54,7 +54,7 @@ def holik_flat_combiner_v2_e_rhs():
             list_ref[0] = lambda x: None
             running[0] = 0
 
-    return lambda f: (f(enlist), run)[1]
+    return lambda f: f(enlist)(run)
 
 test_holik_flat_combiner_v2_e \
     = make_function_equivalence_test(holik_flat_combiner_v2_e_lhs,

@@ -6,7 +6,6 @@ def make_bsearch_1_lhs():
     length = 10
 
     def get(n):
-        # Destructuring the tuple exactly like the OCaml array ref
         a0, a1, a2, a3, a4, a5, a6, a7, a8, a9 = array
         if n == 0: return a0
         if n == 1: return a1
@@ -20,7 +19,6 @@ def make_bsearch_1_lhs():
         if n == 9: return a9
         return -1
 
-    # Python closure variables mimic OCaml refs
     lo = 0
     hi = length
     found = False
@@ -29,7 +27,7 @@ def make_bsearch_1_lhs():
         nonlocal lo, hi, found
 
         if lo + 1 < hi:
-            mid = (lo + hi) // 2  # Integer division mimics OCaml's /
+            mid = (lo + hi) // 2
             if get(mid) <= key:
                 lo = mid + 1
             else:

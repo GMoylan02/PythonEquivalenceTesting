@@ -1,10 +1,10 @@
 import inspect
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from UniversalStrategy import build_args_strategy, run_and_test_equivalence
+from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
 from src.Profiler import return_value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
-from EquivTestingExceptions import ClassMethodMismatch
+from src.EquivTestingExceptions import ClassMethodMismatch
 from src.StateUtils import snapshot_object_state, restore_object_state
 
 
@@ -45,7 +45,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
         snap_a = snapshot_object_state(object_a) if object_a and reset_state else {}
         snap_b = snapshot_object_state(object_b) if object_b and reset_state else {}
 
-        unique_test_id = f"{object_a.__name__}_{object_b.__name__}"
+        unique_test_id = f"{type(object_a).__name__}_{type(object_b).__name__}"
 
         try:
             METHOD = 0
@@ -69,7 +69,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
                         raise AssertionError(msg)
 
         except AssertionError as e:
-            record_failure(object_a.__name__, e, unique_test_id)
+            record_failure(type(object_a).__name__, e, unique_test_id)
             raise
 
         finally:
@@ -93,9 +93,23 @@ def get_object_methods(obj):
         methods[name] = len(params)
     return methods
 
-try:
-    # generate_operation_strategy(s1, s2, ("push", "pop"))
-    test_stacks = create_class_equivalence_test(Stack1, Stack2, 20)
-    test_stacks()
-except AssertionError as e:
-    print(f"Found bug\n{e}")
+def get_module_methods(module):
+    """
+        Returns a dictionary of all functions and class methods in the module.
+        Keys are 'FunctionName' or 'ClassName.MethodName'.
+        """
+    found_funcs = {}
+
+    for name, obj in inspect.getmembers(module, inspect.isfunction):
+        found_funcs[name] = obj
+
+    for cls_name, cls_obj in inspect.getmembers(module, inspect.isclass):
+        if cls_obj.__module__ != module.__name__:
+            continue
+
+        for method_name, method_obj in inspect.getmembers(cls_obj):
+            if inspect.isfunction(method_obj) or inspect.ismethod(method_obj):
+                key_name = f"{cls_name}.{method_name}"
+                found_funcs[key_name] = method_obj
+
+    return found_funcs
