@@ -90,7 +90,6 @@ class GlobalMutatorPlan:
     Represents a deterministic sequence of mutations to apply.
     Hypothesis generates this. instantiate_value consumes it.
     """
-    # todo come up with sensible mutations for other types
     increments: List[int]
     string_concats: List[str]
 
@@ -143,3 +142,52 @@ def create_global_mutator(target_func, plan: GlobalMutatorPlan):
         return None
 
     return mutator
+
+@dataclass
+class CurriedInteractionPlan:
+    """
+    Generates f for HOFs of the form: lambda f: f(enlist)(run)
+
+    1. f(enlist):
+      Calls enlist(inner) 'enlist_calls' times, where inner appends to a shared log
+      Returns the function 'phase2'
+
+    2.  phase2(run):
+      Calls run() 'run_calls' times
+      Optionally calls enlist(inner) 'post_run_enlist_calls' more times
+      (exercises whether run resets the running flag).
+      Returns the log
+    """
+    enlist_calls: int
+    run_calls: int
+    # we call enlist after run to probe for un-reset flags
+    # e.g  "if not (running[0] == 0)"
+    post_run_enlist_calls: int
+
+
+def create_curried_interaction(plan: CurriedInteractionPlan):
+    def f(enlist):
+        log = []
+
+        def inner():
+            log.append(1)
+
+        for _ in range(plan.enlist_calls):
+            enlist(inner)
+
+        def phase2(run):
+            for _ in range(plan.run_calls):
+                try:
+                    run()
+                except Exception as e:
+                    log.append(('run_raised', type(e).__name__))
+
+            # probe whether running flag was cleared
+            for _ in range(plan.post_run_enlist_calls):
+                enlist(inner)
+
+            return tuple(log)
+
+        return phase2
+
+    return f
