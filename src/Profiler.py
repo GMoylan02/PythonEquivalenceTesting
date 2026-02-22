@@ -120,7 +120,7 @@ def is_user_object(var):
     return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
 
 
-def are_equivalent(log_a, log_b):
+def are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
     """
     Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
     1. Check that the final return value of func_a() `eq` func_b()
@@ -148,9 +148,13 @@ def are_equivalent(log_a, log_b):
     if len(log_a_returns) > 0 and len(log_b_returns) > 0:
 
         if not return_value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
-            return False, (f"Mismatch: "
-                f"Function A: {top_func_name_a} = {log_a_returns[-1]['return_value']!r}, "
-                f"Function B: {top_func_name_b} = {log_b_returns[-1]['return_value']!r}")
+            if kwargs_a != {}:
+                return False, (
+                    f"Function A: {top_func_name_a}({args_a}, {kwargs_a}) = {log_a_returns[-1]['return_value']!r}, "
+                    f"Function B: {top_func_name_b}({args_b}, {kwargs_b}) = {log_b_returns[-1]['return_value']!r}")
+            return False, (
+                f"Function A: {top_func_name_a}{args_a} = {log_a_returns[-1]['return_value']!r}, "
+                f"Function B: {top_func_name_b}{args_b} = {log_b_returns[-1]['return_value']!r}")
 
     # f_functions are functions used for testing deep recursion. this logic serves to check that
     # forall f in f_functions, f in log_a == f in log_b

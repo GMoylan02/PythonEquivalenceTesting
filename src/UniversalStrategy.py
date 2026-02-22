@@ -280,7 +280,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
-    equivalent_logs, logs_error_msg = are_equivalent(log_a, log_b)
+    equivalent_logs, logs_error_msg = are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
 
     # todo low hanging fruit: we can check if the console output of both funcs is equivalent
     # todo low hanging fruit: need to check that if the args to both funcs are altered, they are altered equivalently

@@ -11,7 +11,7 @@ from typing import Dict, Callable
 
 from src.ClassEquivalence import get_module_methods
 
-TIMEOUT_SECONDS = 15
+TIMEOUT_SECONDS = 10
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "mutmut_test"
