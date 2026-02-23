@@ -5,7 +5,7 @@ def ex3_5_e_ineq_lhs():
     v2 = lambda: True
     return v2
 
-def ex3_5_e_ineq__rhs():
+def ex3_5_e_ineq_rhs():
     flag = [True]
 
     def v2():

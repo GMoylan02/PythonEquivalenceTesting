@@ -112,14 +112,10 @@ def build_args_strategy(func):
 
                 # TODO: for performance we can add some mechanism for detecting callable arguments WITHOUT
                 #   type annotations
-                #positional_strategies.append(st.one_of(callable_strategy(func), st.functions()))
-                #positional_strategies.append(st.functions())
-                #positional_strategies.append(callable_strategy(func))
-                #return_strat = st.integers()
 
                 positional_strategies.append(
                     st.one_of(
-                        #callable_strategy(),
+                        callable_strategy(),
                         preset_functions(),
                         interleaved_caller_strategy(),
                         global_mutator_strategy(),
@@ -127,6 +123,9 @@ def build_args_strategy(func):
                         #st.functions(like=lambda *args, **kwargs: None, returns=return_strat)
                     )
                 )
+                continue
+            if is_user_defined_class(param.annotation):
+                positional_strategies.append(build_instance_strategy(param.annotation))
                 continue
             try:
                 # use type hint if exists
@@ -151,6 +150,50 @@ def build_args_strategy(func):
 
     kwargs_strategy = kwargs_strategy if kwargs_strategy else st.just({})
     return st.tuples(args_strategy, kwargs_strategy)
+
+
+def build_instance_strategy(cls):
+    """
+    Generates instances of cls by fuzzing its __init__ arguments.
+    Falls back to universal strategy construction if __init__ is not type annotated
+    """
+    try:
+        init_sig = inspect.signature(cls.__init__)
+    except (ValueError, TypeError):
+        return st.just(cls())
+
+    arg_strategies = []
+    for param_name, param in init_sig.parameters.items():
+        if param_name == 'self':
+            continue
+        if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
+            continue
+
+        if param.annotation != inspect.Parameter.empty:
+            if is_user_defined_class(param.annotation):
+                # recursively handle nested user-defined types
+                arg_strategies.append(build_instance_strategy(param.annotation))
+            else:
+                try:
+                    arg_strategies.append(st.from_type(param.annotation))
+                except Exception:
+                    arg_strategies.append(get_universal_strategy())
+        elif param.default != inspect.Parameter.empty:
+            arg_strategies.append(st.just(param.default))
+        else:
+            arg_strategies.append(get_universal_strategy())
+
+    if not arg_strategies:
+        return st.just(cls())
+
+    return st.builds(cls, *arg_strategies)
+
+def is_user_defined_class(annotation):
+    return (
+        inspect.isclass(annotation)
+        and annotation.__module__ not in ('builtins', 'typing')
+        and not annotation.__module__.startswith('hypothesis')
+    )
 
 
 def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False):
