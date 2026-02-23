@@ -90,7 +90,7 @@ def build_args_strategy(func):
                 if param.annotation is not inspect.Parameter.empty
                 else get_universal_strategy()
             )
-            varargs_strategy = elem_strategy
+            varargs_strategy = st.lists(elem_strategy).map(tuple)
             continue
         if param.kind == param.VAR_KEYWORD:
             has_kwargs = True
@@ -138,7 +138,6 @@ def build_args_strategy(func):
             positional_strategies.append(get_universal_strategy())
     args_strategy = st.tuples(*positional_strategies)
     if has_varargs:
-        varargs_strategy = varargs_strategy if varargs_strategy else st.just(())
         args_strategy = st.builds(
             lambda a, v: a + v,
             args_strategy,
@@ -148,7 +147,6 @@ def build_args_strategy(func):
     if not has_kwargs:
         return st.tuples(args_strategy, st.just({}))
 
-    kwargs_strategy = kwargs_strategy if kwargs_strategy else st.just({})
     return st.tuples(args_strategy, kwargs_strategy)
 
 
