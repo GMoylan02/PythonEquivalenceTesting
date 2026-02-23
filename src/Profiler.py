@@ -1,3 +1,4 @@
+import inspect
 import math
 import re
 from pathlib import Path
@@ -106,6 +107,8 @@ def return_value_equivalence(return_a, return_b):
         return False
     return True
 
+# TODO: this smells, some of these functions do p. much the same thing. In need of a refactor, but not a priority now
+
 def instance_vars_equal(obj1, obj2):
     vars1 = vars(obj1)
     vars2 = vars(obj2)
@@ -120,7 +123,48 @@ def is_user_object(var):
     return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
 
 
-def are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
+def get_instance_state(val):
+    """If func is a bound method, return its instance's __dict__, else None."""
+    if inspect.ismethod(val):
+        return vars(val.__self__).copy()
+    if is_user_object(val):
+        return vars(val).copy()
+    return None
+
+
+def assert_instance_states_equivalent(func_a, func_b):
+    """
+    If func_a and func_b are bound to an object, assert that every instance variable of their objects are equivalent
+    """
+    state_a = get_instance_state(func_a)
+    state_b = get_instance_state(func_b)
+
+    # neither is a bound method, nothing to check
+    if state_a is None and state_b is None:
+        return
+
+    # one is a method and one isn't
+    if (state_a is None) != (state_b is None):
+        raise AssertionError(
+            f"One function is a bound method and the other is not: " # todo
+            f"{func_a!r} vs {func_b!r}"
+        )
+
+    # compare field by field for a useful error message
+    all_keys = set(state_a) | set(state_b)
+    for key in sorted(all_keys):
+        if key not in state_a:
+            raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
+        if key not in state_b:
+            raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
+        if not return_value_equivalence(state_a[key], state_b[key]):
+            raise AssertionError(
+                f"Instance state mismatch on field {key!r}: "
+                f"{state_a[key]!r} != {state_b[key]!r}"
+            )
+
+
+def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
     """
     Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
     1. Check that the final return value of func_a() `eq` func_b()

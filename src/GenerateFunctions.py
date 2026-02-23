@@ -94,7 +94,6 @@ class GlobalMutatorPlan:
     string_concats: List[str]
 
 
-
 def create_global_mutator(target_func, plan: GlobalMutatorPlan):
     """
     Creates a function that gets passed as an argument to the function being tested that mutates global state

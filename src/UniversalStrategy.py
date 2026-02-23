@@ -1,7 +1,4 @@
 import inspect
-from dataclasses import dataclass
-from functools import wraps
-from pathlib import Path
 
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
@@ -10,8 +7,8 @@ from typing import Callable
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
     GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
     create_curried_interaction
-from src.Profiler import are_equivalent
-from src.StateUtils import snapshot_module_state, restore_module_state, snapshot_object_state
+from src.Profiler import logs_are_equivalent, assert_instance_states_equivalent
+from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence, record_failure
 import sys
 
@@ -20,6 +17,7 @@ MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 MAX_TUPLE_CALLS = 30
 
+# TODO: The fact that the error messages are all over the place is terrible and needs to be refactored in future
 
 def get_universal_strategy():
     primitives = st.one_of(
@@ -280,7 +278,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
-    equivalent_logs, logs_error_msg = are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
+    equivalent_logs, logs_error_msg = logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
 
     # todo low hanging fruit: we can check if the console output of both funcs is equivalent
     # todo low hanging fruit: need to check that if the args to both funcs are altered, they are altered equivalently
@@ -317,42 +315,6 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
 
-def get_instance_state(func):
-    """If func is a bound method, return its instance's __dict__, else None."""
-    if inspect.ismethod(func):
-        return vars(func.__self__).copy()
-    return None
-
-def assert_instance_states_equivalent(func_a, func_b):
-    """
-    If func_a and func_b are bound to an object, assert that every instance variable of their objects are equivalent
-    """
-    state_a = get_instance_state(func_a)
-    state_b = get_instance_state(func_b)
-
-    # neither is a bound method, nothing to check
-    if state_a is None and state_b is None:
-        return
-
-    # one is a method and one isn't
-    if (state_a is None) != (state_b is None):
-        raise AssertionError(
-            f"One function is a bound method and the other is not: "
-            f"{func_a!r} vs {func_b!r}"
-        )
-
-    # compare field by field for a useful error message
-    all_keys = set(state_a) | set(state_b)
-    for key in sorted(all_keys):
-        if key not in state_a:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
-        if key not in state_b:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
-        if not return_value_equivalence(state_a[key], state_b[key]):
-            raise AssertionError(
-                f"Instance state mismatch on field {key!r}: "
-                f"{state_a[key]!r} != {state_b[key]!r}"
-            )
 
 def _is_callable_tuple(val):
     """Given a tuple, returns true if every element is a function"""
