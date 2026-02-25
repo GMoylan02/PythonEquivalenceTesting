@@ -22,7 +22,7 @@ def construct_dummies(g, limit=10):
         prev = functions[-1]
         def make_f(prev_fn, idx):
             func_definition = f"""
-def f{idx+1}():
+def f{idx+1}(*args, **kwargs):
     return g(prev_fn)
 """
             local_vars = {}
@@ -42,7 +42,8 @@ def h1(n):
     return n
 
 def h2(g):
-    g()
+    g(1)
+    g(1)
 
 def h3(g):
     g(5)
@@ -52,9 +53,12 @@ def h4(f, g):
     f()
     g()
 
+def h5(g):
+    g()
+
 @st.composite
 def preset_functions(draw):
-    funcs = [h1, h2, h3, h4]
+    funcs = [h1, h2, h3, h4, h5]
     return draw(st.sampled_from(funcs))
 
 
@@ -190,3 +194,30 @@ def create_curried_interaction(plan: CurriedInteractionPlan):
         return phase2
 
     return f
+
+# todo idea: generate functions that take varargs, give the function logic to iterate over its args, check type, and dynamically
+# perform action on that arg depending on its signature
+
+
+
+@dataclass
+class CallableStubPlan:
+    return_values: list  # cycled through on each call
+
+
+_stub_counter = 0
+
+def create_stub(plan: CallableStubPlan, stub_index: int):
+    stub_name = f"__stub_{stub_index}"
+    return_values = plan.return_values
+    state = {"call_count": 0}
+
+    func_def = f"""
+def {stub_name}(*args, **kwargs):
+    result = return_values[state['call_count'] % len(return_values)] if return_values else None
+    state['call_count'] += 1
+    return result
+"""
+    local_vars = {}
+    exec(func_def, {"return_values": return_values, "state": state}, local_vars)
+    return local_vars[stub_name]

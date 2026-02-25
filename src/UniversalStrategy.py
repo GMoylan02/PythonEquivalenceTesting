@@ -1,4 +1,5 @@
 import inspect
+import typing
 
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
@@ -6,7 +7,7 @@ from typing import Callable
 
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
     GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
-    create_curried_interaction
+    create_curried_interaction, CallableStubPlan, create_stub
 from src.Profiler import logs_are_equivalent, assert_instance_states_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence, record_failure
@@ -30,7 +31,8 @@ def get_universal_strategy():
         preset_functions(),
         interleaved_caller_strategy(),
         curried_interaction_strategy(),
-        global_mutator_strategy()   # not applicable for hobbit suite
+        #callable_stub_strategy(),
+       # global_mutator_strategy()   # not applicable for hobbit suite
         #st.functions()
     )
 
@@ -70,6 +72,15 @@ def curried_interaction_strategy():
         post_run_enlist_calls=st.integers(min_value=0, max_value=3),
     )
 
+def callable_stub_strategy():
+    return st.builds(
+        CallableStubPlan,
+        return_values=st.lists(
+            st.one_of(st.integers(), st.booleans(), st.none(), st.text()),
+            max_size=10
+        )
+    )
+
 def build_args_strategy(func):
     """
     Inspects a function and returns a strategy that generates
@@ -86,55 +97,29 @@ def build_args_strategy(func):
         if param.kind == param.VAR_POSITIONAL:
             has_varargs = True
             elem_strategy = (
-                st.from_type(param.annotation)
+                strategy_from_annotation(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
                 else get_universal_strategy()
             )
             varargs_strategy = st.lists(elem_strategy).map(tuple)
             continue
+
         if param.kind == param.VAR_KEYWORD:
             has_kwargs = True
             value_strategy = (
-                st.from_type(param.annotation)
+                strategy_from_annotation(param.annotation)
                 if param.annotation is not inspect.Parameter.empty
                 else get_universal_strategy()
             )
             kwargs_strategy = st.dictionaries(
-                    keys=st.text(min_size=1),
-                    values=value_strategy,
-                )
-
+                keys=st.text(min_size=1),
+                values=value_strategy,
+            )
             continue
 
         if param.annotation != inspect.Parameter.empty:
-            if param.annotation == Callable:
-                # TODO: NB experiment with hypothesis inbuilt functions strategy
-
-                # TODO: for performance we can add some mechanism for detecting callable arguments WITHOUT
-                #   type annotations
-
-                positional_strategies.append(
-                    st.one_of(
-                        callable_strategy(),
-                        preset_functions(),
-                        interleaved_caller_strategy(),
-                        global_mutator_strategy(),
-                        curried_interaction_strategy()
-                        #st.functions(like=lambda *args, **kwargs: None, returns=return_strat)
-                    )
-                )
-                continue
-            if is_user_defined_class(param.annotation):
-                positional_strategies.append(build_instance_strategy(param.annotation))
-                continue
-            try:
-                # use type hint if exists
-                positional_strategies.append(st.from_type(param.annotation))
-            except Exception:
-                # fallback if the type hint is too complex or not supported (maybe change this to exception)
-                positional_strategies.append(get_universal_strategy())
+            positional_strategies.append(strategy_from_annotation(param.annotation))
         else:
-            # use universal strat if no type hint
             positional_strategies.append(get_universal_strategy())
     args_strategy = st.tuples(*positional_strategies)
     if has_varargs:
@@ -148,6 +133,63 @@ def build_args_strategy(func):
         return st.tuples(args_strategy, st.just({}))
 
     return st.tuples(args_strategy, kwargs_strategy)
+
+
+def callable_strategy_for_annotation():
+    return st.one_of(
+        callable_strategy(),
+        preset_functions(),
+        interleaved_caller_strategy(),
+        #global_mutator_strategy(),
+        curried_interaction_strategy(),
+        callable_stub_strategy()
+    )
+
+
+def strategy_from_annotation(annotation):
+    """
+    Recursively resolves a type annotation to a strategy, using custom
+    callable strategies wherever Callable appears inside containers.
+    """
+    if annotation is inspect.Parameter.empty:
+        return get_universal_strategy()
+
+    if annotation is Callable:
+        return callable_strategy_for_annotation()
+
+    if is_user_defined_class(annotation):
+        return build_instance_strategy(annotation)
+
+    origin = typing.get_origin(annotation)
+    args = typing.get_args(annotation)
+
+    if origin is tuple:
+        if not args:
+            # bare tuple, no inner type info
+            return st.tuples()
+        if len(args) == 2 and args[1] is Ellipsis:
+            # tuple[X, ...] — variable length homogeneous tuple
+            return st.lists(strategy_from_annotation(args[0])).map(tuple)
+        # tuple[X, Y, Z] — fixed length heterogeneous tuple
+        return st.tuples(*[strategy_from_annotation(a) for a in args])
+
+    if origin is list:
+        inner = strategy_from_annotation(args[0]) if args else get_universal_strategy()
+        return st.lists(inner)
+
+    if origin is dict:
+        k_strat = strategy_from_annotation(args[0]) if args else st.text()
+        v_strat = strategy_from_annotation(args[1]) if len(args) > 1 else get_universal_strategy()
+        return st.dictionaries(k_strat, v_strat)
+
+    if origin is typing.Union:
+        return st.one_of(*[strategy_from_annotation(a) for a in args])
+
+    # fallback to hypothesis native resolution
+    try:
+        return st.from_type(annotation)
+    except Exception:
+        return get_universal_strategy()
 
 
 def build_instance_strategy(cls):
@@ -279,11 +321,13 @@ def run(fn, args, kwargs=None):
         return "err", e, log
 
 
-def instantiate_value(val, target_func):
+def instantiate_value(val, target_func, stub_counter=None):
     """
     Recursively traverses val. If a RecursiveRef is found, constructs the
     dummy functions bound to target_func and returns the specific index
     """
+    if stub_counter is None:
+        stub_counter = [0]
     if isinstance(val, RecursiveRef):
         dummies = construct_dummies(target_func, limit=val.index + 1)
         return dummies[val.index]
@@ -297,6 +341,12 @@ def instantiate_value(val, target_func):
     if isinstance(val, CurriedInteractionPlan):
         return create_curried_interaction(val)
 
+    if isinstance(val, CallableStubPlan):
+        stub = create_stub(val, stub_counter[0])
+        stub_counter[0] += 1
+        return stub
+
+
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
     if isinstance(val, tuple):
@@ -307,16 +357,18 @@ def instantiate_value(val, target_func):
     return val
 
 
-def instantiate_args(args, kwargs, target_func):
+def instantiate_args(args, kwargs, target_func, stub_counter=None):
     return (
-        instantiate_value(args, target_func),
-        instantiate_value(kwargs, target_func)
+        instantiate_value(args, target_func, stub_counter),
+        instantiate_value(kwargs, target_func, stub_counter)
     )
 
 
 def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
-    args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
-    args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
+    stub_counter_a = [0]
+    stub_counter_b = [0]
+    args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a, stub_counter_a)
+    args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b, stub_counter_b)
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
     equivalent_logs, logs_error_msg = logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
@@ -355,7 +407,6 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
-
 
 def _is_callable_tuple(val):
     """Given a tuple, returns true if every element is a function"""

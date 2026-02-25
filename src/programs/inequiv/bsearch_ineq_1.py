@@ -23,6 +23,7 @@ def make_bsearch_1_lhs():
     hi = length
     found = False
 
+    #def bsearch(key: int):
     def bsearch(key):
         nonlocal lo, hi, found
 
@@ -63,6 +64,7 @@ def make_bsearch_1_rhs():
     hi = length
     found = False
 
+    #def bsearch(key: int):
     def bsearch(key):
         nonlocal lo, hi, found
 

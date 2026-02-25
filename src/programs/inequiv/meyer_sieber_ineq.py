@@ -1,6 +1,8 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
-
+#def meyer_sieber_ineq_lhs(g: Callable):
 def meyer_sieber_ineq_lhs(g):
     x = 0
     def f():
@@ -13,6 +15,7 @@ def meyer_sieber_ineq_lhs(g):
         raise RuntimeError()
 
 
+#def meyer_sieber_ineq_rhs(g: Callable):
 def meyer_sieber_ineq_rhs(g):
     g(lambda x: None)
     return None

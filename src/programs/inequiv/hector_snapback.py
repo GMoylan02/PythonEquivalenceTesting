@@ -1,3 +1,6 @@
+from typing import Callable
+
+from src.GenerateFunctions import h2
 from src.UniversalStrategy import make_function_equivalence_test
 
 
@@ -22,3 +25,6 @@ def hector_snapback_rhs(p):
     p(inner)
 
 test_hector_snapback = make_function_equivalence_test(hector_snapback_lhs, hector_snapback_rhs, log_failure=True)
+#test_hector_snapback()
+#print(hector_snapback_lhs(h2))
+#print(hector_snapback_rhs(h2))

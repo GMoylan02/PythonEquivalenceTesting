@@ -1,6 +1,9 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
 
+#def meyer_sieber_v2_ineq_lhs(g: Callable):
 def meyer_sieber_v2_ineq_lhs(g):
     def even(x):
         return (x - ((x // 2) * 2)) == 0
@@ -15,6 +18,7 @@ def meyer_sieber_v2_ineq_lhs(g):
         raise RuntimeError()
 
 
+#def meyer_sieber_v2_ineq_rhs(g: Callable):
 def meyer_sieber_v2_ineq_rhs(g):
     g(lambda: None)
     return lambda: None

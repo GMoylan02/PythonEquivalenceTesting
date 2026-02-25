@@ -1,9 +1,12 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
 
 def holik_reentrancy_ev2_lhs():
     funds = [100]
 
+    #def withdraw(send1amount: tuple[Callable, int]):
     def withdraw(send1amount):
         send, amount = send1amount
         if not (funds[0] < amount):
@@ -19,6 +22,7 @@ def holik_reentrancy_ev2_lhs():
 def holik_reentrancy_ev2_rhs():
     funds = [100]
 
+    #def withdraw(send1amount: tuple[Callable, int]):
     def withdraw(send1amount):
         send, amount = send1amount
         if not (funds[0] < amount):

@@ -1,6 +1,6 @@
 from src.UniversalStrategy import make_function_equivalence_test
 
-
+#def reve_ackermann_ineq_lhs(mn: tuple[int, int]):
 def reve_ackermann_ineq_lhs(mn):
     m, n = mn
     r = 0
@@ -15,6 +15,7 @@ def reve_ackermann_ineq_lhs(mn):
     return r
 
 
+#def reve_ackermann_ineq_rhs(mn: tuple[int, int]):
 def reve_ackermann_ineq_rhs(mn):
     m, n = mn
     r = 0

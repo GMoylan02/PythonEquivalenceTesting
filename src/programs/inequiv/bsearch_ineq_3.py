@@ -34,6 +34,7 @@ def make_bsearch_3_lhs():
     hi = [length - 1]
     found = [False]
 
+    #def bsearch(key: int):
     def bsearch(key):
         if lo[0] <= hi[0] and not found[0]:
             mid = (lo[0] + hi[0]) // 2
@@ -83,6 +84,7 @@ def make_bsearch_3_rhs():
     hi = [length]
     found = [False]
 
+    #def bsearch(key: int):
     def bsearch(key):
         if lo[0] + 1 < hi[0]:
             mid = (lo[0] + hi[0]) // 2

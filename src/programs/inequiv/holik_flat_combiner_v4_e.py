@@ -1,3 +1,5 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
 
@@ -27,7 +29,10 @@ def holik_flat_combiner_v4_e_lhs():
             list_ref[0] = lambda x: None
             running[0] = 0
 
-    return lambda f: f(enlist)(run)
+    #def func(g: Callable):
+    def func(g):
+        return g(enlist)(run)
+    return func
 
 
 def holik_flat_combiner_v4_e_rhs():
@@ -54,7 +59,10 @@ def holik_flat_combiner_v4_e_rhs():
             list_ref[0] = lambda x: None
             running[0] = 0
 
-    return lambda f: f(enlist)(run)
+    #def func(g: Callable):
+    def func(g):
+        return g(enlist)(run)
+    return func
 
 test_holik_flat_combiner_v4_e \
     = make_function_equivalence_test(holik_flat_combiner_v4_e_lhs,

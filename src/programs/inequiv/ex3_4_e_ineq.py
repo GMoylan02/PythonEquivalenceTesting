@@ -1,14 +1,21 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
 
 def ex3_4_e_ineq_lhs():
-    v1 = lambda f: (f(), True)[1]
+    #def v1(f: Callable):
+    def v1(f):
+        f()
+        return True
+    #v1 = lambda f: (f(), True)[1]
     return v1
 
 
 def ex3_4_e_ineq_rhs():
     flag = [True]
 
+    #def v1(f: Callable):
     def v1(f):
         if flag[0]:
             flag[0] = False

@@ -1,7 +1,9 @@
 #from typing import Callable
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
-
+#def hector_scope_extrusion_1_2_lhs(f: Callable):
 def hector_scope_extrusion_1_2_lhs(f):
     x = 0
 
@@ -15,7 +17,7 @@ def hector_scope_extrusion_1_2_lhs(f):
 
     return f(inner)
 
-
+#def hector_scope_extrusion_1_2_rhs(f: Callable):
 def hector_scope_extrusion_1_2_rhs(f):
     def inner(y):
         x = 0

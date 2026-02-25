@@ -1,6 +1,7 @@
 import inspect
 import math
 import re
+import sys
 from pathlib import Path
 
 
@@ -12,29 +13,47 @@ class Profiler:
     def profile(self, frame, event, arg):
         if event == "call":
             func_name = frame.f_code.co_name
-            filter_re = r"<.{0,200} at 0x.{0,200}>"
-            args_snapshot = {}
-            for k, v in frame.f_locals.items():
-                # generally speaking this should work. assume every local that is not a reference is an argument
-                # todo that said, this is probably prone to error and should be made more robust in future
-                # todo this can be used in future for a more correct contextual equivalence, but it is currently not used in any logic
-                if not re.match(filter_re, str(v)):
-                    args_snapshot[k] = v
+
+            # co_varnames contains all local variable names in order:
+            # positional args, keyword-only args, *args, **kwargs, then locals
+            # the argument count fields tell us exactly where args end
+            code = frame.f_code
+            n_positional = code.co_argcount
+            n_keyword_only = code.co_kwonlyargcount
+
+            arg_names = set(code.co_varnames[:n_positional + n_keyword_only])
+
+            # also include *args and **kwargs if present
+            if code.co_flags & inspect.CO_VARARGS:
+                arg_names.add(code.co_varnames[n_positional + n_keyword_only])
+            if code.co_flags & inspect.CO_VARKEYWORDS:
+                idx = n_positional + n_keyword_only + bool(code.co_flags & inspect.CO_VARARGS)
+                arg_names.add(code.co_varnames[idx])
+
+            args_snapshot = {
+                k: v for k, v in frame.f_locals.items()
+                if k in arg_names
+            }
+
             self.call_stack.append(func_name)
             self.trace_log.append({
                 "event": "call",
                 "function": func_name,
                 "arguments": args_snapshot,
-                # perhaps re-examine this in future as it might be wrong
                 "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None
             })
 
         elif event == "return":
             func_name = frame.f_code.co_name
+            exc = sys.exc_info()
+            is_exception_exit = exc[0] is not None
             self.trace_log.append({
                 "event": "return",
                 "function": func_name,
-                "return_value": arg
+                "return_value": arg,
+                "exception": exc[1] if is_exception_exit else None,
+                "exception_type": exc[0] if is_exception_exit else None,
+                "is_exception_exit": is_exception_exit
             })
             self.call_stack.pop()
 
@@ -157,13 +176,78 @@ def assert_instance_states_equivalent(func_a, func_b):
             raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
         if key not in state_b:
             raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
-        if not return_value_equivalence(state_a[key], state_b[key]):
+
+        val_a = state_a[key]
+        val_b = state_b[key]
+
+        # skip fields that are user-defined objects — these are infrastructure,
+        # not meaningful state we can compare structurally
+        if is_user_object(val_a) or is_user_object(val_b):
+            continue
+
+        if not return_value_equivalence(val_a, val_b):
             raise AssertionError(
                 f"Instance state mismatch on field {key!r}: "
-                f"{state_a[key]!r} != {state_b[key]!r}"
+                f"{val_a!r} != {val_b!r}"
             )
 
 
+STUB_PREFIX = "__stub_"
+# todo refactor
+"""
+def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
+    top_func_name_a = log_a[0]['function']
+    top_func_name_b = log_b[0]['function']
+
+    # check final return value
+    log_a_returns = []
+    log_b_returns = []
+    for entry in log_a:
+        if entry['event'] == 'return' and entry['function'] == top_func_name_a:
+            log_a_returns.append(entry)
+    for entry in log_b:
+        if entry['event'] == 'return' and entry['function'] == top_func_name_b:
+            log_b_returns.append(entry)
+
+    if log_a_returns and log_b_returns:
+        if not return_value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
+            return False, (
+                f"Function A: {top_func_name_a}({args_a}) = {log_a_returns[-1]['return_value']!r}, "
+                f"Function B: {top_func_name_b}({args_b}) = {log_b_returns[-1]['return_value']!r}"
+            )
+
+    # f-functions (observers) check
+    f_functions = {f"f{i}" for i in range(100)}
+
+    f_returns_a = {}
+    for entry in log_a:
+        if entry['event'] == 'return' and entry['function'] in f_functions:
+            if entry['function'] not in f_returns_a:
+                f_returns_a[entry['function']] = entry['return_value']
+
+    seen_in_b = set()
+    for entry in log_b:
+        if entry['event'] == 'return' and entry['function'] in f_functions:
+            if entry['function'] in seen_in_b:
+                continue
+            if entry['function'] not in f_returns_a:
+                raise AssertionError(
+                    f"Function {entry['function']} not called by {top_func_name_a}, this should never happen"
+                )
+            if not return_value_equivalence(entry['return_value'], f_returns_a[entry['function']]):
+                return False, (
+                    f"Mismatch: Observer {entry['function']} observed differing outputs. "
+                    f"A: {f_returns_a[entry['function']]!r}, B: {entry['return_value']!r}"
+                )
+            seen_in_b.add(entry['function'])
+
+    # --- new stub interaction check ---
+    ok, msg = check_stub_interactions_equivalent(log_a, log_b)
+    if not ok:
+        return False, msg
+
+    return True, ""
+"""
 def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
     """
     Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
@@ -173,8 +257,47 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
 
     """
+
+    # potentially we can devise a set of function parameters to top_level_a and top_level_b, filter out any function calls and returns from functions
+    # other than top_level_a, top_level_b, and their param functions
+
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
+    callable_params_a = set()
+    callable_params_b = set()
+    top_call_a = log_a[0]
+    top_call_b = log_b[0]
+    for argname in top_call_a['arguments'].keys():
+        if callable(top_call_a['arguments'][argname]):
+            callable_params_a.add(top_call_a['arguments'][argname].__name__)
+
+    for argname in top_call_b['arguments'].keys():
+        if callable(top_call_b['arguments'][argname]):
+            callable_params_b.add(top_call_b['arguments'][argname].__name__)
+
+    if callable_params_a != callable_params_b:
+        return False, f"{top_func_name_a} took different callable arguments to {top_func_name_b}: {callable_params_a} != {callable_params_b}"
+
+    relevant_functions = callable_params_a
+    relevant_functions.add(top_func_name_a)
+    relevant_functions.add(top_func_name_b)
+
+    filtered_log_a = []
+    filtered_log_b = []
+    for entry in log_a:
+        if entry['function'] in relevant_functions:
+            filtered_log_a.append(entry)
+    for entry in log_b:
+        if entry['function'] in relevant_functions:
+            filtered_log_b.append(entry)
+
+    #if callable(args_a[0]) and "h2" in args_a[0].__name__:
+    #    import pdb;pdb.set_trace()
+
+    if len(filtered_log_a) > len(filtered_log_b):
+        return False, f"{top_func_name_a} called its argument more than {top_func_name_b}: {top_func_name_a}: {filtered_log_a} != {top_func_name_b}: {filtered_log_b}"
+    if len(filtered_log_a) < len(filtered_log_b):
+        return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}: {top_func_name_a}: {filtered_log_a} != {top_func_name_b}: {filtered_log_b}"
     log_a_returns = []
     log_b_returns = []
 
@@ -231,6 +354,63 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
                     f"Within Function A: {log_a[i]['function']} => {f_function_returns_in_log_A[log_a[i]['function']]!r}, "
                     f"Within Function B: {log_b[i]['function']} => {log_b[i]['return_value']!r}")
             f_functions_seen_in_B.append(log_b[i]['function'])
+
+    return True, ""
+
+def check_stub_interactions_equivalent(log_a, log_b):
+    """
+    Extracts all stub call/return sequences from each log and compares them pairwise.
+    Stubs are matched by name — both sides instantiate stubs from the same plan so
+    stub_0 in log_a corresponds to stub_0 in log_b.
+    """
+    def extract_stub_interactions(log):
+        # dict of stub_name -> list of ('call', args) | ('return', value) in order
+        interactions = {}
+        for entry in log:
+            name = entry['function']
+            if not name.startswith(STUB_PREFIX):
+                continue
+            if name not in interactions:
+                interactions[name] = []
+            if entry['event'] == 'call':
+                interactions[name].append(('call', entry.get('arguments', {})))
+            elif entry['event'] == 'return':
+                interactions[name].append(('return', entry['return_value']))
+        return interactions
+
+    stubs_a = extract_stub_interactions(log_a)
+    stubs_b = extract_stub_interactions(log_b)
+
+    all_stubs = sorted(set(stubs_a) | set(stubs_b))
+
+    for stub_name in all_stubs:
+        if stub_name not in stubs_a:
+            return False, f"Stub {stub_name} was called in B but never in A"
+        if stub_name not in stubs_b:
+            return False, f"Stub {stub_name} was called in A but never in B"
+
+        seq_a = stubs_a[stub_name]
+        seq_b = stubs_b[stub_name]
+
+        if len(seq_a) != len(seq_b):
+            calls_a = sum(1 for e in seq_a if e[0] == 'call')
+            calls_b = sum(1 for e in seq_b if e[0] == 'call')
+            return False, (
+                f"Stub {stub_name} called {calls_a} times in A but {calls_b} times in B"
+            )
+
+        for i, (entry_a, entry_b) in enumerate(zip(seq_a, seq_b)):
+            kind_a, val_a = entry_a
+            kind_b, val_b = entry_b
+            if kind_a != kind_b:
+                return False, (
+                    f"Stub {stub_name} interaction {i} type mismatch: {kind_a} vs {kind_b}"
+                )
+            if not return_value_equivalence(val_a, val_b):
+                return False, (
+                    f"Stub {stub_name} {kind_a} mismatch at interaction {i}: "
+                    f"A={val_a!r}, B={val_b!r}"
+                )
 
     return True, ""
 

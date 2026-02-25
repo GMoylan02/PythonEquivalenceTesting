@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.abspath(os.getcwd())
 TIMEOUT_SECONDS = 15
 
 def run_existing_suite():
-    with open("hypofuzz_failures.log", 'w') as f:
+    with open("hypofuzz_failures.log", 'w', encoding="utf-8") as f:
         f.write("")
 
     paths = list(INEQUIV_DIR.glob("*.py"))
@@ -35,7 +35,7 @@ def run_script(filepath):
     env["MUTANT_UNDER_TEST"] = ""
     initial_failure_count = 0
     if os.path.exists(log_file):
-        with open(log_file, 'r') as f:
+        with open(log_file, 'r', encoding="utf-8") as f:
             initial_failure_count = len(f.readlines())
     process = None
     try:

@@ -1,7 +1,10 @@
+from typing import Callable
+
 from src.UniversalStrategy import make_function_equivalence_test
 
 
 def hector_bsort_isort_CNE_lhs():
+    #def func(args: tuple[Callable, Callable, Callable, Callable, Callable]):
     def func(args):
         compare, write_x, length, a_get, a_set = args
         i = [0]
@@ -41,6 +44,7 @@ def hector_bsort_isort_CNE_lhs():
 
 
 def hector_bsort_isort_CNE_rhs():
+    #def func(args: tuple[Callable, Callable, Callable, Callable, Callable]):
     def func(args):
         compare, write_x, length, a_get, a_set = args
         i = [0]

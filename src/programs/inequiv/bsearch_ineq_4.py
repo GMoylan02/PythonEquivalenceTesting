@@ -40,7 +40,9 @@ def make_bsearch_4_lhs():
             else get(lo) == key
         )
 
-    bsearch = lambda key: bsearch_loop(key)(0)(length)
+    #def bsearch(key: int):
+    def bsearch(key):
+        return bsearch_loop(key)(0)(length)
 
     return bsearch
 
@@ -74,7 +76,7 @@ def make_bsearch_4_rhs():
         else:
             return -1
 
-    def bsearch_loop(key):
+    def bsearch_loop(key: int):
         return lambda lo: lambda hi: (
             (lambda mid:
                 bsearch_loop(key)(mid)(hi) if get(mid) <= key
@@ -84,7 +86,9 @@ def make_bsearch_4_rhs():
             else get(lo) == key
         )
 
-    bsearch = lambda key: bsearch_loop(key)(0)(length)
+    #def bsearch(key: int):
+    def bsearch(key):
+        return bsearch_loop(key)(0)(length)
 
     return bsearch
 
