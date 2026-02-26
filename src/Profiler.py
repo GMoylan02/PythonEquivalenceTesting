@@ -85,37 +85,8 @@ function_re = r"<function.{1,100}at 0x.{1,100}>"
 def is_function(val):
     return re.match(function_re, str(val)) is not None
 
-supported_containers = (list, tuple, dict)
 
-def datastruct_equivalence(ds_a, ds_b):
-    if type(ds_a) == type(ds_b):
-        if type(ds_a) == list:
-            return list_equivalence(ds_a, ds_b)
-        if type(ds_a) == dict:
-            return dict_equivalence(ds_a, ds_b)
-        if type(ds_a) == tuple:
-            return list_equivalence(list(ds_a), list(ds_b))
-    return False
-
-def list_equivalence(list_a, list_b):
-    if len(list_a) != len(list_b):
-        return False
-    for i in range(len(list_a)):
-        if not return_value_equivalence(list_a[i], list_b[i]):
-            return False
-    return True
-
-def dict_equivalence(dict_a, dict_b):
-    """This works provided dict keys can only be strings"""
-    if len(dict_a.keys()) != len(dict_b.keys()):
-        return False
-    for k in dict_a.keys():
-        if not return_value_equivalence(dict_a[k], dict_b[k]):
-            return False
-    return True
-
-
-def return_value_equivalence(return_a, return_b):
+def value_equivalence(value_a, value_b):
     """
     Recursively check if two return values are equivalent, allowing them to any combination of primitives,
     objects of a user-defined class, or containers of these
@@ -125,31 +96,28 @@ def return_value_equivalence(return_a, return_b):
     # from callable_strategy, in which case we should correctly consider them equivalent.
     # there is a very niche possibility that we reach here without dummy functions, in which case we should still
     # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
-    if is_function(return_a) and is_function(return_b):
+    if is_function(value_a) and is_function(value_b):
         return True
-    if is_function(return_a) != is_function(return_b):
+    if is_function(value_a) != is_function(value_b):
         return False
-    if type(return_a) != type(return_b):
+    if type(value_a) != type(value_b):
         return False
-    if type(return_a) == float and (math.isnan(return_a) and math.isnan(return_b)):
+    if type(value_a) == float and (math.isnan(value_a) and math.isnan(value_b)):
         return True
-    if type(return_a) in supported_containers:
-        return datastruct_equivalence(return_a, return_b)
+    if isinstance(value_a, dict):
+        if set(value_a.keys()) != set(value_b.keys()):
+            return False
+        return all(value_equivalence(value_a[k], value_b[k]) for k in value_a)
+    if isinstance(value_a, (list, tuple)):
+        if len(value_a) != len(value_b):
+            return False
+        return all(value_equivalence(x, y) for x, y in zip(value_a, value_b))
     # this works in most cases, unless these are any objects that contain cycles like DLLs, then we can potentially
     # recurse infinitely here trying to check equivalence
-    if is_user_object(return_a) and is_user_object(return_b):
-        return instance_vars_equal(return_a, return_b)
-    if return_a != return_b:
-        return False
-    return True
+    if is_user_object(value_a) and is_user_object(value_b):
+        return value_equivalence(vars(value_a), vars(value_b))
+    return value_a == value_b
 
-# TODO: this smells, some of these functions do p. much the same thing. In need of a refactor, but not a priority now
-
-def instance_vars_equal(obj1, obj2):
-    vars1 = vars(obj1)
-    vars2 = vars(obj2)
-
-    return return_value_equivalence(vars1, vars2)
 
 def is_user_object(var):
     # checks if a variable is a user-defined object
@@ -160,12 +128,17 @@ def is_user_object(var):
 
 
 def get_instance_state(val):
-    """If func is a bound method, return its instance's __dict__, else None."""
+    """Returns the instance __dict__ if val is a bound method or user object, else None."""
     if inspect.ismethod(val):
-        return vars(val.__self__).copy()
-    if is_user_object(val):
-        return vars(val).copy()
-    return None
+        obj = val.__self__
+    elif is_user_object(val):
+        obj = val
+    else:
+        return None
+
+    if hasattr(obj, '__slots__'):
+        return {slot: getattr(obj, slot) for slot in obj.__slots__ if hasattr(obj, slot)}
+    return vars(obj).copy()
 
 
 def assert_instance_states_equivalent(func_a, func_b):
@@ -202,7 +175,7 @@ def assert_instance_states_equivalent(func_a, func_b):
         if is_user_object(val_a) or is_user_object(val_b):
             continue
 
-        if not return_value_equivalence(val_a, val_b):
+        if not value_equivalence(val_a, val_b):
             raise AssertionError(
                 f"Instance state mismatch on field {key!r}: "
                 f"{val_a!r} != {val_b!r}"
@@ -267,13 +240,13 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
 
     for entry_a, entry_b in zip(filtered_log_a, filtered_log_b):
         # check that for all callable args to the top level HOFs, they are called with equivalent args themselves
-        if "arguments" in entry_a and not return_value_equivalence(entry_a['arguments'], entry_b['arguments']):
+        if "arguments" in entry_a and not value_equivalence(entry_a['arguments'], entry_b['arguments']):
             func_a = entry_a['function']
             func_b = entry_b['function']
             return False, f"Observer argument mismatch: {func_a} received arguments {entry_a['arguments']} when {func_b} received arguments {entry_b['arguments']}"
 
         # check that for all callable args to the top level HOFs, they return the same values
-        if "return_value" in entry_a and not return_value_equivalence(entry_a['return_value'], entry_b['return_value']):
+        if "return_value" in entry_a and not value_equivalence(entry_a['return_value'], entry_b['return_value']):
             func_a = entry_a['function']
             func_b = entry_b['function']
             return False, f"Observer return mismatch: {top_func_name_a}.{func_a} returned a different value from {top_func_name_b}.{func_b}"
@@ -294,7 +267,7 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
     # we still want to proceed with the checks after this
     if len(log_a_returns) > 0 and len(log_b_returns) > 0:
 
-        if not return_value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
+        if not value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
             if kwargs_a != {}:
                 return False, (
                     f"Function A: {top_func_name_a}({args_a}, {kwargs_a}) = {log_a_returns[-1]['return_value']!r}, "

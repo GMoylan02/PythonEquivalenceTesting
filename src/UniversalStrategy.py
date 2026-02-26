@@ -1,16 +1,14 @@
 import inspect
 import typing
 
-from hypothesis import given, strategies as st, settings, event
-from hypothesis.strategies import data as st_data
+from hypothesis import strategies as st, event
 from typing import Callable
 
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
     GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
     create_curried_interaction
 from src.Profiler import logs_are_equivalent, assert_instance_states_equivalent
-from src.StateUtils import snapshot_module_state, restore_module_state
-from src.Profiler import Profiler, return_value_equivalence, record_failure
+from src.Profiler import Profiler, value_equivalence
 import sys
 
 already_logged = False
@@ -18,7 +16,11 @@ MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 MAX_TUPLE_CALLS = 30
 
-# TODO: The fact that the error messages are all over the place is terrible and needs to be refactored in future
+"""
+The core logic surrounding custom strategies, and how we check outputs for equivalence is handled here
+"""
+
+# TODO: error message generation needs a refactor
 
 def get_universal_strategy():
     primitives = st.one_of(
@@ -32,7 +34,6 @@ def get_universal_strategy():
         interleaved_caller_strategy(),
         curried_interaction_strategy(),
        # global_mutator_strategy()   # not applicable for hobbit suite
-        #st.functions()
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
@@ -226,46 +227,21 @@ def is_user_defined_class(annotation):
     )
 
 
-def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False):
-    input_strategy = build_args_strategy(func_a)
-
-    module_a = sys.modules.get(func_a.__module__)
-    module_b = sys.modules.get(func_b.__module__)
-
-    unique_test_id = f"{func_a.__name__}_{func_b.__name__}"
-
-    if reset_module_state:
-        snap_a = snapshot_module_state(module_a) if module_a else {}
-        snap_b = snapshot_module_state(module_b) if module_b else {}
-
-    # todo add module wide global state check (not applicable to hobbit suite)
-
-    @given(input_strategy, st_data())
-    @settings(max_examples=500, deadline=None)
-    def equivalence_test(inputs, data):
-        if reset_module_state:
-            if module_a: restore_module_state(module_a, snap_a)
-            if module_b: restore_module_state(module_b, snap_b)
-        raw_args, raw_kwargs = inputs
-        if log_failure:
-            try:
-                run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
-            except AssertionError as e:
-                record_failure(module_a.__name__, e, unique_test_id)
-                raise
-        else:
-            run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
-
-    return equivalence_test
-
-
-def assert_equivalent(
+def assert_outputs_equivalent(
         out_a,
         out_b,
         *,
         data,
         depth=0,
 ):
+    """
+    Assert that the outputs from a pair of functions are equivalent when performing differential fuzzing.
+
+    Case 1: The outputs are a pair of tuples of functions - In this case we perform interleaved calls of the functions
+        to catch stateful differences in function execution
+    Case 2: The outputs are simple values or containers of values - Pass them through value_equivalence
+    Case 3: The outputs are both functions - Perform differential fuzzing on both
+    """
     if _is_callable_tuple(out_a) and _is_callable_tuple(out_b):
         if depth >= MAX_CALLABLE_DEPTH:
             event("callable tuple depth limit")
@@ -274,7 +250,7 @@ def assert_equivalent(
         return
 
     if not callable(out_a) or not callable(out_b):
-        assert return_value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
+        assert value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
 
     if depth >= MAX_CALLABLE_DEPTH:
@@ -293,6 +269,9 @@ def assert_equivalent(
 
 
 def run(fn, args, kwargs=None):
+    """
+    Run a function, catch any exceptions, and log the execution trace
+    """
     profiler = Profiler()
     try:
         sys.settrace(profiler.trace)
@@ -311,13 +290,11 @@ def run(fn, args, kwargs=None):
         return "err", e, log
 
 
-def instantiate_value(val, target_func, stub_counter=None):
+def instantiate_value(val, target_func):
     """
     Recursively traverses val. If a RecursiveRef is found, constructs the
     dummy functions bound to target_func and returns the specific index
     """
-    if stub_counter is None:
-        stub_counter = [0]
     if isinstance(val, RecursiveRef):
         dummies = construct_dummies(target_func, limit=val.index + 1)
         return dummies[val.index]
@@ -341,20 +318,24 @@ def instantiate_value(val, target_func, stub_counter=None):
     return val
 
 
-def instantiate_args(args, kwargs, target_func, stub_counter=None):
+def instantiate_args(args, kwargs, target_func):
     return (
-        instantiate_value(args, target_func, stub_counter),
-        instantiate_value(kwargs, target_func, stub_counter)
+        instantiate_value(args, target_func),
+        instantiate_value(kwargs, target_func)
     )
 
 
 def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
-    stub_counter_a = [0]
-    stub_counter_b = [0]
-    args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a, stub_counter_a)
-    args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b, stub_counter_b)
+    """
+    Instantiate args for func_a and func_b, and run equivalence
+    """
+    # instantiating args is necessary to ensure for HOFs, the functions passed in correctly re-enter either func_a
+    # or func_b, or mutate the correct global state etc
+    args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
+    args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
     status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
     status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
+
     equivalent_logs, logs_error_msg = logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
 
     # todo low hanging fruit: we can check if the console output of both funcs is equivalent
@@ -371,13 +352,12 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
-        assert_equivalent(out_a, out_b, data=data)
+        assert_outputs_equivalent(out_a, out_b, data=data)
 
     elif status_a == "err" and status_b == "err":
         event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
-        # todo stop copy pasting this error message
         assert type(out_a) is type(out_b), (
             f"Mismatch: "
             f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "

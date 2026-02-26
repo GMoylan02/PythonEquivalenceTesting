@@ -2,7 +2,7 @@ import inspect
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
 from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
-from src.Profiler import return_value_equivalence, record_failure
+from src.Profiler import value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
 from src.EquivTestingExceptions import ClassMethodMismatch
 from src.StateUtils import snapshot_object_state, restore_object_state
@@ -61,7 +61,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
                 if reset_state:
                     current_state_a = snapshot_object_state(object_a) if object_a else {}
                     current_state_b = snapshot_object_state(object_b) if object_b else {}
-                    if not return_value_equivalence(current_state_a, current_state_b):
+                    if not value_equivalence(current_state_a, current_state_b):
                         msg = (f"State Divergence in {func_name}:\n"
                                f"A: {current_state_a}\n"
                                f"B: {current_state_b}")

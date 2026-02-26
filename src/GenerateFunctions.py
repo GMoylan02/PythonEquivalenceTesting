@@ -38,6 +38,8 @@ def callable_strategy(draw, min_limit=1, max_limit=20):
     idx = draw(st.integers(min_value=min_limit, max_value=max_limit))
     return RecursiveRef(index=idx)
 
+# set of preset functions that catch a large proportion of HOF cases
+
 def h1(n):
     return n
 
@@ -61,7 +63,7 @@ def h6(*args, **kwargs):
 
 @st.composite
 def preset_functions(draw):
-    funcs = [h1, h2, h3, h4, h5]
+    funcs = [h1, h2, h3, h4, h5, h6]
     return draw(st.sampled_from(funcs))
 
 
