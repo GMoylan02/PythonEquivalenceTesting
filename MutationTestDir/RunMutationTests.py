@@ -10,6 +10,7 @@ import time
 from typing import Dict, Callable
 
 from src.ClassEquivalence import get_module_methods
+from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
 TIMEOUT_SECONDS = 10
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
@@ -20,8 +21,7 @@ PROJECT_ROOT = os.path.abspath(os.getcwd())
 
 def run_fuzzing_session():
     os.environ["MUTANT_UNDER_TEST"] = ""
-    with open("hypofuzz_failures.log", 'w') as f:
-        f.write("")
+    clear_log()
 
     sys.path.insert(0, PROJECT_ROOT)
 
@@ -286,31 +286,6 @@ def get_module_functions(module) -> Dict[str, Callable]:
     }
 
     return functions
-
-
-def clean_directory():
-    KEEP_FILES = {"hypofuzz_failures.log", "RunMutationTests.py", "__init__.py"}
-    dir_path = os.path.dirname(os.path.abspath(__file__))
-    for filename in os.listdir(dir_path):
-        file_path = os.path.join(dir_path, filename)
-        if filename in KEEP_FILES or not os.path.isfile(file_path):
-            continue
-        os.remove(file_path)
-
-
-def kill_process_tree(process):
-    if process is None or process.poll() is not None:
-        return
-    try:
-        if os.name != 'nt':
-            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-        else:
-            subprocess.call(
-                ['taskkill', '/F', '/T', '/PID', str(process.pid)],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-    except Exception:
-        pass
 
 
 if __name__ == "__main__":
