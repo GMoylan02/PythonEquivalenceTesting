@@ -1,14 +1,14 @@
 from src.UniversalStrategy import make_function_equivalence_test
 
 
-def mk_cell_lhs(x):
+def cell_3_lhs(x):
     y = [x]
     def set(z): y[0] = z
     def get(): return y[0]
     return (set, get)
 
 
-def mk_cell_rhs(x):
+def cell_3_rhs(x):
     y1 = [x]
     y2 = [x]
     p = [True]
@@ -22,4 +22,4 @@ def mk_cell_rhs(x):
         return y1[0] if p[0] else y2[0]
     return (set, get)
 
-test_cell_3 = make_function_equivalence_test(mk_cell_lhs, mk_cell_rhs, log_failure=True)
+test_cell_3 = make_function_equivalence_test(cell_3_lhs, cell_3_rhs, log_failure=True)

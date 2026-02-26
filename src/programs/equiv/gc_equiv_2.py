@@ -1,7 +1,7 @@
 from src.UniversalStrategy import make_function_equivalence_test
 
 
-def make_lhs():
+def gc_equiv_2_lhs():
     f = [lambda: None]
     def outer():
         l = [None]
@@ -10,8 +10,7 @@ def make_lhs():
     return outer
 
 
-def make_rhs():
+def gc_equiv_2_rhs():
     return lambda: None
 
-
-test_gc_equiv_2 = make_function_equivalence_test(make_lhs, make_rhs, log_failure=True)
+test_gc_equiv_2 = make_function_equivalence_test(gc_equiv_2_lhs, gc_equiv_2_rhs, log_failure=True)

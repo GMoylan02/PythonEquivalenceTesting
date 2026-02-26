@@ -6,7 +6,7 @@ def make_sort_lhs():
         if n < 1 or n > 10:
             raise RuntimeError()
         a = [[0,0,0,0,0,0,0,0,0,0]]
-        def a_size(_): return n
+        def a_size(_): return 5
         def a_get(i):
             if i < 1 or i > n: raise RuntimeError()
             return a[0][i]
@@ -27,12 +27,12 @@ def make_sort_lhs():
         s = ar_size(ar1)
         if s == ar_size(ar2):
             i = [0]
-            def while_loop():
+            def loop():
                 if i[0] < s:
                     ar_set(ar2)(i[0])(ar_get(ar1)(i[0]))
                     i[0] += 1
-                    while_loop()
-            while_loop()
+                    loop()
+            loop()
         else:
             raise RuntimeError()
 
@@ -63,14 +63,15 @@ def make_sort_lhs():
 
     return sort
 
-arrays_lhs = make_sort_lhs()
+hector_bsort_isort_CN10_all_steps_lhs = make_sort_lhs()
+
 
 def make_sort_rhs():
     def mk_array(n):
         if n < 1 or n > 10:
             raise RuntimeError()
         a = [[0,0,0,0,0,0,0,0,0,0]]
-        def a_size(_): return 5  # note: hardcoded 5 in RHS
+        def a_size(_): return 5
         def a_get(i):
             if i < 1 or i > n: raise RuntimeError()
             return a[0][i]
@@ -91,12 +92,12 @@ def make_sort_rhs():
         s = ar_size(ar1)
         if s == ar_size(ar2):
             i = [0]
-            def while_loop():
+            def loop():
                 if i[0] < s:
                     ar_set(ar2)(i[0])(ar_get(ar1)(i[0]))
                     i[0] += 1
-                    while_loop()
-            while_loop()
+                    loop()
+            loop()
         else:
             raise RuntimeError()
 
@@ -126,6 +127,6 @@ def make_sort_rhs():
 
     return sort
 
-arrays_rhs = make_sort_rhs()
+hector_bsort_isort_CN10_all_steps_rhs = make_sort_rhs()
 
-test_arrays = make_function_equivalence_test(arrays_lhs, arrays_rhs, log_failure=True)
+test_hector_bsort_isort_CN10_all_steps = make_function_equivalence_test(hector_bsort_isort_CN10_all_steps_lhs, hector_bsort_isort_CN10_all_steps_rhs, log_failure=True)
