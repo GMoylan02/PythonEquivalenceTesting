@@ -279,6 +279,10 @@ def run(fn, args, kwargs=None):
             result = fn(*args)
         else:
             result = fn(*args, **kwargs)
+
+        if inspect.isgenerator(result):
+            result = list(result)
+
         sys.settrace(None)
         log = profiler.trace_log
         profiler.clear_logs()

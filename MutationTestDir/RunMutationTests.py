@@ -51,7 +51,8 @@ def run_fuzzing_session():
         except Exception as e:
             print(f"Skipping class scan of {module.__name__}: {e}")
             class_mutant_info = {}
-
+        module_mutants_found = 0
+        module_mutants_identified = 0
         for class_name, info in class_mutant_info.items():
             orig_methods = {
                 method_name: f"xǁ{class_name}ǁ{method_name}__mutmut_orig"
@@ -59,9 +60,11 @@ def run_fuzzing_session():
             }
             for mutant_entry in info["mutants"]:
                 total_mutants_found += 1
+                module_mutants_found += 1
                 killed = run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx)
                 if killed:
                     mutants_identified += 1
+                    module_mutants_identified += 1
                 idx += 1
 
         # test function mutants that don't belong to a class
@@ -81,13 +84,15 @@ def run_fuzzing_session():
 
             if orig_func:
                 total_mutants_found += 1
+                module_mutants_found += 1
                 killed = run_func_fuzz_case(module, orig_func, func_obj, idx)
                 if killed:
                     mutants_identified += 1
+                    module_mutants_identified += 1
                 idx += 1
-
+        print(f"{module_mutants_identified}/{module_mutants_found} mutants identified in module {module}")
     print(f"\nMutants identified: {mutants_identified}/{total_mutants_found}")
-    clean_directory()
+    #clean_directory()
 
 
 def run_fuzz_file(log_file, label):

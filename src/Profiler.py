@@ -4,6 +4,7 @@ import re
 import sys
 from pathlib import Path
 
+MAX_OBJECT_DEPTH = 2
 
 class Profiler:
     def __init__(self):
@@ -86,16 +87,22 @@ def is_function(val):
     return re.match(function_re, str(val)) is not None
 
 
-def value_equivalence(value_a, value_b):
+def value_equivalence(value_a, value_b, visited=None):
     """
     Recursively check if two return values are equivalent, allowing them to any combination of primitives,
     objects of a user-defined class, or containers of these
     """
+    if visited is None:
+        visited = set()
 
     # Generally speaking we don't reach this condition unless return_a and return_b are one of the numbered dummies
     # from callable_strategy, in which case we should correctly consider them equivalent.
     # there is a very niche possibility that we reach here without dummy functions, in which case we should still
     # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
+    pair = (id(value_a), id(value_b))
+    if pair in visited:
+        return True
+    visited.add(pair)
     if is_function(value_a) and is_function(value_b):
         return True
     if is_function(value_a) != is_function(value_b):
@@ -107,15 +114,16 @@ def value_equivalence(value_a, value_b):
     if isinstance(value_a, dict):
         if set(value_a.keys()) != set(value_b.keys()):
             return False
-        return all(value_equivalence(value_a[k], value_b[k]) for k in value_a)
+        return all(value_equivalence(value_a[k], value_b[k], visited) for k in value_a)
     if isinstance(value_a, (list, tuple)):
         if len(value_a) != len(value_b):
             return False
-        return all(value_equivalence(x, y) for x, y in zip(value_a, value_b))
+        return all(value_equivalence(x, y, visited) for x, y in zip(value_a, value_b))
     # this works in most cases, unless these are any objects that contain cycles like DLLs, then we can potentially
     # recurse infinitely here trying to check equivalence
+    #if depth < MAX_OBJECT_DEPTH and is_user_object(value_a) and is_user_object(value_b):
     if is_user_object(value_a) and is_user_object(value_b):
-        return value_equivalence(vars(value_a), vars(value_b))
+        return value_equivalence(vars(value_a), vars(value_b), visited)
     return value_a == value_b
 
 
@@ -170,11 +178,6 @@ def assert_instance_states_equivalent(func_a, func_b):
         val_a = state_a[key]
         val_b = state_b[key]
 
-        # skip fields that are user-defined objects — these are infrastructure,
-        # not meaningful state we can compare structurally
-        if is_user_object(val_a) or is_user_object(val_b):
-            continue
-
         if not value_equivalence(val_a, val_b):
             raise AssertionError(
                 f"Instance state mismatch on field {key!r}: "
@@ -192,7 +195,6 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
 
     """
-    # top level functions in log_a and log_b
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
 
@@ -234,6 +236,7 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
         return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}"
 
     # check observable equivalence of exceptions
+    # todo we arent actually checking the exception message
     ok, msg = exceptions_are_equivalent(log_a, log_b)
     if not ok:
         return False, msg
