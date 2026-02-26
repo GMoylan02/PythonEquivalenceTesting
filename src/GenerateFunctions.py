@@ -56,6 +56,9 @@ def h4(f, g):
 def h5(g):
     g()
 
+def h6(*args, **kwargs):
+    return None
+
 @st.composite
 def preset_functions(draw):
     funcs = [h1, h2, h3, h4, h5]
@@ -197,27 +200,3 @@ def create_curried_interaction(plan: CurriedInteractionPlan):
 
 # todo idea: generate functions that take varargs, give the function logic to iterate over its args, check type, and dynamically
 # perform action on that arg depending on its signature
-
-
-
-@dataclass
-class CallableStubPlan:
-    return_values: list  # cycled through on each call
-
-
-_stub_counter = 0
-
-def create_stub(plan: CallableStubPlan, stub_index: int):
-    stub_name = f"__stub_{stub_index}"
-    return_values = plan.return_values
-    state = {"call_count": 0}
-
-    func_def = f"""
-def {stub_name}(*args, **kwargs):
-    result = return_values[state['call_count'] % len(return_values)] if return_values else None
-    state['call_count'] += 1
-    return result
-"""
-    local_vars = {}
-    exec(func_def, {"return_values": return_values, "state": state}, local_vars)
-    return local_vars[stub_name]

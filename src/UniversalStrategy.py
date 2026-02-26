@@ -7,7 +7,7 @@ from typing import Callable
 
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
     GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
-    create_curried_interaction, CallableStubPlan, create_stub
+    create_curried_interaction
 from src.Profiler import logs_are_equivalent, assert_instance_states_equivalent
 from src.StateUtils import snapshot_module_state, restore_module_state
 from src.Profiler import Profiler, return_value_equivalence, record_failure
@@ -31,7 +31,6 @@ def get_universal_strategy():
         preset_functions(),
         interleaved_caller_strategy(),
         curried_interaction_strategy(),
-        #callable_stub_strategy(),
        # global_mutator_strategy()   # not applicable for hobbit suite
         #st.functions()
     )
@@ -72,14 +71,6 @@ def curried_interaction_strategy():
         post_run_enlist_calls=st.integers(min_value=0, max_value=3),
     )
 
-def callable_stub_strategy():
-    return st.builds(
-        CallableStubPlan,
-        return_values=st.lists(
-            st.one_of(st.integers(), st.booleans(), st.none(), st.text()),
-            max_size=10
-        )
-    )
 
 def build_args_strategy(func):
     """
@@ -141,8 +132,7 @@ def callable_strategy_for_annotation():
         preset_functions(),
         interleaved_caller_strategy(),
         #global_mutator_strategy(),
-        curried_interaction_strategy(),
-        callable_stub_strategy()
+        curried_interaction_strategy()
     )
 
 
@@ -305,18 +295,18 @@ def assert_equivalent(
 def run(fn, args, kwargs=None):
     profiler = Profiler()
     try:
-        sys.setprofile(profiler.profile)
+        sys.settrace(profiler.trace)
         if kwargs == {} or kwargs is None:
             result = fn(*args)
         else:
             result = fn(*args, **kwargs)
+        sys.settrace(None)
         log = profiler.trace_log
-        sys.setprofile(None)
         profiler.clear_logs()
         return "ok", result, log
     except Exception as e:
+        sys.settrace(None)
         log = profiler.trace_log
-        sys.setprofile(None)
         profiler.clear_logs()
         return "err", e, log
 
@@ -340,12 +330,6 @@ def instantiate_value(val, target_func, stub_counter=None):
 
     if isinstance(val, CurriedInteractionPlan):
         return create_curried_interaction(val)
-
-    if isinstance(val, CallableStubPlan):
-        stub = create_stub(val, stub_counter[0])
-        stub_counter[0] += 1
-        return stub
-
 
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]

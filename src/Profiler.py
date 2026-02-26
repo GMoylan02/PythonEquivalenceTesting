@@ -7,23 +7,24 @@ from pathlib import Path
 
 class Profiler:
     def __init__(self):
-        self.call_stack = []
         self.trace_log = []
+        self.call_stack = []
+        self.call_depth = 0
+        self.top_level_depth = None
 
-    def profile(self, frame, event, arg):
+    def trace(self, frame, event, arg):
         if event == "call":
             func_name = frame.f_code.co_name
+            self.call_depth += 1
 
-            # co_varnames contains all local variable names in order:
-            # positional args, keyword-only args, *args, **kwargs, then locals
-            # the argument count fields tell us exactly where args end
+            # first call is always the top-level HOF
+            if self.top_level_depth is None:
+                self.top_level_depth = self.call_depth
+
             code = frame.f_code
             n_positional = code.co_argcount
             n_keyword_only = code.co_kwonlyargcount
-
             arg_names = set(code.co_varnames[:n_positional + n_keyword_only])
-
-            # also include *args and **kwargs if present
             if code.co_flags & inspect.CO_VARARGS:
                 arg_names.add(code.co_varnames[n_positional + n_keyword_only])
             if code.co_flags & inspect.CO_VARKEYWORDS:
@@ -40,28 +41,44 @@ class Profiler:
                 "event": "call",
                 "function": func_name,
                 "arguments": args_snapshot,
-                "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None
+                "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None,
+                "depth": self.call_depth
             })
 
         elif event == "return":
             func_name = frame.f_code.co_name
-            exc = sys.exc_info()
-            is_exception_exit = exc[0] is not None
             self.trace_log.append({
                 "event": "return",
                 "function": func_name,
                 "return_value": arg,
-                "exception": exc[1] if is_exception_exit else None,
-                "exception_type": exc[0] if is_exception_exit else None,
-                "is_exception_exit": is_exception_exit
+                "depth": self.call_depth
             })
-            self.call_stack.pop()
+            self.call_depth -= 1
+            if self.call_stack:
+                self.call_stack.pop()
 
-        return self.profile
+        elif event == "exception":
+            exc_type, exc_value, _ = arg
+            func_name = frame.f_code.co_name
+
+            # only record if propagating at or above the top-level HOF frame
+            # deeper exceptions may still be caught internally
+            if self.top_level_depth is not None and self.call_depth <= self.top_level_depth:
+                self.trace_log.append({
+                    "event": "exception",
+                    "function": func_name,
+                    "exception_type": exc_type,
+                    "exception": exc_value,
+                    "depth": self.call_depth
+                })
+
+        return self.trace
 
     def clear_logs(self):
         self.trace_log = []
         self.call_stack = []
+        self.call_depth = 0
+        self.top_level_depth = None
 
 function_re = r"<function.{1,100}at 0x.{1,100}>"
 
@@ -257,7 +274,6 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
 
     """
-
     # potentially we can devise a set of function parameters to top_level_a and top_level_b, filter out any function calls and returns from functions
     # other than top_level_a, top_level_b, and their param functions
 
@@ -279,8 +295,8 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
         return False, f"{top_func_name_a} took different callable arguments to {top_func_name_b}: {callable_params_a} != {callable_params_b}"
 
     relevant_functions = callable_params_a
-    relevant_functions.add(top_func_name_a)
-    relevant_functions.add(top_func_name_b)
+    #relevant_functions.add(top_func_name_a)
+    #relevant_functions.add(top_func_name_b)
 
     filtered_log_a = []
     filtered_log_b = []
@@ -291,13 +307,29 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
         if entry['function'] in relevant_functions:
             filtered_log_b.append(entry)
 
-    #if callable(args_a[0]) and "h2" in args_a[0].__name__:
-    #    import pdb;pdb.set_trace()
-
+    # todo these error messages are not quite accurate
     if len(filtered_log_a) > len(filtered_log_b):
-        return False, f"{top_func_name_a} called its argument more than {top_func_name_b}: {top_func_name_a}: {filtered_log_a} != {top_func_name_b}: {filtered_log_b}"
+        return False, f"{top_func_name_a} called its argument more than {top_func_name_b}"
     if len(filtered_log_a) < len(filtered_log_b):
-        return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}: {top_func_name_a}: {filtered_log_a} != {top_func_name_b}: {filtered_log_b}"
+        return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}"
+
+    # check observable equivalence of exceptions
+    ok, msg = exceptions_are_equivalent(log_a, log_b)
+    if not ok:
+        return False, msg
+
+    for entry_a, entry_b in zip(filtered_log_a, filtered_log_b):
+        # check that for all callable args to the top level HOFs, they are called with equivalent args themselves
+        if "arguments" in entry_a and not return_value_equivalence(entry_a['arguments'], entry_b['arguments']):
+            func_a = entry_a['function']
+            func_b = entry_b['function']
+            return False, f"Observer argument mismatch: {func_a} received arguments {entry_a['arguments']} when {func_b} received arguments {entry_b['arguments']}"
+
+        if "return_value" in entry_a and not return_value_equivalence(entry_a['return_value'], entry_b['return_value']):
+            func_a = entry_a['function']
+            func_b = entry_b['function']
+            return False, f"Observer return mismatch: {top_func_name_a}.{func_a} returned a different value from {top_func_name_b}.{func_b}"
+
     log_a_returns = []
     log_b_returns = []
 
@@ -322,95 +354,40 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             return False, (
                 f"Function A: {top_func_name_a}{args_a} = {log_a_returns[-1]['return_value']!r}, "
                 f"Function B: {top_func_name_b}{args_b} = {log_b_returns[-1]['return_value']!r}")
-
-    # f_functions are functions used for testing deep recursion. this logic serves to check that
-    # forall f in f_functions, f in log_a == f in log_b
-    # this is only a valid equivalence check because we know that each f{i} is defined as: return g(f{i-1})
-    # where g is the top level function in log_a and log_b that we are testing for equivalence.
-    # thus, if the return value of f{i} differs across log_a and log_b, we know that an observable call to g resulted in
-    # a different output, implying the two implementations of g are not contextually equivalent
-    f_functions = []
-    for i in range(100):
-        f_functions.append(f"f{i}")
-
-    f_function_returns_in_log_A = {}    # return values of each of the f within log A
-    for i in range(len(log_a)):
-        if log_a[i]['event'] == 'return' and log_a[i]['function'] in f_functions:
-            if log_a[i]['function'] in f_function_returns_in_log_A:     # skip functions we have already seen
-                continue
-            f_function_returns_in_log_A[log_a[i]['function']] = log_a[i]['return_value']
-
-    f_functions_seen_in_B = []      # used to skip functions in b we have already seen
-    for i in range(len(log_b)):
-        if log_b[i]['event'] == 'return' and log_b[i]['function'] in f_functions:
-            if log_b[i]['function'] in f_functions_seen_in_B:   # skip functions we have already seen
-                continue
-            if log_b[i]['function'] not in f_function_returns_in_log_A.keys():
-                # we should never get here, this means that log_b called some f_function that log_a never called
-                raise AssertionError(f"Function {log_b[i]['function']} not called by {top_func_name_a}, this should never happen")
-
-            if not return_value_equivalence(log_b[i]['return_value'], f_function_returns_in_log_A[log_a[i]['function']]):
-                return False, (f"Mismatch: Observer {log_a[i]['function']} observed {top_func_name_a} giving differing outputs "
-                    f"Within Function A: {log_a[i]['function']} => {f_function_returns_in_log_A[log_a[i]['function']]!r}, "
-                    f"Within Function B: {log_b[i]['function']} => {log_b[i]['return_value']!r}")
-            f_functions_seen_in_B.append(log_b[i]['function'])
-
     return True, ""
 
-def check_stub_interactions_equivalent(log_a, log_b):
+def count_exceptions(log, func_name):
+    return sum(
+        1 for entry in log
+        if entry['event'] == 'exception' and entry['function'] == func_name
+    )
+
+def count_boundary_exceptions(log):
+    return sum(1 for entry in log if entry['event'] == 'exception')
+
+
+def exceptions_are_equivalent(log_a, log_b):
     """
-    Extracts all stub call/return sequences from each log and compares them pairwise.
-    Stubs are matched by name — both sides instantiate stubs from the same plan so
-    stub_0 in log_a corresponds to stub_0 in log_b.
+    Check if the observable exceptions in log_a and log_b are equivalent
+    In this context, observable means they make it to the top level HOF, rather than being caught somewhere down
+    the line by some observer function
     """
-    def extract_stub_interactions(log):
-        # dict of stub_name -> list of ('call', args) | ('return', value) in order
-        interactions = {}
-        for entry in log:
-            name = entry['function']
-            if not name.startswith(STUB_PREFIX):
-                continue
-            if name not in interactions:
-                interactions[name] = []
-            if entry['event'] == 'call':
-                interactions[name].append(('call', entry.get('arguments', {})))
-            elif entry['event'] == 'return':
-                interactions[name].append(('return', entry['return_value']))
-        return interactions
+    excs_a = [e for e in log_a if e['event'] == 'exception']
+    excs_b = [e for e in log_b if e['event'] == 'exception']
 
-    stubs_a = extract_stub_interactions(log_a)
-    stubs_b = extract_stub_interactions(log_b)
+    if len(excs_a) != len(excs_b):
+        return False, (
+            f"Boundary exception count mismatch: "
+            f"A raised {len(excs_a)}, B raised {len(excs_b)}"
+        )
 
-    all_stubs = sorted(set(stubs_a) | set(stubs_b))
-
-    for stub_name in all_stubs:
-        if stub_name not in stubs_a:
-            return False, f"Stub {stub_name} was called in B but never in A"
-        if stub_name not in stubs_b:
-            return False, f"Stub {stub_name} was called in A but never in B"
-
-        seq_a = stubs_a[stub_name]
-        seq_b = stubs_b[stub_name]
-
-        if len(seq_a) != len(seq_b):
-            calls_a = sum(1 for e in seq_a if e[0] == 'call')
-            calls_b = sum(1 for e in seq_b if e[0] == 'call')
+    for i, (ea, eb) in enumerate(zip(excs_a, excs_b)):
+        if ea['exception_type'] != eb['exception_type']:
             return False, (
-                f"Stub {stub_name} called {calls_a} times in A but {calls_b} times in B"
+                f"Exception type mismatch at boundary exception {i}: "
+                f"A raised {ea['exception_type'].__name__}, "
+                f"B raised {eb['exception_type'].__name__}"
             )
-
-        for i, (entry_a, entry_b) in enumerate(zip(seq_a, seq_b)):
-            kind_a, val_a = entry_a
-            kind_b, val_b = entry_b
-            if kind_a != kind_b:
-                return False, (
-                    f"Stub {stub_name} interaction {i} type mismatch: {kind_a} vs {kind_b}"
-                )
-            if not return_value_equivalence(val_a, val_b):
-                return False, (
-                    f"Stub {stub_name} {kind_a} mismatch at interaction {i}: "
-                    f"A={val_a!r}, B={val_b!r}"
-                )
 
     return True, ""
 
