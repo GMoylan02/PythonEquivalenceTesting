@@ -209,64 +209,9 @@ def assert_instance_states_equivalent(func_a, func_b):
             )
 
 
-STUB_PREFIX = "__stub_"
-# todo refactor
-"""
-def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
-    top_func_name_a = log_a[0]['function']
-    top_func_name_b = log_b[0]['function']
-
-    # check final return value
-    log_a_returns = []
-    log_b_returns = []
-    for entry in log_a:
-        if entry['event'] == 'return' and entry['function'] == top_func_name_a:
-            log_a_returns.append(entry)
-    for entry in log_b:
-        if entry['event'] == 'return' and entry['function'] == top_func_name_b:
-            log_b_returns.append(entry)
-
-    if log_a_returns and log_b_returns:
-        if not return_value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
-            return False, (
-                f"Function A: {top_func_name_a}({args_a}) = {log_a_returns[-1]['return_value']!r}, "
-                f"Function B: {top_func_name_b}({args_b}) = {log_b_returns[-1]['return_value']!r}"
-            )
-
-    # f-functions (observers) check
-    f_functions = {f"f{i}" for i in range(100)}
-
-    f_returns_a = {}
-    for entry in log_a:
-        if entry['event'] == 'return' and entry['function'] in f_functions:
-            if entry['function'] not in f_returns_a:
-                f_returns_a[entry['function']] = entry['return_value']
-
-    seen_in_b = set()
-    for entry in log_b:
-        if entry['event'] == 'return' and entry['function'] in f_functions:
-            if entry['function'] in seen_in_b:
-                continue
-            if entry['function'] not in f_returns_a:
-                raise AssertionError(
-                    f"Function {entry['function']} not called by {top_func_name_a}, this should never happen"
-                )
-            if not return_value_equivalence(entry['return_value'], f_returns_a[entry['function']]):
-                return False, (
-                    f"Mismatch: Observer {entry['function']} observed differing outputs. "
-                    f"A: {f_returns_a[entry['function']]!r}, B: {entry['return_value']!r}"
-                )
-            seen_in_b.add(entry['function'])
-
-    # --- new stub interaction check ---
-    ok, msg = check_stub_interactions_equivalent(log_a, log_b)
-    if not ok:
-        return False, msg
-
-    return True, ""
-"""
 def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
     """
+    todo update this docstring, this is outdated
     Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
     1. Check that the final return value of func_a() `eq` func_b()
     2. Check that forall f in f_functions, f() in log_a `eq` f() in log_b
@@ -274,13 +219,15 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
 
     """
-    # potentially we can devise a set of function parameters to top_level_a and top_level_b, filter out any function calls and returns from functions
-    # other than top_level_a, top_level_b, and their param functions
-
+    # top level functions in log_a and log_b
     top_func_name_a = log_a[0]['function']
     top_func_name_b = log_b[0]['function']
+
+    # set of all parameters to top_func_a and top_func_b that are callable
     callable_params_a = set()
     callable_params_b = set()
+
+    # popular callable_params
     top_call_a = log_a[0]
     top_call_b = log_b[0]
     for argname in top_call_a['arguments'].keys():
@@ -291,13 +238,13 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
         if callable(top_call_b['arguments'][argname]):
             callable_params_b.add(top_call_b['arguments'][argname].__name__)
 
+    # arity check for housekeeping, i dont think this ever happens because it should get caught upstream
     if callable_params_a != callable_params_b:
         return False, f"{top_func_name_a} took different callable arguments to {top_func_name_b}: {callable_params_a} != {callable_params_b}"
 
     relevant_functions = callable_params_a
-    #relevant_functions.add(top_func_name_a)
-    #relevant_functions.add(top_func_name_b)
 
+    # create filtered versions of the logs containing only calls/returns relating to observer functions
     filtered_log_a = []
     filtered_log_b = []
     for entry in log_a:
@@ -325,6 +272,7 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
             func_b = entry_b['function']
             return False, f"Observer argument mismatch: {func_a} received arguments {entry_a['arguments']} when {func_b} received arguments {entry_b['arguments']}"
 
+        # check that for all callable args to the top level HOFs, they return the same values
         if "return_value" in entry_a and not return_value_equivalence(entry_a['return_value'], entry_b['return_value']):
             func_a = entry_a['function']
             func_b = entry_b['function']

@@ -54,7 +54,7 @@ def run_existing_suite(suite="inequiv", timeout_seconds=15):
     for path in paths:
         run_script(path, timeout_seconds)
     after = time.time()
-    print(f"Completed in: {":.1f".format((after - before)/60)} minutes")
+    print(f"Completed in: {(after - before)/60} minutes")
 
 def run_script(filepath, timeout_seconds=15):
     print(f"Running test on {str(filepath).split("\\")[-1]}")
