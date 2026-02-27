@@ -4,6 +4,8 @@ import re
 import sys
 from pathlib import Path
 
+from src.DummyObject import DummyObject
+
 MAX_OBJECT_DEPTH = 2
 
 class Profiler:
@@ -206,11 +208,11 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
     top_call_a = log_a[0]
     top_call_b = log_b[0]
     for argname in top_call_a['arguments'].keys():
-        if callable(top_call_a['arguments'][argname]):
+        if callable(top_call_a['arguments'][argname]) and not isinstance(top_call_a['arguments'][argname], DummyObject):
             callable_params_a.add(top_call_a['arguments'][argname].__name__)
 
     for argname in top_call_b['arguments'].keys():
-        if callable(top_call_b['arguments'][argname]):
+        if callable(top_call_b['arguments'][argname]) and not isinstance(top_call_b['arguments'][argname], DummyObject):
             callable_params_b.add(top_call_b['arguments'][argname].__name__)
 
     # arity check for housekeeping, i dont think this ever happens because it should get caught upstream

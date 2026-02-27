@@ -4,6 +4,7 @@ import typing
 from hypothesis import strategies as st, event
 from typing import Callable
 
+from src.DummyObject import DummyObject
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
     GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
     create_curried_interaction
@@ -33,6 +34,7 @@ def get_universal_strategy():
         preset_functions(),
         interleaved_caller_strategy(),
         curried_interaction_strategy(),
+        dummy_object_strategy()
        # global_mutator_strategy()   # not applicable for hobbit suite
     )
 
@@ -72,6 +74,10 @@ def curried_interaction_strategy():
         post_run_enlist_calls=st.integers(min_value=0, max_value=3),
     )
 
+@st.composite
+def dummy_object_strategy(draw, max_depth=3):
+    val = draw(st.one_of(st.integers(), st.none(), st.text(max_size=5)))
+    return DummyObject(depth=0, max_depth=max_depth, val=val)
 
 def build_args_strategy(func):
     """
@@ -249,7 +255,7 @@ def assert_outputs_equivalent(
         assert_equivalent_callable_tuple(out_a, out_b, data=data, depth=depth)
         return
 
-    if not callable(out_a) or not callable(out_b):
+    if not callable(out_a) or not callable(out_b) or isinstance(out_a, DummyObject) or isinstance(out_b, DummyObject):
         assert value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
         return
 
