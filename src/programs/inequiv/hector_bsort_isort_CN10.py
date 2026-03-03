@@ -1,6 +1,6 @@
 from typing import Callable
 
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 
 def hector_bsort_isort_CN10_lhs():

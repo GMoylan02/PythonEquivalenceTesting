@@ -1,4 +1,4 @@
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 # possible only if we set MAX_TUPLE_CALLS to 100 in UniversalStrategy and
 # get unreasonably lucky that the fuzzer draws even,odd in sequence 100 times

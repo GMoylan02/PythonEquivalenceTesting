@@ -1,6 +1,6 @@
 import sys
 
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 
 #def reve_ackermann_ineq_lhs(mn: tuple[int, int]):

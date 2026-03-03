@@ -1,6 +1,6 @@
 from typing import Callable
 
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 #def hector_stark_tricky_lhs(f: Callable):
 def hector_stark_tricky_lhs(f):

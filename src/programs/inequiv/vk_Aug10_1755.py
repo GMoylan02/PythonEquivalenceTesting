@@ -1,4 +1,4 @@
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 
 def vk_Aug10_1755_lhs(a):

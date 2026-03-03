@@ -1,4 +1,4 @@
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 
 def reve_loop5_ineq_lhs(n):

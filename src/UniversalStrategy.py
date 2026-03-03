@@ -362,41 +362,49 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
 
     # check that if the function(s) lie in a class, that every class attribute
     # is equivalent
-    if not equivalent_logs:
-        event(logs_error_msg)
     if status_a == "ok" and status_b == "ok":
-        if callable(out_a) and callable(out_b):
-            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded and callable")
+        if not equivalent_logs:
+            event("both ok: log mismatch")
+        elif callable(out_a) and callable(out_b):
+            event(f"both ok: callable output")
         else:
-            event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
+            event(f"both ok")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
         assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b)
         assert_outputs_equivalent(out_a, out_b, data=data)
 
     elif status_a == "err" and status_b == "err":
-        event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
+        both_bad_input = is_bad_input_exception(out_a) and is_bad_input_exception(out_b)
+        types_match = type(out_a) is type(out_b)
+
+        if not equivalent_logs:
+            event("both errored: log mismatch")
+        elif not types_match and strict_exceptions and not both_bad_input:
+            event("both errored: exception type mismatch")
+        else:
+            event("both errored: equivalent")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
         assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b)
-        if strict_exceptions and not (is_bad_input_exception(out_a) and is_bad_input_exception(out_b)):
-            assert type(out_a) is type(out_b), (
-                f"Mismatch: "
-                f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
-                f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
+        if strict_exceptions and not both_bad_input:
+            assert types_match, (
+                f"Exception type mismatch:\n"
+                f"  A: {format_call(func_a.__name__, args_a, kwargs_a, out_a)}\n"
+                f"  B: {format_call(func_b.__name__, args_b, kwargs_b, out_b)}"
             )
 
     else:
-        event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
-        # if one side errors with a bad-input TypeError, the input was unsuitable
         errored_exc = out_b if status_b == "err" else out_a
         if is_bad_input_exception(errored_exc):
-            event("skipping bad input type error")
+            event("skipping: bad input TypeError")
             return
+        which = "a ok b errored" if status_a == "ok" else "b ok a errored"
+        event(f"domain mismatch: {which}")
         raise AssertionError(
-            f"Mismatch: "
-            f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
-            f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
+            f"Domain mismatch:\n"
+            f"  A: {format_call(func_a.__name__, args_a, kwargs_a, out_a)}\n"
+            f"  B: {format_call(func_b.__name__, args_b, kwargs_b, out_b)}"
         )
 
 def has_type_annotations(func):
@@ -410,16 +418,6 @@ def has_type_annotations(func):
     except (ValueError, TypeError):
         return False
 
-def is_nonsensical_type_error(exc, args):
-    if not isinstance(exc, TypeError):
-        return False
-    msg = str(exc)
-    return any(phrase in msg for phrase in [
-        "not supported between instances of 'function'",
-        "not supported between instances of 'dict'",
-        "not supported between instances of 'list'",
-        "unsupported operand type(s)",
-    ])
 
 def is_bad_input_exception(exc):
     """Check if an exception is due to badly typed or malformed input"""
@@ -476,3 +474,10 @@ def generate_tuple_operation_strategy(tuple_a, tuple_b):
         strats.append(st.tuples(st.just(i), build_args_strategy(function)))
     operation_strategy = st.one_of(strats)
     return operation_strategy
+
+def format_call(name, args, kwargs, result):
+    args_str = repr(args) if len(repr(args)) < 200 else f"<args len={len(args)}>"
+    result_str = repr(result) if len(repr(result)) < 200 else f"<{type(result).__name__}>"
+    if kwargs:
+        return f"{name}({args_str}, **{kwargs!r}) = {result_str}"
+    return f"{name}({args_str}) = {result_str}"

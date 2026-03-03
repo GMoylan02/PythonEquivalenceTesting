@@ -1,7 +1,7 @@
 from typing import Callable
 
 from src.GenerateFunctions import h4
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
 
 
 def holik_flat_combiner_e_lhs():

@@ -14,7 +14,6 @@ HOBBIT_DIR = BASE_DIR / "RunHobbitSuite" / "inequiv"
 EQUIV_DIR = BASE_DIR  / "programs" / "equiv"
 paths = list(INEQUIV_DIR.glob("*.txt"))
 PROJECT_ROOT = os.path.abspath(os.getcwd())
-TIMEOUT_SECONDS = 60
 
 def parse_args():
     parser = argparse.ArgumentParser(
