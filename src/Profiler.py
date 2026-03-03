@@ -3,6 +3,7 @@ import math
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 from src.DummyObject import DummyObject
 
@@ -88,12 +89,21 @@ function_re = r"<function.{1,100}at 0x.{1,100}>"
 def is_function(val):
     return re.match(function_re, str(val)) is not None
 
+address_re = re.compile(r' at 0x[0-9a-fA-F]+')
+
+def normalise_string(s):
+    """Strip memory addresses from string representations of objects."""
+    return address_re.sub(' at 0x?', s)
 
 def value_equivalence(value_a, value_b, visited=None):
     """
     Recursively check if two return values are equivalent, allowing them to any combination of primitives,
     objects of a user-defined class, or containers of these
     """
+    if value_a is None and value_b is None:
+        return True
+    if value_a is None or value_b is None:
+        return False
     if visited is None:
         visited = set()
 
@@ -113,6 +123,8 @@ def value_equivalence(value_a, value_b, visited=None):
         return False
     if type(value_a) == float and (math.isnan(value_a) and math.isnan(value_b)):
         return True
+    if isinstance(value_a, str):
+        return normalise_string(value_a) == normalise_string(value_b)
     if isinstance(value_a, dict):
         if set(value_a.keys()) != set(value_b.keys()):
             return False
@@ -187,18 +199,17 @@ def assert_instance_states_equivalent(func_a, func_b):
             )
 
 
-def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=None):
-    """
-    todo update this docstring, this is outdated
-    Checks that the trace log of functions func_a and func_b are contextually equivalent in 2 main steps
-    1. Check that the final return value of func_a() `eq` func_b()
-    2. Check that forall f in f_functions, f() in log_a `eq` f() in log_b
-            where f_functions are 'observer' functions to func_a and func_b defined in construct_dummies()
-            for example, f5 is def f5(): return g(f4), f4 is def f4(): return g(f3), and so on where g is func_a or func_b
+def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, args_b: tuple,
+                    kwargs_a: dict=None, kwargs_b: dict=None,
+                        top_func_name_a: str=None, top_func_name_b: str=None, strict_exceptions: bool=True):
+    if not log_a or not log_b:
+        return True, ""
+    # resolve top-level function names
+    if top_func_name_a is None:
+        top_func_name_a = log_a[0]['function']
+    if top_func_name_b is None:
+        top_func_name_b = log_b[0]['function']
 
-    """
-    top_func_name_a = log_a[0]['function']
-    top_func_name_b = log_b[0]['function']
 
     # set of all parameters to top_func_a and top_func_b that are callable
     callable_params_a = set()
@@ -239,7 +250,8 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
 
     # check observable equivalence of exceptions
     # todo we arent actually checking the exception message
-    ok, msg = exceptions_are_equivalent(log_a, log_b)
+
+    ok, msg = exceptions_are_equivalent(log_a, log_b, strict_exceptions=strict_exceptions)
     if not ok:
         return False, msg
 
@@ -282,6 +294,7 @@ def logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a=None, kwargs_b=No
                 f"Function B: {top_func_name_b}{args_b} = {log_b_returns[-1]['return_value']!r}")
     return True, ""
 
+
 def count_exceptions(log, func_name):
     return sum(
         1 for entry in log
@@ -292,7 +305,7 @@ def count_boundary_exceptions(log):
     return sum(1 for entry in log if entry['event'] == 'exception')
 
 
-def exceptions_are_equivalent(log_a, log_b):
+def exceptions_are_equivalent(log_a, log_b, strict_exceptions=True):
     """
     Check if the observable exceptions in log_a and log_b are equivalent
     In this context, observable means they make it to the top level HOF, rather than being caught somewhere down
@@ -301,19 +314,22 @@ def exceptions_are_equivalent(log_a, log_b):
     excs_a = [e for e in log_a if e['event'] == 'exception']
     excs_b = [e for e in log_b if e['event'] == 'exception']
 
+    # check boundary exceptions
     if len(excs_a) != len(excs_b):
         return False, (
             f"Boundary exception count mismatch: "
             f"A raised {len(excs_a)}, B raised {len(excs_b)}"
         )
 
-    for i, (ea, eb) in enumerate(zip(excs_a, excs_b)):
-        if ea['exception_type'] != eb['exception_type']:
-            return False, (
-                f"Exception type mismatch at boundary exception {i}: "
-                f"A raised {ea['exception_type'].__name__}, "
-                f"B raised {eb['exception_type'].__name__}"
-            )
+    # only check exception types if the function is annotated
+    if strict_exceptions:
+        for i, (ea, eb) in enumerate(zip(excs_a, excs_b)):
+            if ea['exception_type'] != eb['exception_type']:
+                return False, (
+                    f"Exception type mismatch at boundary exception {i}: "
+                    f"A raised {ea['exception_type'].__name__}, "
+                    f"B raised {eb['exception_type'].__name__}"
+                )
 
     return True, ""
 

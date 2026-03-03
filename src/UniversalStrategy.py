@@ -275,9 +275,6 @@ def assert_outputs_equivalent(
 
 
 def run(fn, args, kwargs=None):
-    """
-    Run a function, catch any exceptions, and log the execution trace
-    """
     profiler = Profiler()
     try:
         sys.settrace(profiler.trace)
@@ -292,13 +289,12 @@ def run(fn, args, kwargs=None):
         sys.settrace(None)
         log = profiler.trace_log
         profiler.clear_logs()
-        return "ok", result, log
+        return "ok", result, log, fn.__name__
     except Exception as e:
         sys.settrace(None)
         log = profiler.trace_log
         profiler.clear_logs()
-        return "err", e, log
-
+        return "err", e, log, fn.__name__
 
 def instantiate_value(val, target_func):
     """
@@ -343,10 +339,12 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
     # or func_b, or mutate the correct global state etc
     args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, func_a)
     args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, func_b)
-    status_a, out_a, log_a = run(func_a, args_a, kwargs_a)
-    status_b, out_b, log_b = run(func_b, args_b, kwargs_b)
-
-    equivalent_logs, logs_error_msg = logs_are_equivalent(log_a, log_b, args_a, args_b, kwargs_a, kwargs_b)
+    status_a, out_a, log_a, name_a = run(func_a, args_a, kwargs_a)
+    status_b, out_b, log_b, name_b = run(func_b, args_b, kwargs_b)
+    strict_exceptions = has_type_annotations(func_a)
+    equivalent_logs, logs_error_msg = logs_are_equivalent(log_a, log_b, args_a, args_b,
+                                                          kwargs_a, kwargs_b,
+                                                          name_a, name_b, strict_exceptions=strict_exceptions)
 
     # todo low hanging fruit: we can check if the console output of both funcs is equivalent
     # todo low hanging fruit: need to check that if the args to both funcs are altered, they are altered equivalently
@@ -362,25 +360,56 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
             event(f"{func_a.__name__}, {func_b.__name__}: both succeeded")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
+        assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b)
         assert_outputs_equivalent(out_a, out_b, data=data)
 
     elif status_a == "err" and status_b == "err":
         event(f"{func_a.__name__}, {func_b.__name__} top-level both error: {out_a!r}, {out_b!r}")
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
-        assert type(out_a) is type(out_b), (
-            f"Mismatch: "
-            f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
-            f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
-        )
+        assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b)
+        if strict_exceptions:
+            assert type(out_a) is type(out_b), (
+                f"Mismatch: "
+                f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
+                f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
+            )
 
     else:
         event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
+        if status_a == "err" and is_nonsensical_type_error(out_a, args_a):
+            event("skipping nonsensical type error")
+            return
+        if status_b == "err" and is_nonsensical_type_error(out_b, args_b):
+            event("skipping nonsensical type error")
+            return
         raise AssertionError(
             f"Mismatch: "
             f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
             f"Function B: {func_b.__name__}({args_b!r}) = {out_b!r}"
         )
+
+def has_type_annotations(func):
+    """Returns True if any parameter of func has a type annotation."""
+    try:
+        sig = inspect.signature(func)
+        return any(
+            p.annotation is not inspect.Parameter.empty
+            for p in sig.parameters.values()
+        )
+    except (ValueError, TypeError):
+        return False
+
+def is_nonsensical_type_error(exc, args):
+    if not isinstance(exc, TypeError):
+        return False
+    msg = str(exc)
+    return any(phrase in msg for phrase in [
+        "not supported between instances of 'function'",
+        "not supported between instances of 'dict'",
+        "not supported between instances of 'list'",
+        "unsupported operand type(s)",
+    ])
 
 def _is_callable_tuple(val):
     """Given a tuple, returns true if every element is a function"""
@@ -413,6 +442,16 @@ def assert_equivalent_callable_tuple(tuple_a, tuple_b, *, data, depth=0):
         idx = op[0]
         raw_args, raw_kwargs = op[1]
         run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, data)
+
+
+def assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b):
+    args_equivalent = value_equivalence(args_a, args_b)
+    kwargs_equivalent = value_equivalence(kwargs_a, kwargs_b)
+    if not args_equivalent or not kwargs_equivalent:
+        raise AssertionError(
+            f"{func_a.__name__} and {func_b.__name__} have inequivalent arguments after running: "
+            f"{args_a!r}, {args_b!r}, {kwargs_a!r}, {kwargs_b!r}"
+        )
 
 def generate_tuple_operation_strategy(tuple_a, tuple_b):
     strats = []

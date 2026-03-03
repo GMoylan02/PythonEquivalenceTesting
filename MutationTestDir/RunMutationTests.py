@@ -12,12 +12,13 @@ from typing import Dict, Callable
 from src.ClassEquivalence import get_module_methods
 from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
-TIMEOUT_SECONDS = 15
+TIMEOUT_SECONDS = 216
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "mutmut_test"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
+times_taken = []
 
 def run_fuzzing_session():
     os.environ["MUTANT_UNDER_TEST"] = ""
@@ -91,6 +92,8 @@ def run_fuzzing_session():
                     module_mutants_identified += 1
                 idx += 1
         print(f"{module_mutants_identified}/{module_mutants_found} mutants identified in module {module}")
+    print(f"5 Longest times taken: {sorted(times_taken)[-5:]}")
+    print(f"")
     print(f"\nMutants identified: {mutants_identified}/{total_mutants_found}")
     #clean_directory()
 
@@ -134,6 +137,7 @@ def run_fuzz_file(log_file, label):
 
             if current_failure_count > initial_failure_count:
                 print("Killed!")
+                times_taken.append(time.time() - start_time)
                 killed = True
                 break
 

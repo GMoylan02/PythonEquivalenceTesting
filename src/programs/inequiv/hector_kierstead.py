@@ -1,6 +1,7 @@
 from typing import Callable
 
-from src.UniversalStrategy import make_function_equivalence_test
+from src.FunctionEquivalence import make_function_equivalence_test
+
 
 #def hector_kierstead_lhs(f: Callable):
 def hector_kierstead_lhs(f):

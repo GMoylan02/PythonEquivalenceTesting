@@ -23,7 +23,7 @@ def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log
     # todo add module wide global state check (not applicable to hobbit suite)
 
     @given(input_strategy, st_data())
-    @settings(max_examples=500, deadline=None)
+    @settings(max_examples=1000, deadline=None)
     def equivalence_test(inputs, data):
         if reset_module_state:
             if module_a: restore_module_state(module_a, snap_a)
