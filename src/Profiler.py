@@ -198,7 +198,8 @@ def assert_instance_states_equivalent(func_a, func_b):
                 f"{val_a!r} != {val_b!r}"
             )
 
-
+# TODO HIGH PRIORITY: this needs to be optimised, it is currently multiple o(n) passes but can be so much better
+# this is called during every single fuzz so this being inefficient directly worsens the equivalence tester
 def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, args_b: tuple,
                     kwargs_a: dict=None, kwargs_b: dict=None,
                         top_func_name_a: str=None, top_func_name_b: str=None, strict_exceptions: bool=True):
@@ -215,9 +216,18 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
     callable_params_a = set()
     callable_params_b = set()
 
-    # popular callable_params
-    top_call_a = log_a[0]
-    top_call_b = log_b[0]
+    top_call_a = next(
+        (e for e in log_a if e['event'] == 'call' and e['function'] == top_func_name_a),
+        None
+    )
+    top_call_b = next(
+        (e for e in log_b if e['event'] == 'call' and e['function'] == top_func_name_b),
+        None
+    )
+
+    if top_call_a is None or top_call_b is None:
+        return True, ""
+
     for argname in top_call_a['arguments'].keys():
         if callable(top_call_a['arguments'][argname]) and not isinstance(top_call_a['arguments'][argname], DummyObject):
             callable_params_a.add(top_call_a['arguments'][argname].__name__)

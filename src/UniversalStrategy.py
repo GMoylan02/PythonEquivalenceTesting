@@ -16,6 +16,17 @@ already_logged = False
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
 MAX_TUPLE_CALLS = 30
+# exceptions that almost always indicate a bad input rather than a logic divergence
+# may cause us to throw away real divergences occasionally
+INPUT_TYPE_ERRORS = {
+    "not supported between instances of",
+    "unsupported operand type",
+    "argument must be",
+    "must be a",
+    "cannot be interpreted as",
+    "object is not subscriptable",
+    "object is not iterable",
+}
 
 """
 The core logic surrounding custom strategies, and how we check outputs for equivalence is handled here
@@ -368,7 +379,7 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
         assert equivalent_logs, logs_error_msg
         assert_instance_states_equivalent(func_a, func_b)
         assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b)
-        if strict_exceptions:
+        if strict_exceptions and not (is_bad_input_exception(out_a) and is_bad_input_exception(out_b)):
             assert type(out_a) is type(out_b), (
                 f"Mismatch: "
                 f"Function A: {func_a.__name__}({args_a!r}) = {out_a!r}, "
@@ -377,11 +388,10 @@ def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data):
 
     else:
         event(f"{func_a.__name__}, {func_b.__name__} top-level domain mismatch: {out_a}, {out_b}, args={args_a!r}")
-        if status_a == "err" and is_nonsensical_type_error(out_a, args_a):
-            event("skipping nonsensical type error")
-            return
-        if status_b == "err" and is_nonsensical_type_error(out_b, args_b):
-            event("skipping nonsensical type error")
+        # if one side errors with a bad-input TypeError, the input was unsuitable
+        errored_exc = out_b if status_b == "err" else out_a
+        if is_bad_input_exception(errored_exc):
+            event("skipping bad input type error")
             return
         raise AssertionError(
             f"Mismatch: "
@@ -410,6 +420,13 @@ def is_nonsensical_type_error(exc, args):
         "not supported between instances of 'list'",
         "unsupported operand type(s)",
     ])
+
+def is_bad_input_exception(exc):
+    """Check if an exception is due to badly typed or malformed input"""
+    if not isinstance(exc, TypeError):
+        return False
+    msg = str(exc)
+    return any(phrase in msg for phrase in INPUT_TYPE_ERRORS)
 
 def _is_callable_tuple(val):
     """Given a tuple, returns true if every element is a function"""
