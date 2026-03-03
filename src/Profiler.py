@@ -1,9 +1,7 @@
 import inspect
 import math
 import re
-import sys
 from pathlib import Path
-from typing import Any
 
 from src.DummyObject import DummyObject
 
@@ -84,119 +82,12 @@ class Profiler:
         self.call_depth = 0
         self.top_level_depth = None
 
-function_re = r"<function.{1,100}at 0x.{1,100}>"
-
-def is_function(val):
-    return re.match(function_re, str(val)) is not None
-
 address_re = re.compile(r' at 0x[0-9a-fA-F]+')
 
 def normalise_string(s):
     """Strip memory addresses from string representations of objects."""
     return address_re.sub(' at 0x?', s)
 
-def value_equivalence(value_a, value_b, visited=None):
-    """
-    Recursively check if two return values are equivalent, allowing them to any combination of primitives,
-    objects of a user-defined class, or containers of these
-    """
-    if value_a is None and value_b is None:
-        return True
-    if value_a is None or value_b is None:
-        return False
-    if visited is None:
-        visited = set()
-
-    # Generally speaking we don't reach this condition unless return_a and return_b are one of the numbered dummies
-    # from callable_strategy, in which case we should correctly consider them equivalent.
-    # there is a very niche possibility that we reach here without dummy functions, in which case we should still
-    # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
-    pair = (id(value_a), id(value_b))
-    if pair in visited:
-        return True
-    visited.add(pair)
-    if is_function(value_a) and is_function(value_b):
-        return True
-    if is_function(value_a) != is_function(value_b):
-        return False
-    if type(value_a) != type(value_b):
-        return False
-    if type(value_a) == float and (math.isnan(value_a) and math.isnan(value_b)):
-        return True
-    if isinstance(value_a, str):
-        return normalise_string(value_a) == normalise_string(value_b)
-    if isinstance(value_a, dict):
-        if set(value_a.keys()) != set(value_b.keys()):
-            return False
-        return all(value_equivalence(value_a[k], value_b[k], visited) for k in value_a)
-    if isinstance(value_a, (list, tuple)):
-        if len(value_a) != len(value_b):
-            return False
-        return all(value_equivalence(x, y, visited) for x, y in zip(value_a, value_b))
-    # this works in most cases, unless these are any objects that contain cycles like DLLs, then we can potentially
-    # recurse infinitely here trying to check equivalence
-    #if depth < MAX_OBJECT_DEPTH and is_user_object(value_a) and is_user_object(value_b):
-    if is_user_object(value_a) and is_user_object(value_b):
-        return value_equivalence(vars(value_a), vars(value_b), visited)
-    return value_a == value_b
-
-
-def is_user_object(var):
-    # checks if a variable is a user-defined object
-    builtin_types = (int, float, complex, str, bool, bytes,
-                     list, tuple, set, dict, frozenset, type(None))
-
-    return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
-
-
-def get_instance_state(val):
-    """Returns the instance __dict__ if val is a bound method or user object, else None."""
-    if inspect.ismethod(val):
-        obj = val.__self__
-    elif is_user_object(val):
-        obj = val
-    else:
-        return None
-
-    if hasattr(obj, '__slots__'):
-        return {slot: getattr(obj, slot) for slot in obj.__slots__ if hasattr(obj, slot)}
-    return vars(obj).copy()
-
-
-def assert_instance_states_equivalent(func_a, func_b):
-    """
-    If func_a and func_b are bound to an object, assert that every instance variable of their objects are equivalent
-    """
-    state_a = get_instance_state(func_a)
-    state_b = get_instance_state(func_b)
-
-    # neither is a bound method, nothing to check
-    if state_a is None and state_b is None:
-        return
-
-    # one is a method and one isn't
-    if (state_a is None) != (state_b is None):
-        raise AssertionError(
-            f"One function is a bound method and the other is not: " # todo
-            f"{func_a!r} vs {func_b!r}"
-        )
-
-    # compare field by field for a useful error message
-    all_keys = set(state_a) | set(state_b)
-    for key in sorted(all_keys):
-        if key not in state_a:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
-        if key not in state_b:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
-
-        val_a = state_a[key]
-        val_b = state_b[key]
-
-        if not value_equivalence(val_a, val_b):
-            raise AssertionError(
-                f"Instance state mismatch on field {key!r}: "
-                f"{val_a!r} != {val_b!r}"
-            )
 
 # TODO HIGH PRIORITY: this needs to be optimised, it is currently multiple o(n) passes but can be so much better
 # this is called during every single fuzz so this being inefficient directly worsens the equivalence tester
@@ -210,7 +101,6 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
         top_func_name_a = log_a[0]['function']
     if top_func_name_b is None:
         top_func_name_b = log_b[0]['function']
-
 
     # set of all parameters to top_func_a and top_func_b that are callable
     callable_params_a = set()
@@ -342,6 +232,71 @@ def exceptions_are_equivalent(log_a, log_b, strict_exceptions=True):
                 )
 
     return True, ""
+
+
+def is_user_object(var):
+    # checks if a variable is a user-defined object
+    builtin_types = (int, float, complex, str, bool, bytes,
+                     list, tuple, set, dict, frozenset, type(None))
+
+    return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
+
+
+function_re = r"<function.{1,100}at 0x.{1,100}>"
+
+def is_function(val):
+    return re.match(function_re, str(val)) is not None
+
+
+def value_equivalence(value_a, value_b, visited=None):
+    """
+    Recursively check if two return values are equivalent, allowing them to any combination of primitives,
+    objects of a user-defined class, or containers of these
+    """
+    if value_a is None and value_b is None:
+        return True
+    if value_a is None or value_b is None:
+        return False
+    if visited is None:
+        visited = set()
+
+    # Generally speaking we don't reach this condition unless return_a and return_b are one of the numbered dummies
+    # from callable_strategy, in which case we should correctly consider them equivalent.
+    # there is a very niche possibility that we reach here without dummy functions, in which case we should still
+    # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
+    pair = (id(value_a), id(value_b))
+    if pair in visited:
+        return True
+    visited.add(pair)
+
+    if is_function(value_a) and is_function(value_b):
+        return True
+    if is_function(value_a) != is_function(value_b):
+        return False
+
+    if type(value_a) != type(value_b):
+        return False
+
+    if type(value_a) == float and (math.isnan(value_a) and math.isnan(value_b)):
+        return True
+
+    if isinstance(value_a, str):
+        return normalise_string(value_a) == normalise_string(value_b)
+
+    if isinstance(value_a, dict):
+        if set(value_a.keys()) != set(value_b.keys()):
+            return False
+        return all(value_equivalence(value_a[k], value_b[k], visited) for k in value_a)
+
+    if isinstance(value_a, (list, tuple)):
+        if len(value_a) != len(value_b):
+            return False
+        return all(value_equivalence(x, y, visited) for x, y in zip(value_a, value_b))
+
+    if is_user_object(value_a) and is_user_object(value_b):
+        return value_equivalence(vars(value_a), vars(value_b), visited)
+
+    return value_a == value_b
 
 FAIL_MARKER = Path("hypofuzz_failures.log")
 def record_failure(module_name, exc, unique_id):

@@ -2,9 +2,10 @@ import sys
 
 from hypothesis import given, settings
 
+from src.EquivalenceChecker import run_and_test_equivalence
+from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import record_failure
 from src.StateUtils import snapshot_module_state, restore_module_state
-from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
 from hypothesis.strategies import data as st_data
 
 

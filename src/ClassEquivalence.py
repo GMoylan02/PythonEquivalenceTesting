@@ -1,10 +1,10 @@
 import inspect
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from src.UniversalStrategy import build_args_strategy, run_and_test_equivalence
+from src.EquivalenceChecker import run_and_test_equivalence
+from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
-from src.EquivTestingExceptions import ClassMethodMismatch
 from src.StateUtils import snapshot_object_state, restore_object_state
 
 
@@ -15,7 +15,7 @@ def generate_operation_strategy(obj1, obj2):
     # maybe we can come up with something more forgiving in future
     if get_object_methods(obj2) != all_methods:
         # in future, provide more info on the method mismatch
-        raise ClassMethodMismatch(f"{obj1.__class__} and {obj2.__class__} have different methods")
+        raise TypeError(f"{obj1.__class__} and {obj2.__class__} have different methods")
 
     strats = []
     for method in all_methods.keys():

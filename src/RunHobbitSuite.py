@@ -1,9 +1,7 @@
 import argparse
 import os
 import subprocess
-import sys
 import time
-import types
 from pathlib import Path
 
 from TestingUtils import clear_log, kill_process_tree
