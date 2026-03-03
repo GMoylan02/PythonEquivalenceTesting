@@ -1,6 +1,7 @@
 import inspect
 import math
 import re
+from dataclasses import field, dataclass
 from pathlib import Path
 
 from src.DummyObject import DummyObject
@@ -89,8 +90,46 @@ def normalise_string(s):
     return address_re.sub(' at 0x?', s)
 
 
-# TODO HIGH PRIORITY: this needs to be optimised, it is currently multiple o(n) passes but can be so much better
-# this is called during every single fuzz so this being inefficient directly worsens the equivalence tester
+@dataclass
+class _LogInfo:
+    # trace log frame of the top level function call
+    top_call: dict | None = None
+    # all params passed to the top level func that are themselves callable
+    callable_params: set = field(default_factory=set)
+    # filtered version of log containing only calls/returns relating to observer functions
+    filtered_log: list = field(default_factory=list)
+    # list of all returns from the top level function
+    top_level_returns: list = field(default_factory=list)
+    # list of all exceptions
+    exceptions: list = field(default_factory=list)
+
+# we want to collect all relevant info on a log in a single pass and store them, rather than making multiple passes
+def _parse_log(log: list[dict], top_func_name: str) -> _LogInfo:
+    parsed = _LogInfo()
+    for entry in log:
+        event = entry["event"]
+        func = entry["function"]
+        if parsed.top_call is None:
+            if event == "call" and func == top_func_name:
+                parsed.top_call = entry
+                arguments = entry["arguments"].values()
+                for arg in arguments:
+                    if callable(arg) and not isinstance(arg, DummyObject):
+                        parsed.callable_params.add(arg.__name__)
+            continue
+
+        if func in parsed.callable_params:
+            parsed.filtered_log.append(entry)
+
+        if event == "return" and func == top_func_name:
+            parsed.top_level_returns.append(entry)
+
+        elif event == "exception":
+            parsed.exceptions.append(entry)
+
+    return parsed
+
+
 def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, args_b: tuple,
                     kwargs_a: dict=None, kwargs_b: dict=None,
                         top_func_name_a: str=None, top_func_name_b: str=None, strict_exceptions: bool=True):
@@ -102,98 +141,54 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
     if top_func_name_b is None:
         top_func_name_b = log_b[0]['function']
 
-    # set of all parameters to top_func_a and top_func_b that are callable
-    callable_params_a = set()
-    callable_params_b = set()
+    log_info_a = _parse_log(log_a, top_func_name_a)
+    log_info_b = _parse_log(log_b, top_func_name_b)
 
-    top_call_a = next(
-        (e for e in log_a if e['event'] == 'call' and e['function'] == top_func_name_a),
-        None
-    )
-    top_call_b = next(
-        (e for e in log_b if e['event'] == 'call' and e['function'] == top_func_name_b),
-        None
-    )
-
-    if top_call_a is None or top_call_b is None:
+    if log_info_a.top_call is None or log_info_b.top_call is None:
         return True, ""
 
-    for argname in top_call_a['arguments'].keys():
-        if callable(top_call_a['arguments'][argname]) and not isinstance(top_call_a['arguments'][argname], DummyObject):
-            callable_params_a.add(top_call_a['arguments'][argname].__name__)
+    if log_info_a.callable_params != log_info_b.callable_params:
+        return False, (
+            f"{top_func_name_a} took different callable arguments to {top_func_name_b}: "
+            f"{log_info_a.callable_params} != {log_info_b.callable_params}"
+        )
 
-    for argname in top_call_b['arguments'].keys():
-        if callable(top_call_b['arguments'][argname]) and not isinstance(top_call_b['arguments'][argname], DummyObject):
-            callable_params_b.add(top_call_b['arguments'][argname].__name__)
-
-    # arity check for housekeeping, i dont think this ever happens because it should get caught upstream
-    if callable_params_a != callable_params_b:
-        return False, f"{top_func_name_a} took different callable arguments to {top_func_name_b}: {callable_params_a} != {callable_params_b}"
-
-    relevant_functions = callable_params_a
-
-    # create filtered versions of the logs containing only calls/returns relating to observer functions
-    filtered_log_a = []
-    filtered_log_b = []
-    for entry in log_a:
-        if entry['function'] in relevant_functions:
-            filtered_log_a.append(entry)
-    for entry in log_b:
-        if entry['function'] in relevant_functions:
-            filtered_log_b.append(entry)
-
-    # todo these error messages are not quite accurate
-    if len(filtered_log_a) > len(filtered_log_b):
+    if len(log_info_a.filtered_log) > len(log_info_b.filtered_log):
         return False, f"{top_func_name_a} called its argument more than {top_func_name_b}"
-    if len(filtered_log_a) < len(filtered_log_b):
+    if len(log_info_a.filtered_log) < len(log_info_b.filtered_log):
         return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}"
 
-    # check observable equivalence of exceptions
-    # todo we arent actually checking the exception message
-
-    ok, msg = exceptions_are_equivalent(log_a, log_b, strict_exceptions=strict_exceptions)
+    ok, msg = exceptions_are_equivalent(log_info_a.exceptions, log_info_b.exceptions, strict_exceptions=strict_exceptions)
     if not ok:
         return False, msg
-
-    for entry_a, entry_b in zip(filtered_log_a, filtered_log_b):
-        # check that for all callable args to the top level HOFs, they are called with equivalent args themselves
-        if "arguments" in entry_a and not value_equivalence(entry_a['arguments'], entry_b['arguments']):
-            func_a = entry_a['function']
-            func_b = entry_b['function']
-            return False, f"Observer argument mismatch: {func_a} received arguments {entry_a['arguments']} when {func_b} received arguments {entry_b['arguments']}"
-
-        # check that for all callable args to the top level HOFs, they return the same values
-        if "return_value" in entry_a and not value_equivalence(entry_a['return_value'], entry_b['return_value']):
-            func_a = entry_a['function']
-            func_b = entry_b['function']
-            return False, f"Observer return mismatch: {top_func_name_a}.{func_a} returned a different value from {top_func_name_b}.{func_b}"
-
-    log_a_returns = []
-    log_b_returns = []
-
-    # check that the final return value from top_func_name_a should be equal to the final return from top_func_name_b
-    i = 0
-    while i < max(len(log_a), len(log_b)):
-        if i < len(log_a) and log_a[i]['event'] == 'return' and log_a[i]['function'] == top_func_name_a:
-            log_a_returns.append(log_a[i])
-        if i < len(log_b) and log_b[i]['event'] == 'return' and log_b[i]['function'] == top_func_name_b:
-            log_b_returns.append(log_b[i])
-        i += 1
-
-    # this checks that neither func_a nor func_b exceeded the python recursion limit. if one or both DID exceed it,
-    # we still want to proceed with the checks after this
-    if len(log_a_returns) > 0 and len(log_b_returns) > 0:
-
-        if not value_equivalence(log_a_returns[-1]['return_value'], log_b_returns[-1]['return_value']):
-            if kwargs_a != {}:
-                return False, (
-                    f"Function A: {top_func_name_a}({args_a}, {kwargs_a}) = {log_a_returns[-1]['return_value']!r}, "
-                    f"Function B: {top_func_name_b}({args_b}, {kwargs_b}) = {log_b_returns[-1]['return_value']!r}")
+    
+    for entry_a, entry_b in zip(log_info_a.filtered_log, log_info_b.filtered_log):
+        if "arguments" in entry_a and not value_equivalence(entry_a["arguments"], entry_b["arguments"]):
             return False, (
-                f"Function A: {top_func_name_a}{args_a} = {log_a_returns[-1]['return_value']!r}, "
-                f"Function B: {top_func_name_b}{args_b} = {log_b_returns[-1]['return_value']!r}")
-    return True, ""
+                f"Observer argument mismatch: {entry_a['function']} received {entry_a['arguments']} "
+                f"when {entry_b['function']} received {entry_b['arguments']}"
+            )
+        if "return_value" in entry_a and not value_equivalence(entry_a["return_value"], entry_b["return_value"]):
+            return False, (
+                f"Observer return mismatch: {top_func_name_a}.{entry_a['function']} returned a "
+                f"different value from {top_func_name_b}.{entry_b['function']}"
+            )
 
+    if log_info_a.top_level_returns and log_info_b.top_level_returns:
+        returns_a = log_info_a.top_level_returns[-1]["return_value"]
+        returns_b = log_info_b.top_level_returns[-1]["return_value"]
+        if not value_equivalence(returns_a, returns_b):
+            if kwargs_a:
+                return False, (
+                    f"Function A: {top_func_name_a}({args_a}, {kwargs_a}) = {returns_a!r}, "
+                    f"Function B: {top_func_name_b}({args_b}, {kwargs_b}) = {returns_b!r}"
+                )
+            return False, (
+                f"Function A: {top_func_name_a}{args_a} = {returns_a!r}, "
+                f"Function B: {top_func_name_b}{args_b} = {returns_b!r}"
+            )
+
+    return True, ""
 
 def count_exceptions(log, func_name):
     return sum(
