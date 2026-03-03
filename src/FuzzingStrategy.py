@@ -22,17 +22,14 @@ def get_universal_strategy():
         st.text(),
         st.booleans(),
         st.none(),
-        callable_strategy(),
-        preset_functions(),
-        interleaved_caller_strategy(),
-        curried_interaction_strategy(),
+        *_all_callable_strategies(),
         dummy_object_strategy()
        # global_mutator_strategy()   # not applicable for hobbit suite
     )
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
     # can be thought of as the following recursive definition
-    # strat = int|str|float|bool|None|list[strat]|dict[str,strat]|tuple[strat]
+    # strat = int|str|float|bool|None|Callable|list[strat]|dict[str,strat]|tuple[strat]
     return st.recursive(
         primitives,
         lambda children: st.one_of(
@@ -43,6 +40,14 @@ def get_universal_strategy():
         max_leaves=10
     )
 
+def _all_callable_strategies():
+    return [
+        callable_strategy(),
+        preset_functions(),
+        interleaved_caller_strategy(),
+        curried_interaction_strategy(),
+        #global_mutator_strategy()  temporarily commented out
+    ]
 
 def global_mutator_strategy():
     return st.builds(GlobalMutatorPlan,
@@ -131,13 +136,7 @@ def build_args_strategy(func):
 
 
 def callable_strategy_for_annotation():
-    return st.one_of(
-        callable_strategy(),
-        preset_functions(),
-        interleaved_caller_strategy(),
-        #global_mutator_strategy(),
-        curried_interaction_strategy()
-    )
+    return st.one_of(*_all_callable_strategies())
 
 
 def strategy_from_annotation(annotation):
