@@ -46,15 +46,19 @@ class RunResult:
 
 def run(fn, args, kwargs=None) -> RunResult:
     profiler = Profiler()
+
     try:
         sys.settrace(profiler.trace)
         result = fn(*args) if not kwargs else fn(*args, **kwargs)
+
         if inspect.isgenerator(result):
             result = list(result)
+
         sys.settrace(None)
         log = profiler.trace_log
         profiler.clear_logs()
         return RunResult("ok", result, log, fn.__name__)
+
     except Exception as e:
         sys.settrace(None)
         log = profiler.trace_log
@@ -77,53 +81,180 @@ class EquivalenceChecker:
         self.strict = has_type_annotations(func_a)
         self.equivalent_logs = True
         self.logs_error_msg = ""
+        self.args_a: tuple = ()
+        self.args_b: tuple = ()
+        self.kwargs_a: dict = {}
+        self.kwargs_b: dict = {}
 
     def check(self, raw_args, raw_kwargs) -> None:
-        args_a, kwargs_a = instantiate_args(raw_args, raw_kwargs, self.func_a)
-        args_b, kwargs_b = instantiate_args(raw_args, raw_kwargs, self.func_b)
+        self.args_a, self.kwargs_a = instantiate_args(raw_args, raw_kwargs, self.func_a)
+        self.args_b, self.kwargs_b = instantiate_args(raw_args, raw_kwargs, self.func_b)
 
-        a = run(self.func_a, args_a, kwargs_a)
-        b = run(self.func_b, args_b, kwargs_b)
+        a = run(self.func_a, self.args_a, self.kwargs_a)
+        b = run(self.func_b, self.args_b, self.kwargs_b)
 
         self.equivalent_logs, self.logs_error_msg = logs_are_equivalent(
             a.log, b.log,
-            args_a, args_b,
-            kwargs_a, kwargs_b,
+            self.args_a, self.args_b,
+            self.kwargs_a, self.kwargs_b,
             a.func_name, b.func_name,
             strict_exceptions=self.strict,
         )
 
         # invariants check after the main check in each branch, to ensure event() is called first before exiting
         if a.ok and b.ok:
-            self._handle_both_ok(a, args_a, kwargs_a, b, args_b, kwargs_b)
-            self._check_shared_invariants(a, args_a, kwargs_a, b, args_b, kwargs_b)
+            self._handle_both_ok(a, b)
+            self._check_shared_invariants()
         elif not a.ok and not b.ok:
-            self._handle_both_errored(a, args_a, kwargs_a, b, args_b, kwargs_b)
-            self._check_shared_invariants(a, args_a, kwargs_a, b, args_b, kwargs_b)
+            self._handle_both_errored(a, b)
+            self._check_shared_invariants()
         else:
-            self._handle_domain_mismatch(a, args_a, kwargs_a, b, args_b, kwargs_b)
+            self._handle_domain_mismatch(a, b)
 
+    def _format_a(self, result) -> str:
+        return format_call(self.func_a.__name__, self.args_a, self.kwargs_a, result)
 
-    def _check_shared_invariants(self, a, args_a, kwargs_a, b, args_b, kwargs_b) -> None:
-        assert self.equivalent_logs, self.logs_error_msg
-        assert_instance_states_equivalent(self.func_a, self.func_b)
-        assert_inputs_equivalent(
-            self.func_a, self.func_b,
-            args_a, args_b,
-            kwargs_a, kwargs_b,
+    def _format_b(self, result) -> str:
+        return format_call(self.func_b.__name__, self.args_b, self.kwargs_b, result)
+
+    def _context_header(self) -> str:
+        """One-liner that identifies where a failure occurred"""
+        return (
+            f"  A: {self._format_a('?')}\n"
+            f"  B: {self._format_b('?')}"
         )
 
+    def _check_shared_invariants(self) -> None:
+        assert self.equivalent_logs, self.logs_error_msg
+        self._assert_instance_states_equivalent()
+        self._assert_inputs_equivalent()
+
+    def _assert_inputs_equivalent(self) -> None:
+        args_ok   = value_equivalence(self.args_a,   self.args_b)
+        kwargs_ok = value_equivalence(self.kwargs_a, self.kwargs_b)
+        if not args_ok or not kwargs_ok:
+            raise AssertionError(
+                f"{self.func_a.__name__} and {self.func_b.__name__} "
+                f"have inequivalent arguments after running:\n"
+                f"  A args:   {self.args_a!r}   kwargs: {self.kwargs_a!r}\n"
+                f"  B args:   {self.args_b!r}   kwargs: {self.kwargs_b!r}"
+            )
+
+    def _assert_instance_states_equivalent(self) -> None:
+        state_a = get_instance_state(self.func_a)
+        state_b = get_instance_state(self.func_b)
+
+        if state_a is None and state_b is None:
+            return
+
+        if (state_a is None) != (state_b is None):
+            raise AssertionError(
+                f"One function is a bound method and the other is not: "
+                f"{self.func_a!r} vs {self.func_b!r}"
+            )
+
+        all_keys = set(state_a) | set(state_b)
+        for key in sorted(all_keys):
+            if key not in state_a:
+                raise AssertionError(f"Instance state mismatch: key {key!r} only in B\n{self._context_header()}")
+            if key not in state_b:
+                raise AssertionError(f"Instance state mismatch: key {key!r} only in A\n{self._context_header()}")
+            if not value_equivalence(state_a[key], state_b[key]):
+                raise AssertionError(
+                    f"Instance state mismatch on field {key!r}: "
+                    f"{state_a[key]!r} != {state_b[key]!r}\n"
+                    f"{self._context_header()}"
+                )
+
+    def _assert_outputs_equivalent(
+            self,
+            out_a,
+            out_b,
+            *,
+            depth=0,
+    ):
+        """
+        Assert that the outputs from a pair of functions are equivalent when performing differential fuzzing.
+
+        Case 1: The outputs are a pair of tuples of functions - In this case we perform interleaved calls of the functions
+            to catch stateful differences in function execution
+        Case 2: The outputs are simple values or containers of values - Pass them through value_equivalence
+        Case 3: The outputs are both functions - Perform differential fuzzing on both
+        """
+        if _is_callable_tuple(out_a) and _is_callable_tuple(out_b):
+            if depth >= MAX_CALLABLE_DEPTH:
+                event("callable tuple depth limit")
+                return
+            self._assert_equivalent_callable_tuple(out_a, out_b, depth=depth)
+            return
+
+        if not callable(out_a) or not callable(out_b) or isinstance(out_a, DummyObject) or isinstance(out_b,
+                                                                                                      DummyObject):
+            if not value_equivalence(out_a, out_b):
+                raise AssertionError(
+                    f"Output mismatch:\n"
+                    f"  {self._format_a(out_a)}\n"
+                    f"  {self._format_b(out_b)}"
+                )
+            return
+
+        if depth >= MAX_CALLABLE_DEPTH:
+            event("callable depth limit")
+            return
+
+        event(f"callable depth {depth}")
+        if inspect.signature(out_a) != inspect.signature(out_b):
+            raise AssertionError(
+                f"Returned callables have different signatures:\n"
+                f"  {self._format_a(inspect.signature(out_a))}\n"
+                f"  {self._format_b(inspect.signature(out_b))}"
+            )
+
+        input_strategy = build_args_strategy(out_a)
+
+        for _ in range(MAX_CALLABLE_CALLS):
+            raw_args, raw_kwargs = self.data.draw(input_strategy, label=f"callable_args_d{depth}")
+            run_and_test_equivalence(out_a, out_b, raw_args, raw_kwargs, self.data)
+
+    def _assert_equivalent_callable_tuple(self, tuple_a, tuple_b, *, depth=0):
+        """
+        Given two tuples of callables that share state internally, test them by
+        drawing a random interleaved call sequence and asserting that each paired
+        call produces equivalent outputs on both sides.
+        """
+        if len(tuple_a) != len(tuple_b):
+            raise AssertionError(
+                f"Returned tuples have different lengths: {len(tuple_a)} vs {len(tuple_b)}"
+            )
+
+        # Verify all signatures match pairwise
+        for i, (fa, fb) in enumerate(zip(tuple_a, tuple_b)):
+            if inspect.signature(fa) != inspect.signature(fb):
+                raise AssertionError(
+                    f"Returned callables at index {i} have different signatures: "
+                    f"{inspect.signature(fa)} vs {inspect.signature(fb)}"
+                )
+
+        operation_strategy = generate_tuple_operation_strategy(tuple_a, tuple_b)
+        sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=MAX_TUPLE_CALLS)
+
+        ops = self.data.draw(sequence_strategy)
+        for op in ops:
+            idx = op[0]
+            raw_args, raw_kwargs = op[1]
+            run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, self.data)
+
     # both returned normally
-    def _handle_both_ok(self, a, args_a, kwargs_a, b, args_b, kwargs_b) -> None:
+    def _handle_both_ok(self, a, b) -> None:
         if callable(a.value) and callable(b.value):
             event("both ok: callable output")
         else:
             event("both ok")
 
-        assert_outputs_equivalent(a.value, b.value, data=self.data)
+        self._assert_outputs_equivalent(a.value, b.value,)
 
     # both raised exceptions
-    def _handle_both_errored(self, a, args_a, kwargs_a, b, args_b, kwargs_b) -> None:
+    def _handle_both_errored(self, a, b) -> None:
         # if the inputs were bad (eg wrong type), we don't count it as an inequivalence
         both_bad_input = is_bad_input_exception(a.exc) and is_bad_input_exception(b.exc)
         types_match = type(a.exc) is type(b.exc)
@@ -136,12 +267,12 @@ class EquivalenceChecker:
         if self.strict and not both_bad_input:
             assert types_match, (
                 f"Exception type mismatch:\n"
-                f"  A: {format_call(self.func_a.__name__, args_a, kwargs_a, a.exc)}\n"
-                f"  B: {format_call(self.func_b.__name__, args_b, kwargs_b, b.exc)}"
+                f"  {self._format_a(a.exc)}\n"
+                f"  {self._format_b(b.exc)}"
             )
 
     # one returned normally, one raised an exception
-    def _handle_domain_mismatch(self, a, args_a, kwargs_a, b, args_b, kwargs_b) -> None:
+    def _handle_domain_mismatch(self, a, b) -> None:
         # again, wrongly typed inputs can cause false inequivalences if not guarded for
         errored = b if not b.ok else a
         if is_bad_input_exception(errored.exc):
@@ -152,8 +283,8 @@ class EquivalenceChecker:
         event(f"domain mismatch: {which}")
         raise AssertionError(
             f"Domain mismatch:\n"
-            f"  A: {format_call(self.func_a.__name__, args_a, kwargs_a, a.value)}\n"
-            f"  B: {format_call(self.func_b.__name__, args_b, kwargs_b, b.value)}"
+            f"  A: {format_call(self.func_a.__name__, self.args_a, self.kwargs_a, a.value)}\n"
+            f"  B: {format_call(self.func_b.__name__, self.args_b, self.kwargs_b, b.value)}"
         )
 
 
@@ -226,86 +357,6 @@ def _is_callable_tuple(val):
     return isinstance(val, tuple) and len(val) > 0 and all(callable(f) for f in val)
 
 
-def assert_equivalent_callable_tuple(tuple_a, tuple_b, *, data, depth=0):
-    """
-    Given two tuples of callables that share state internally, test them by
-    drawing a random interleaved call sequence and asserting that each paired
-    call produces equivalent outputs on both sides.
-    """
-    if len(tuple_a) != len(tuple_b):
-        raise AssertionError(
-            f"Returned tuples have different lengths: {len(tuple_a)} vs {len(tuple_b)}"
-        )
-
-    # Verify all signatures match pairwise
-    for i, (fa, fb) in enumerate(zip(tuple_a, tuple_b)):
-        if inspect.signature(fa) != inspect.signature(fb):
-            raise AssertionError(
-                f"Returned callables at index {i} have different signatures: "
-                f"{inspect.signature(fa)} vs {inspect.signature(fb)}"
-            )
-
-    operation_strategy = generate_tuple_operation_strategy(tuple_a, tuple_b)
-    sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=MAX_TUPLE_CALLS)
-
-    ops = data.draw(sequence_strategy)
-    for op in ops:
-        idx = op[0]
-        raw_args, raw_kwargs = op[1]
-        run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, data)
-
-
-def assert_inputs_equivalent(func_a, func_b, args_a, args_b, kwargs_a, kwargs_b):
-    args_equivalent = value_equivalence(args_a, args_b)
-    kwargs_equivalent = value_equivalence(kwargs_a, kwargs_b)
-    if not args_equivalent or not kwargs_equivalent:
-        raise AssertionError(
-            f"{func_a.__name__} and {func_b.__name__} have inequivalent arguments after running: "
-            f"{args_a!r}, {args_b!r}, {kwargs_a!r}, {kwargs_b!r}"
-        )
-
-
-def assert_outputs_equivalent(
-        out_a,
-        out_b,
-        *,
-        data,
-        depth=0,
-):
-    """
-    Assert that the outputs from a pair of functions are equivalent when performing differential fuzzing.
-
-    Case 1: The outputs are a pair of tuples of functions - In this case we perform interleaved calls of the functions
-        to catch stateful differences in function execution
-    Case 2: The outputs are simple values or containers of values - Pass them through value_equivalence
-    Case 3: The outputs are both functions - Perform differential fuzzing on both
-    """
-    if _is_callable_tuple(out_a) and _is_callable_tuple(out_b):
-        if depth >= MAX_CALLABLE_DEPTH:
-            event("callable tuple depth limit")
-            return
-        assert_equivalent_callable_tuple(out_a, out_b, data=data, depth=depth)
-        return
-
-    if not callable(out_a) or not callable(out_b) or isinstance(out_a, DummyObject) or isinstance(out_b, DummyObject):
-        assert value_equivalence(out_a, out_b), f"{out_a!r} != {out_b!r}"
-        return
-
-    if depth >= MAX_CALLABLE_DEPTH:
-        event("callable depth limit")
-        return
-
-    event(f"callable depth {depth}")
-    if inspect.signature(out_a) != inspect.signature(out_b):
-        raise AssertionError("Returned callables have different signatures")
-
-    input_strategy = build_args_strategy(out_a)
-
-    for _ in range(MAX_CALLABLE_CALLS):
-        raw_args, raw_kwargs = data.draw(input_strategy, label=f"callable_args_d{depth}")
-        run_and_test_equivalence(out_a, out_b, raw_args, raw_kwargs, data)
-
-
 def get_instance_state(val):
     """Returns the instance __dict__ if val is a bound method or user object, else None."""
     if inspect.ismethod(val):
@@ -318,39 +369,3 @@ def get_instance_state(val):
     if hasattr(obj, '__slots__'):
         return {slot: getattr(obj, slot) for slot in obj.__slots__ if hasattr(obj, slot)}
     return vars(obj).copy()
-
-
-def assert_instance_states_equivalent(func_a, func_b):
-    """
-    If func_a and func_b are bound to an object, assert that every instance variable of their objects are equivalent
-    """
-    state_a = get_instance_state(func_a)
-    state_b = get_instance_state(func_b)
-
-    # neither is a bound method, nothing to check
-    if state_a is None and state_b is None:
-        return
-
-    # one is a method and one isn't
-    if (state_a is None) != (state_b is None):
-        raise AssertionError(
-            f"One function is a bound method and the other is not: " # todo
-            f"{func_a!r} vs {func_b!r}"
-        )
-
-    # compare field by field for a useful error message
-    all_keys = set(state_a) | set(state_b)
-    for key in sorted(all_keys):
-        if key not in state_a:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in B")
-        if key not in state_b:
-            raise AssertionError(f"Instance state mismatch: key {key!r} only in A")
-
-        val_a = state_a[key]
-        val_b = state_b[key]
-
-        if not value_equivalence(val_a, val_b):
-            raise AssertionError(
-                f"Instance state mismatch on field {key!r}: "
-                f"{val_a!r} != {val_b!r}"
-            )
