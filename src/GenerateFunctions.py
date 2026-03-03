@@ -5,6 +5,83 @@ from dataclasses import dataclass
 from typing import Callable, List, Any
 
 from hypothesis import strategies as st
+from abc import ABC, abstractmethod
+
+
+class CallablePlan(ABC):
+    @abstractmethod
+    def build(self) -> Callable:
+        """Instantiate the plan into a concrete callable."""
+        ...
+
+@dataclass
+class InterleavedCallerPlan(CallablePlan):
+    """
+    Describes an interleaved call sequence for a function.
+    call_sequence is a list of indices (into *funcs) dictating which argument
+    to call at each step, in order
+    """
+    call_sequence: list[int]  # e.g. [0, 1, 0, 0, 1, 2]
+
+    def build(self) -> Callable:
+        """
+        returns a function that accepts any number of callables and calls them
+        in the order given by plan.call_sequence
+        """
+        def interleaved_caller(*funcs):
+            if not funcs:
+                return
+            results = [funcs[idx % len(funcs)]() for idx in self.call_sequence]
+            return results[-1] if results else None
+        return interleaved_caller
+
+@dataclass
+class CurriedInteractionPlan(CallablePlan):
+    """
+    Generates f for HOFs of the form: lambda f: f(enlist)(run)
+
+    1. f(enlist):
+      Calls enlist(inner) 'enlist_calls' times, where inner appends to a shared log
+      Returns the function 'phase2'
+
+    2.  phase2(run):
+      Calls run() 'run_calls' times
+      Optionally calls enlist(inner) 'post_run_enlist_calls' more times
+      (exercises whether run resets the running flag).
+      Returns the log
+    """
+    enlist_calls: int
+    run_calls: int
+    # we call enlist after run to probe for un-reset flags
+    # e.g  "if not (running[0] == 0)"
+    post_run_enlist_calls: int
+
+    def build(self):
+        def f(enlist):
+            log = []
+
+            def inner():
+                log.append(1)
+
+            for _ in range(self.enlist_calls):
+                enlist(inner)
+
+            def phase2(run):
+                for _ in range(self.run_calls):
+                    try:
+                        run()
+                    except Exception as e:
+                        log.append(('run_raised', type(e).__name__))
+
+                # probe whether running flag was cleared
+                for _ in range(self.post_run_enlist_calls):
+                    enlist(inner)
+
+                return tuple(log)
+
+            return phase2
+
+        return f
 
 
 @dataclass
@@ -14,7 +91,6 @@ class RecursiveRef:
 
 # plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
 # or f1, that f2 calls g with f1, f1 calls g with f0 and so on
-# i cant think of how to make this approach work if g takes more than 1 argument though but its a start
 def construct_dummies(g, limit=10):
     def f0(): pass
     functions = [f0]
@@ -65,32 +141,6 @@ def h6(*args, **kwargs):
 def preset_functions(draw):
     funcs = [h1, h2, h3, h4, h5, h6]
     return draw(st.sampled_from(funcs))
-
-
-@dataclass
-class InterleavedCallerPlan:
-    """
-    Describes an interleaved call sequence for a function.
-    call_sequence is a list of indices (into *funcs) dictating which argument
-    to call at each step, in order
-    """
-    call_sequence: list[int]  # e.g. [0, 1, 0, 0, 1, 2]
-
-
-def create_interleaved_caller(plan: InterleavedCallerPlan):
-    """
-    returns a function that accepts any number of callables and calls them
-    in the order given by plan.call_sequence
-    """
-    def interleaved_caller(*funcs):
-        if not funcs:
-            return
-        results = []
-        for idx in plan.call_sequence:
-            results.append(funcs[idx % len(funcs)]())
-        return results[-1] if results else None
-
-    return interleaved_caller
 
 
 @dataclass
@@ -151,54 +201,6 @@ def create_global_mutator(target_func, plan: GlobalMutatorPlan):
 
     return mutator
 
-@dataclass
-class CurriedInteractionPlan:
-    """
-    Generates f for HOFs of the form: lambda f: f(enlist)(run)
-
-    1. f(enlist):
-      Calls enlist(inner) 'enlist_calls' times, where inner appends to a shared log
-      Returns the function 'phase2'
-
-    2.  phase2(run):
-      Calls run() 'run_calls' times
-      Optionally calls enlist(inner) 'post_run_enlist_calls' more times
-      (exercises whether run resets the running flag).
-      Returns the log
-    """
-    enlist_calls: int
-    run_calls: int
-    # we call enlist after run to probe for un-reset flags
-    # e.g  "if not (running[0] == 0)"
-    post_run_enlist_calls: int
-
-
-def create_curried_interaction(plan: CurriedInteractionPlan):
-    def f(enlist):
-        log = []
-
-        def inner():
-            log.append(1)
-
-        for _ in range(plan.enlist_calls):
-            enlist(inner)
-
-        def phase2(run):
-            for _ in range(plan.run_calls):
-                try:
-                    run()
-                except Exception as e:
-                    log.append(('run_raised', type(e).__name__))
-
-            # probe whether running flag was cleared
-            for _ in range(plan.post_run_enlist_calls):
-                enlist(inner)
-
-            return tuple(log)
-
-        return phase2
-
-    return f
 
 # todo idea: generate functions that take varargs, give the function logic to iterate over its args, check type, and dynamically
 # perform action on that arg depending on its signature

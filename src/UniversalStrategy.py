@@ -6,8 +6,7 @@ from typing import Callable
 
 from src.DummyObject import DummyObject
 from src.GenerateFunctions import RecursiveRef, construct_dummies, callable_strategy, preset_functions, \
-    GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, create_interleaved_caller, CurriedInteractionPlan, \
-    create_curried_interaction
+    GlobalMutatorPlan, create_global_mutator, InterleavedCallerPlan, CurriedInteractionPlan, CallablePlan
 from src.Profiler import logs_are_equivalent, assert_instance_states_equivalent
 from src.Profiler import Profiler, value_equivalence
 import sys
@@ -319,11 +318,8 @@ def instantiate_value(val, target_func):
     if isinstance(val, GlobalMutatorPlan):
         return create_global_mutator(target_func, val)
 
-    if isinstance(val, InterleavedCallerPlan):
-        return create_interleaved_caller(val)
-
-    if isinstance(val, CurriedInteractionPlan):
-        return create_curried_interaction(val)
+    if isinstance(val, CallablePlan):
+        return val.build()
 
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
