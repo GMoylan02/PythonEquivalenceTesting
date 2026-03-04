@@ -256,38 +256,37 @@ def value_equivalence(value_a, value_b, visited=None):
     Recursively check if two return values are equivalent, allowing them to any combination of primitives,
     objects of a user-defined class, or containers of these
     """
-    if value_a is None and value_b is None:
+    if value_a is value_b:
         return True
+
     if value_a is None or value_b is None:
         return False
-    if visited is None:
-        visited = set()
 
-    # Generally speaking we don't reach this condition unless return_a and return_b are one of the numbered dummies
-    # from callable_strategy, in which case we should correctly consider them equivalent.
-    # there is a very niche possibility that we reach here without dummy functions, in which case we should still
-    # consider them equivalent as we can't say they are inequivalent without proper fuzzing, but this is not ideal
-    pair = (id(value_a), id(value_b))
-    if pair in visited:
-        return True
-    visited.add(pair)
-
-    if is_function(value_a) and is_function(value_b):
-        return True
-    if is_function(value_a) != is_function(value_b):
+    if type(value_a) is not type(value_b):
         return False
 
-    if type(value_a) != type(value_b):
+    fa, fb = is_function(value_a), is_function(value_b)
+    if fa and fb:
+        return True
+    if fa != fb:
         return False
 
-    if type(value_a) == float and (math.isnan(value_a) and math.isnan(value_b)):
+    if type(value_a) is float and math.isnan(value_a) and math.isnan(value_b):
         return True
 
     if isinstance(value_a, str):
         return normalise_string(value_a) == normalise_string(value_b)
 
+    if visited is None:
+        visited = set()
+
+    pair = (id(value_a), id(value_b))
+    if pair in visited:
+        return True
+    visited.add(pair)
+
     if isinstance(value_a, dict):
-        if set(value_a.keys()) != set(value_b.keys()):
+        if value_a.keys() != value_b.keys():
             return False
         return all(value_equivalence(value_a[k], value_b[k], visited) for k in value_a)
 
@@ -296,7 +295,7 @@ def value_equivalence(value_a, value_b, visited=None):
             return False
         return all(value_equivalence(x, y, visited) for x, y in zip(value_a, value_b))
 
-    if is_user_object(value_a) and is_user_object(value_b):
+    if is_user_object(value_a):
         return value_equivalence(vars(value_a), vars(value_b), visited)
 
     return value_a == value_b
