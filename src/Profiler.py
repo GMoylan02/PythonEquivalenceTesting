@@ -12,7 +12,7 @@ class Profiler:
     def __init__(self):
         self.trace_log = []
         self.call_stack = []
-        self.top_level_frame = None       # replaces depth arithmetic entirely
+        self.top_level_frame = None
         self.callable_params: set[str] = set()
 
     def trace(self, frame, event, arg):
@@ -37,7 +37,7 @@ class Profiler:
                 "arguments": args_snapshot,
                 "caller": None,
             })
-            return self._local_trace  # opt in: we want the HOF's return/exception
+            return self._local_trace
 
         # Only trace callable params called directly from the HOF frame
         if frame.f_back is self.top_level_frame and func_name in self.callable_params:
@@ -49,9 +49,9 @@ class Profiler:
                 "arguments": args_snapshot,
                 "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None,
             })
-            return self._local_trace  # opt in: we want this callable's return
+            return self._local_trace
 
-        return None  # suppress all tracing inside this frame and everything it calls
+        return None
 
     def _local_trace(self, frame, event, arg):
         """
@@ -70,8 +70,7 @@ class Profiler:
                 self.call_stack.pop()
 
         elif event == "exception":
-            # Only record exceptions propagating at the HOF level, matching
-            # the original behaviour of filtering by top_level_depth
+            # Only record exceptions propagating at the HOF level
             if frame is self.top_level_frame:
                 exc_type, exc_value, _ = arg
                 self.trace_log.append({
@@ -207,15 +206,6 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
             )
 
     return True, ""
-
-def count_exceptions(log, func_name):
-    return sum(
-        1 for entry in log
-        if entry['event'] == 'exception' and entry['function'] == func_name
-    )
-
-def count_boundary_exceptions(log):
-    return sum(1 for entry in log if entry['event'] == 'exception')
 
 
 def exceptions_are_equivalent(log_a, log_b, strict_exceptions=True):
