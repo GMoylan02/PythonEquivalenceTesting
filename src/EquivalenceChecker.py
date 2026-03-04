@@ -1,3 +1,4 @@
+import functools
 import inspect
 import math
 import re
@@ -27,6 +28,8 @@ INPUT_TYPE_ERRORS = {
     "object is not iterable",
 }
 
+# cache function signatures since inspecting is slow
+inspect.signature = functools.lru_cache(maxsize=None)(inspect.signature)
 
 @dataclass
 class RunResult:

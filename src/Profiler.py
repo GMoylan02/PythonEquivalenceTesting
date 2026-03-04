@@ -12,76 +12,94 @@ class Profiler:
     def __init__(self):
         self.trace_log = []
         self.call_stack = []
-        self.call_depth = 0
-        self.top_level_depth = None
+        self.top_level_frame = None       # replaces depth arithmetic entirely
+        self.callable_params: set[str] = set()
 
     def trace(self, frame, event, arg):
-        if event == "call":
-            func_name = frame.f_code.co_name
-            self.call_depth += 1
+        """
+        Global trace — Python only calls this for 'call' events on new frames.
+        Return self._local_trace to opt into return/exception for this frame.
+        Return None to suppress all tracing inside this frame entirely.
+        """
+        func_name = frame.f_code.co_name
 
-            # first call is always the top-level HOF
-            if self.top_level_depth is None:
-                self.top_level_depth = self.call_depth
+        if self.top_level_frame is None:
+            # First call is always the top-level HOF
+            self.top_level_frame = frame
+            args_snapshot = self._snapshot_args(frame)
+            for val in args_snapshot.values():
+                if callable(val) and not isinstance(val, DummyObject):
+                    self.callable_params.add(val.__name__)
+            self.call_stack.append(func_name)
+            self.trace_log.append({
+                "event": "call",
+                "function": func_name,
+                "arguments": args_snapshot,
+                "caller": None,
+            })
+            return self._local_trace  # opt in: we want the HOF's return/exception
 
-            code = frame.f_code
-            n_positional = code.co_argcount
-            n_keyword_only = code.co_kwonlyargcount
-            arg_names = set(code.co_varnames[:n_positional + n_keyword_only])
-            if code.co_flags & inspect.CO_VARARGS:
-                arg_names.add(code.co_varnames[n_positional + n_keyword_only])
-            if code.co_flags & inspect.CO_VARKEYWORDS:
-                idx = n_positional + n_keyword_only + bool(code.co_flags & inspect.CO_VARARGS)
-                arg_names.add(code.co_varnames[idx])
-
-            args_snapshot = {
-                k: v for k, v in frame.f_locals.items()
-                if k in arg_names
-            }
-
+        # Only trace callable params called directly from the HOF frame
+        if frame.f_back is self.top_level_frame and func_name in self.callable_params:
+            args_snapshot = self._snapshot_args(frame)
             self.call_stack.append(func_name)
             self.trace_log.append({
                 "event": "call",
                 "function": func_name,
                 "arguments": args_snapshot,
                 "caller": self.call_stack[-2] if len(self.call_stack) > 1 else None,
-                "depth": self.call_depth
             })
+            return self._local_trace  # opt in: we want this callable's return
 
-        elif event == "return":
-            func_name = frame.f_code.co_name
+        return None  # suppress all tracing inside this frame and everything it calls
+
+    def _local_trace(self, frame, event, arg):
+        """
+        Local trace — only fires for frames that returned self._local_trace above.
+        Never called for frames that returned None.
+        """
+        func_name = frame.f_code.co_name
+
+        if event == "return":
             self.trace_log.append({
                 "event": "return",
                 "function": func_name,
                 "return_value": arg,
-                "depth": self.call_depth
             })
-            self.call_depth -= 1
             if self.call_stack:
                 self.call_stack.pop()
 
         elif event == "exception":
-            exc_type, exc_value, _ = arg
-            func_name = frame.f_code.co_name
-
-            # only record if propagating at or above the top-level HOF frame
-            # deeper exceptions may still be caught internally
-            if self.top_level_depth is not None and self.call_depth <= self.top_level_depth:
+            # Only record exceptions propagating at the HOF level, matching
+            # the original behaviour of filtering by top_level_depth
+            if frame is self.top_level_frame:
+                exc_type, exc_value, _ = arg
                 self.trace_log.append({
                     "event": "exception",
                     "function": func_name,
                     "exception_type": exc_type,
                     "exception": exc_value,
-                    "depth": self.call_depth
                 })
 
-        return self.trace
+        return self._local_trace
+
+    def _snapshot_args(self, frame) -> dict:
+        code = frame.f_code
+        n_pos = code.co_argcount
+        n_kw  = code.co_kwonlyargcount
+        arg_names = set(code.co_varnames[:n_pos + n_kw])
+        if code.co_flags & inspect.CO_VARARGS:
+            arg_names.add(code.co_varnames[n_pos + n_kw])
+        if code.co_flags & inspect.CO_VARKEYWORDS:
+            idx = n_pos + n_kw + bool(code.co_flags & inspect.CO_VARARGS)
+            arg_names.add(code.co_varnames[idx])
+        return {k: v for k, v in frame.f_locals.items() if k in arg_names}
 
     def clear_logs(self):
         self.trace_log = []
         self.call_stack = []
-        self.call_depth = 0
-        self.top_level_depth = None
+        self.top_level_frame = None
+        self.callable_params = set()
 
 address_re = re.compile(r' at 0x[0-9a-fA-F]+')
 
