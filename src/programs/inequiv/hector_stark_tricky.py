@@ -23,3 +23,4 @@ def hector_stark_tricky_rhs(f):
 
 
 test_hector_stark_tricky = make_function_equivalence_test(hector_stark_tricky_lhs, hector_stark_tricky_rhs, log_failure=True)
+#test_hector_stark_tricky()

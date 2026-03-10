@@ -62,7 +62,7 @@ test_holik_flat_combiner_e \
     = make_function_equivalence_test(holik_flat_combiner_e_lhs,
                                      holik_flat_combiner_e_rhs,
                                      log_failure=True)
-
+#test_holik_flat_combiner_e()
 # on the lhs, enlist takes a function and essentially adds that function to
 # a linked list of functions while run runs each function in the list
 

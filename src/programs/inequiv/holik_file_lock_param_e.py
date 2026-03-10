@@ -24,3 +24,4 @@ test_holik_file_lock_param_e \
     = make_function_equivalence_test(holik_file_lock_param_e_lhs,
                                      holik_file_lock_param_e_rhs,
                                      log_failure=True)
+#test_holik_file_lock_param_e()

@@ -82,3 +82,4 @@ def hector_bsort_isort_CNE_rhs():
     return func
 
 test_hector_bsort_isort_CNE = make_function_equivalence_test(hector_bsort_isort_CNE_lhs, hector_bsort_isort_CNE_rhs, log_failure=True)
+#test_hector_bsort_isort_CNE()

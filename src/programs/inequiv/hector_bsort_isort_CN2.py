@@ -138,3 +138,4 @@ def hector_bsort_isort_CN2_rhs():
     return func
 
 test_hector_bsort_isort_CN2 = make_function_equivalence_test(hector_bsort_isort_CN2_lhs, hector_bsort_isort_CN2_rhs, log_failure=True)
+test_hector_bsort_isort_CN2()

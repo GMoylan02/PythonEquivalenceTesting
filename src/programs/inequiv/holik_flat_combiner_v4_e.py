@@ -68,3 +68,4 @@ test_holik_flat_combiner_v4_e \
     = make_function_equivalence_test(holik_flat_combiner_v4_e_lhs,
                                      holik_flat_combiner_v4_e_rhs,
                                      log_failure=True)
+#test_holik_flat_combiner_v4_e()

@@ -13,6 +13,8 @@ EQUIV_DIR = BASE_DIR  / "programs" / "equiv"
 paths = list(INEQUIV_DIR.glob("*.txt"))
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
+runtimes = {}
+
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="RunHobbitSuite",
@@ -48,10 +50,12 @@ def run_existing_suite(suite="inequiv", timeout_seconds=15):
     else:
         paths = list(EQUIV_DIR.glob("*.py"))
     before = time.time()
+
     for path in paths:
         run_script(path, timeout_seconds)
     after = time.time()
     print(f"Completed in: {(after - before)/60} minutes")
+    print(f"5 longest runtimes: {sorted(runtimes.items(), key=lambda item: item[1], reverse=True)[:5]}")
 
 def run_script(filepath, timeout_seconds=15):
     print(f"Running test on {str(filepath).split("\\")[-1]}")
@@ -90,6 +94,7 @@ def run_script(filepath, timeout_seconds=15):
 
             if new_failures >= 1:
                 print(f"⚡ Early Exit! ({new_failures} failures found)")
+                runtimes[filepath] = time.time() - start_time
                 break
             time.sleep(0.5)
     except Exception as e:

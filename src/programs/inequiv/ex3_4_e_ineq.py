@@ -29,3 +29,4 @@ def ex3_4_e_ineq_rhs():
     return v1
 
 test_ex3_4_e_ineq = make_function_equivalence_test(ex3_4_e_ineq_lhs, ex3_4_e_ineq_rhs, log_failure=True)
+#test_ex3_4_e_ineq()

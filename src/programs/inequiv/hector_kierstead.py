@@ -20,3 +20,4 @@ def hector_kierstead_rhs(f):
     )
 
 test_hector_kierstead = make_function_equivalence_test(hector_kierstead_lhs, hector_kierstead_rhs, log_failure=True)
+#test_hector_kierstead()

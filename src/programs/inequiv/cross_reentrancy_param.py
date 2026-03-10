@@ -44,3 +44,4 @@ def cross_reentrancy_param_rhs():
     return (call_even, call_odd, assert_fn)
 
 test_cross_reentrancy_param = make_function_equivalence_test(cross_reentrancy_param_lhs, cross_reentrancy_param_rhs, log_failure=True)
+#test_cross_reentrancy_param()

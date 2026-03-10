@@ -6,7 +6,7 @@ from typing import Callable
 
 from src.DummyObject import DummyObject
 from src.GenerateFunctions import (callable_strategy, preset_functions, GlobalMutatorPlan, InterleavedCallerPlan,
-                                   CurriedInteractionPlan)
+                                   FlatCombinerPlan)
 
 already_logged = False
 
@@ -29,7 +29,7 @@ def get_universal_strategy():
 
     # recursive strategy that can build any combination of primitives and lists/dicts of primitives
     # can be thought of as the following recursive definition
-    # strat = int|str|float|bool|None|Callable|list[strat]|dict[str,strat]|tuple[strat]
+    # universal_strat = int|str|float|bool|None|Callable|dummy|list[universal_strat]|dict[str,universal_strat]|tuple[universal_strat]
     return st.recursive(
         primitives,
         lambda children: st.one_of(
@@ -45,7 +45,7 @@ def _all_callable_strategies():
         callable_strategy(),
         preset_functions(),
         interleaved_caller_strategy(),
-        curried_interaction_strategy(),
+        flat_combiner_strategy(),
         #global_mutator_strategy()  temporarily commented out
     ]
 
@@ -66,9 +66,9 @@ def interleaved_caller_strategy():
     )
 
 
-def curried_interaction_strategy():
+def flat_combiner_strategy():
     return st.builds(
-        CurriedInteractionPlan,
+        FlatCombinerPlan,
         enlist_calls=st.integers(min_value=1, max_value=5),
         run_calls=st.integers(min_value=1, max_value=3),
         post_run_enlist_calls=st.integers(min_value=0, max_value=3),
@@ -119,6 +119,8 @@ def build_args_strategy(func):
 
         if param.annotation != inspect.Parameter.empty:
             positional_strategies.append(strategy_from_annotation(param.annotation))
+        elif param.default != inspect.Parameter.empty:
+            positional_strategies.append(strategy_from_default(param.default))
         else:
             positional_strategies.append(get_universal_strategy())
     args_strategy = st.tuples(*positional_strategies)
@@ -161,9 +163,9 @@ def strategy_from_annotation(annotation):
             # bare tuple, no inner type info
             return st.tuples()
         if len(args) == 2 and args[1] is Ellipsis:
-            # tuple[X, ...] — variable length homogeneous tuple
+            # tuple[X, ...]: variable length homogeneous tuple
             return st.lists(strategy_from_annotation(args[0])).map(tuple)
-        # tuple[X, Y, Z] — fixed length heterogeneous tuple
+        # tuple[X, Y, Z]: fixed length heterogeneous tuple
         return st.tuples(*[strategy_from_annotation(a) for a in args])
 
     if origin is list:
@@ -212,7 +214,7 @@ def build_instance_strategy(cls):
                 except Exception:
                     arg_strategies.append(get_universal_strategy())
         elif param.default != inspect.Parameter.empty:
-            arg_strategies.append(st.just(param.default))
+            arg_strategies.append(strategy_from_default(param.default))
         else:
             arg_strategies.append(get_universal_strategy())
 
@@ -236,3 +238,30 @@ def generate_tuple_operation_strategy(tuple_a, tuple_b):
         strats.append(st.tuples(st.just(i), build_args_strategy(function)))
     operation_strategy = st.one_of(strats)
     return operation_strategy
+
+
+def strategy_from_default(default):
+    """
+    Infers a strategy from the type of a default value,
+    broadening the search beyond just the default itself.
+    """
+    t = type(default)
+    if t is bool:  # must check before int since bool is a subclass of int
+        return st.booleans()
+    if t is int:
+        return st.integers()
+    if t is float:
+        return st.floats(allow_nan=False, allow_infinity=False)
+    if t is str:
+        return st.text()
+    if t is list:
+        return st.lists(get_universal_strategy())
+    if t is dict:
+        return st.dictionaries(st.text(), get_universal_strategy())
+    if t is tuple:
+        return st.tuples(get_universal_strategy())
+    if t is type(None):
+        return get_universal_strategy()
+    if is_user_defined_class(t):
+        return build_instance_strategy(t)
+    return get_universal_strategy()

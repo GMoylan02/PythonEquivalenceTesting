@@ -162,3 +162,4 @@ def hector_bsort_isort_CN5_rhs():
     return func
 
 test_hector_bsort_isort_CN5 = make_function_equivalence_test(hector_bsort_isort_CN5_lhs, hector_bsort_isort_CN5_rhs, log_failure=True)
+test_hector_bsort_isort_CN5()

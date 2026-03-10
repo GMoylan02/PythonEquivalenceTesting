@@ -24,3 +24,4 @@ def invariants_4_rhs():
     return func
 
 test_invariants_4 = make_function_equivalence_test(invariants_4_lhs, invariants_4_rhs, log_failure=True)
+#test_invariants_4()

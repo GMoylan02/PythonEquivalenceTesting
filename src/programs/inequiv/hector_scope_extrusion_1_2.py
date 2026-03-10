@@ -30,3 +30,4 @@ def hector_scope_extrusion_1_2_rhs(f):
     return f(inner)
 
 test_hector_scope_extrusion_1_2 = make_function_equivalence_test(hector_scope_extrusion_1_2_lhs, hector_scope_extrusion_1_2_rhs, log_failure=True)
+#test_hector_scope_extrusion_1_2()

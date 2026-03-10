@@ -8,6 +8,9 @@ __pycache__/
 *.tmp
 *.log
 mutmut_test/*
+fixed_mutants/*
+fixed_mutants_annotated/*
+SortedContainers_mutants/*
 !mutmut_test.gitkeep
 RunMutationTests.py
 MutationTestDir/RunMutationTests.py

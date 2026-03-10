@@ -31,3 +31,4 @@ test_holik_reentrancy_e2 \
     = make_function_equivalence_test(holik_reentrancy_e2_lhs,
                                      holik_reentrancy_e2_rhs,
                                      log_failure=True)
+#test_holik_reentrancy_e2()

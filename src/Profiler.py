@@ -1,4 +1,5 @@
 import inspect
+import itertools
 import math
 import re
 from dataclasses import field, dataclass
@@ -191,6 +192,7 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
                 f"different value from {top_func_name_b}.{entry_b['function']}"
             )
 
+    # todo this is redundant
     if log_info_a.top_level_returns and log_info_b.top_level_returns:
         returns_a = log_info_a.top_level_returns[-1]["return_value"]
         returns_b = log_info_b.top_level_returns[-1]["return_value"]
@@ -288,12 +290,18 @@ def value_equivalence(value_a, value_b, visited=None):
     if isinstance(value_a, dict):
         if value_a.keys() != value_b.keys():
             return False
-        return all(value_equivalence(value_a[k], value_b[k], visited) for k in value_a)
+        return all(
+            value_equivalence(value_a[k], value_b[k], visited)
+            for k in value_a
+        )
 
     if isinstance(value_a, (list, tuple)):
         if len(value_a) != len(value_b):
             return False
-        return all(value_equivalence(x, y, visited) for x, y in zip(value_a, value_b))
+        return all(
+            value_equivalence(x, y, visited)
+            for x, y in zip(value_a, value_b)
+        )
 
     if is_user_object(value_a):
         return value_equivalence(vars(value_a), vars(value_b), visited)

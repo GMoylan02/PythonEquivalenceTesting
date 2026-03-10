@@ -12,13 +12,14 @@ from typing import Dict, Callable
 from src.ClassEquivalence import get_module_methods
 from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
-TIMEOUT_SECONDS = 190
+TIMEOUT_SECONDS = 15
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
-TARGET_PACKAGE = "mutmut_test"
+TARGET_PACKAGE = "fixed_mutants_annotated"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
 times_taken = []
+mutants_killed = []
 
 def run_fuzzing_session():
     os.environ["MUTANT_UNDER_TEST"] = ""
@@ -66,6 +67,7 @@ def run_fuzzing_session():
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
+                    mutants_killed.append(mutant_entry['attr_name'])
                 idx += 1
 
         # test function mutants that don't belong to a class
@@ -90,11 +92,14 @@ def run_fuzzing_session():
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
+                    mutants_killed.append(func_obj)
                 idx += 1
         print(f"{module_mutants_identified}/{module_mutants_found} mutants identified in module {module}")
     print(f"5 Longest times taken: {sorted(times_taken)[-5:]}")
     print(f"")
     print(f"\nMutants identified: {mutants_identified}/{total_mutants_found}")
+    with open("killed_mutants.txt", "w", encoding="utf-8") as f:
+        f.write("\n".join(mutants_killed))
     #clean_directory()
 
 
@@ -108,6 +113,7 @@ def run_fuzz_file(log_file, label):
     print(f"  {label}...", end=" ", flush=True)
 
     cmd = ["hypothesis", "fuzz", TEMP_FILENAME, "--no-dashboard"]
+    #cmd = ["pytest", TEMP_FILENAME]
     env = os.environ.copy()
     env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
     env["MUTANT_UNDER_TEST"] = ""

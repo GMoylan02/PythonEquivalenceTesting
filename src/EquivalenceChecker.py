@@ -301,7 +301,10 @@ def instantiate_value(val, target_func):
     dummy functions bound to target_func and returns the specific index
     """
     if isinstance(val, RecursiveRef):
-        dummies = construct_dummies(target_func, limit=val.index + 1)
+        dummies = construct_dummies(
+            target_func,
+            limit=val.index + 1
+        )
         return dummies[val.index]
 
     if isinstance(val, GlobalMutatorPlan):
@@ -313,9 +316,11 @@ def instantiate_value(val, target_func):
     if isinstance(val, list):
         return [instantiate_value(x, target_func) for x in val]
     if isinstance(val, tuple):
-        return tuple(instantiate_value(x, target_func) for x in val)
+        return tuple(instantiate_value(x, target_func)
+                     for x in val)
     if isinstance(val, dict):
-        return {k: instantiate_value(v, target_func) for k, v in val.items()}
+        return {k: instantiate_value(v, target_func)
+                for k, v in val.items()}
 
     return val
 

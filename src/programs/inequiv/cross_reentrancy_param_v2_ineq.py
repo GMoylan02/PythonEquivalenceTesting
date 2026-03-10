@@ -37,3 +37,4 @@ def cross_reentrancy_param_v2_rhs():
     return lambda f: f(call_even, call_odd)
 
 test_cross_reentrancy_param_v2 = make_function_equivalence_test(cross_reentrancy_param_v2_lhs, cross_reentrancy_param_v2_rhs, log_failure=True)
+#test_cross_reentrancy_param_v2()

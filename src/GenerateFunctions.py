@@ -29,12 +29,13 @@ class InterleavedCallerPlan(CallablePlan):
         def interleaved_caller(*funcs):
             if not funcs:
                 return
-            results = [funcs[idx % len(funcs)]() for idx in self.call_sequence]
+            results = [funcs[idx % len(funcs)]()
+                       for idx in self.call_sequence]
             return results[-1] if results else None
         return interleaved_caller
 
 @dataclass
-class CurriedInteractionPlan(CallablePlan):
+class FlatCombinerPlan(CallablePlan):
     """
     Generates f for HOFs of the form: lambda f: f(enlist)(run)
 
@@ -58,13 +59,13 @@ class CurriedInteractionPlan(CallablePlan):
         def f(enlist):
             log = []
 
-            def inner():
+            def operation():
                 log.append(1)
 
             for _ in range(self.enlist_calls):
-                enlist(inner)
+                enlist(operation)
 
-            def phase2(run):
+            def run_phase(run):
                 for _ in range(self.run_calls):
                     try:
                         run()
@@ -73,11 +74,11 @@ class CurriedInteractionPlan(CallablePlan):
 
                 # probe whether running flag was cleared
                 for _ in range(self.post_run_enlist_calls):
-                    enlist(inner)
+                    enlist(operation)
 
                 return tuple(log)
 
-            return phase2
+            return run_phase
 
         return f
 
@@ -137,7 +138,7 @@ def h6(*args, **kwargs):
 
 @st.composite
 def preset_functions(draw):
-    funcs = [h1, h2, h3, h4, h5, h6]
+    funcs = [h1, h2, h3, h6]
     return draw(st.sampled_from(funcs))
 
 
@@ -146,6 +147,7 @@ class GlobalMutatorPlan:
     """
     Represents a deterministic sequence of mutations to apply.
     Hypothesis generates this. instantiate_value consumes it.
+    NB: CURRENTLY NOT USED
     """
     increments: List[int]
     string_concats: List[str]

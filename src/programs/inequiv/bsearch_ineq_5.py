@@ -91,3 +91,4 @@ def make_bsearch_5_rhs():
     return bsearch
 
 test_bsearch_ineq_5 = make_function_equivalence_test(make_bsearch_5_lhs, make_bsearch_5_rhs, log_failure=True)
+#test_bsearch_ineq_5()

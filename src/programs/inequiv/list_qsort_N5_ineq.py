@@ -113,3 +113,4 @@ def list_qsort_N5_ineq_rhs():
     return func
 
 test_list_qsort_N5_ineq = make_function_equivalence_test(list_qsort_N5_ineq_lhs, list_qsort_N5_ineq_rhs, log_failure=True)
+#test_list_qsort_N5_ineq()

@@ -103,3 +103,4 @@ def make_bsearch_3_rhs():
     return bsearch
 
 test_bsearch_ineq_3 = make_function_equivalence_test(make_bsearch_3_lhs, make_bsearch_3_rhs, log_failure=True)
+#test_bsearch_ineq_3()

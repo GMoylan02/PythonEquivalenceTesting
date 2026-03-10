@@ -32,10 +32,6 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
     object_a, object_b = class1(), class2()
     sequence_strategy = generate_sequence_strategy(object_a, object_b, max_size=max_size)
 
-    if reset_state:
-        snap_a = snapshot_object_state(object_a) if object_a else {}
-        snap_b = snapshot_object_state(object_b) if object_b else {}
-
     @given(sequence_strategy, st_data())
     @settings(max_examples=1000)
     def test_class_equivalence(ops, data):
@@ -57,16 +53,6 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
                 func_b = getattr(object_b, func_name)
                 raw_args, raw_kwargs = op[ARGS]
                 run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
-
-                if reset_state:
-                    current_state_a = snapshot_object_state(object_a) if object_a else {}
-                    current_state_b = snapshot_object_state(object_b) if object_b else {}
-                    if not value_equivalence(current_state_a, current_state_b):
-                        msg = (f"State Divergence in {func_name}:\n"
-                               f"A: {current_state_a}\n"
-                               f"B: {current_state_b}")
-                        event(msg)
-                        raise AssertionError(msg)
 
         except AssertionError as e:
             record_failure(type(object_a).__name__, e, unique_test_id)

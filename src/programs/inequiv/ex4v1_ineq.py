@@ -31,3 +31,4 @@ def ex4v1_ineq_rhs():
     return func
 
 test_ex4v1_ineq = make_function_equivalence_test(ex4v1_ineq_lhs, ex4v1_ineq_rhs, log_failure=True)
+#test_ex4v1_ineq()
