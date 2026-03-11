@@ -1,0 +1,100 @@
+[
+  {
+    "mutant": "x\u01c1Stack\u01c1__init____mutmut_1",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1isEmpty__mutmut_1",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1isEmpty__mutmut_2",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_1",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_2",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_3",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_4",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_5",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_6",
+    "killed": true,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_1",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_2",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_3",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_4",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1push__mutmut_1",
+    "killed": true,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  }
+]

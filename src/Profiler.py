@@ -4,17 +4,28 @@ import math
 import re
 from dataclasses import field, dataclass
 from pathlib import Path
+from typing import Optional, Callable
 
 from src.DummyObject import DummyObject
 
 MAX_OBJECT_DEPTH = 2
 
+
 class Profiler:
-    def __init__(self):
+    def __init__(self, coverage_target_func: Optional[Callable] = None):
         self.trace_log = []
         self.call_stack = []
         self.top_level_frame = None
         self.callable_params: set[str] = set()
+
+        self._coverage_code = None
+        if coverage_target_func is not None:
+            fn = coverage_target_func
+            if hasattr(fn, '__func__'):  # unwrap bound method
+                fn = fn.__func__
+            self._coverage_code = getattr(fn, '__code__', None)
+
+        self.covered_lines: set[int] = set()
 
     def trace(self, frame, event, arg):
         """
@@ -23,6 +34,10 @@ class Profiler:
         Return None to suppress all tracing inside this frame entirely.
         """
         func_name = frame.f_code.co_name
+
+        if self._coverage_code is not None and frame.f_code is self._coverage_code:
+            self.covered_lines.add(frame.f_lineno)
+            return self._coverage_local_trace
 
         if self.top_level_frame is None:
             # First call is always the top-level HOF
@@ -54,9 +69,22 @@ class Profiler:
 
         return None
 
+    def _coverage_local_trace(self, frame, event, arg):
+        """
+        Local trace installed only for the coverage-target frame.
+        Records every line event so we know which lines were actually executed.
+        This is separate from _local_trace so HOF profiling and coverage tracking
+        are completely independent, neither can accidentally interfere with the other.
+        """
+        if event == "line":
+            self.covered_lines.add(frame.f_lineno)
+        # Always return self to keep tracing every line inside this frame,
+        # including lines inside any nested calls that Python traces back here.
+        return self._coverage_local_trace
+
     def _local_trace(self, frame, event, arg):
         """
-        Local trace — only fires for frames that returned self._local_trace above.
+        Local trace. only fires for frames that returned self._local_trace above.
         Never called for frames that returned None.
         """
         func_name = frame.f_code.co_name
@@ -86,7 +114,7 @@ class Profiler:
     def _snapshot_args(self, frame) -> dict:
         code = frame.f_code
         n_pos = code.co_argcount
-        n_kw  = code.co_kwonlyargcount
+        n_kw = code.co_kwonlyargcount
         arg_names = set(code.co_varnames[:n_pos + n_kw])
         if code.co_flags & inspect.CO_VARARGS:
             arg_names.add(code.co_varnames[n_pos + n_kw])
@@ -100,6 +128,7 @@ class Profiler:
         self.call_stack = []
         self.top_level_frame = None
         self.callable_params = set()
+        # deliberately do not reset covered_lines
 
 address_re = re.compile(r' at 0x[0-9a-fA-F]+')
 
@@ -176,7 +205,8 @@ def logs_are_equivalent(log_a: list[dict], log_b: list[dict], args_a: tuple, arg
     if len(log_info_a.filtered_log) < len(log_info_b.filtered_log):
         return False, f"{top_func_name_b} called its arguments more than {top_func_name_a}"
 
-    ok, msg = exceptions_are_equivalent(log_info_a.exceptions, log_info_b.exceptions, strict_exceptions=strict_exceptions)
+    ok, msg = exceptions_are_equivalent(log_info_a.exceptions, log_info_b.exceptions,
+                                        strict_exceptions=strict_exceptions)
     if not ok:
         return False, msg
     

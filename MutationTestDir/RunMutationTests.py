@@ -1,4 +1,5 @@
 import inspect
+import json
 import re
 import signal
 import sys
@@ -7,19 +8,178 @@ import subprocess
 import importlib
 import pkgutil
 import time
+from pathlib import Path
 from typing import Dict, Callable
 
 from src.ClassEquivalence import get_module_methods
 from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
-TIMEOUT_SECONDS = 15
+TIMEOUT_SECONDS = 60
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "fixed_mutants_annotated"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
+# Directory where per-mutant coverage JSON files are written by the subprocesses.
+COVERAGE_DIR = os.path.join(PROJECT_ROOT, ".mutant_coverage")
+
 times_taken = []
 mutants_killed = []
+
+
+def _coverage_file_path(idx: int) -> str:
+    os.makedirs(COVERAGE_DIR, exist_ok=True)
+    return os.path.join(COVERAGE_DIR, f"coverage_{idx}.json")
+
+
+def _read_coverage_result(idx: int) -> dict:
+    """
+    Read the JSON file written by the subprocess and return a dict:
+        {
+            "covered":  <int>,   # lines actually executed
+            "total":    <int>,   # total lines in the mutant method
+            "pct":      <float>, # 0-100
+            "lines_covered": [...],
+            "lines_total":   [...],
+        }
+    Returns zeroed-out values if the file doesn't exist or is malformed.
+    """
+    path = _coverage_file_path(idx)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        covered = len(data.get("lines_covered", []))
+        total   = len(data.get("lines_total",   []))
+        pct     = (covered / total * 100) if total > 0 else 0.0
+        return {
+            "covered":       covered,
+            "total":         total,
+            "pct":           pct,
+            "lines_covered": data.get("lines_covered", []),
+            "lines_total":   data.get("lines_total",   []),
+        }
+    except Exception:
+        return {"covered": 0, "total": 0, "pct": 0.0,
+                "lines_covered": [], "lines_total": []}
+
+
+def _coverage_boilerplate(mutant_func_accessor: str, coverage_file: str) -> str:
+    """
+    Generates setup code injected into every temp file.
+    """
+    return f"""
+import os as _os, json as _json, inspect as _inspect
+
+# ── coverage setup ────────────────────────────────────────────────────────────
+_mutant_func_for_cov = {mutant_func_accessor}
+_coverage_target_func = _mutant_func_for_cov
+
+try:
+    # getsourcelines can fail on bound methods in some Python versions; unwrap first.
+    _fn_for_src = getattr(_mutant_func_for_cov, '__func__', _mutant_func_for_cov)
+    _mutant_source_lines, _mutant_start = _inspect.getsourcelines(_fn_for_src)
+    _coverage_total_lines = list(range(_mutant_start, _mutant_start + len(_mutant_source_lines)))
+except Exception as _e:
+    _coverage_total_lines = []
+
+_covered_lines = set()
+
+def _merge_coverage(new_lines):
+    # Write incrementally on every update so the file always reflects the latest
+    # state. atexit/SIGTERM are unreliable when the parent kills us with a hard
+    # kill (taskkill /F on Windows, SIGKILL on Unix), so we can't rely on them.
+    if not new_lines:
+        return
+    _covered_lines.update(new_lines)
+    try:
+        payload = {{
+            "lines_covered": sorted(_covered_lines),
+            "lines_total":   _coverage_total_lines,
+        }}
+        with open(r'{coverage_file}', 'w', encoding='utf-8') as _f:
+            _json.dump(payload, _f)
+    except Exception:
+        pass
+"""
+
+# todo: tidy this to remove essentially inlined code
+def _coverage_aware_class_test_body(idx: int) -> str:
+    """
+    Returns the replacement test body for class equivalence tests that threads
+    _coverage_target through create_class_equivalence_test and merges covered
+    lines back into _covered_lines after every check.
+
+    This is appended to the generated file in place of the plain test assignment.
+    """
+    return f"""
+from src.ClassEquivalence import create_class_equivalence_test as _make_cls_test
+from src.EquivalenceChecker import EquivalenceChecker as _EqChecker, run_and_test_equivalence as _rte
+from hypothesis import given, settings as _settings
+from hypothesis.strategies import data as _st_data
+from src.ClassEquivalence import generate_sequence_strategy
+from src.StateUtils import snapshot_object_state, restore_object_state
+from src.Profiler import record_failure
+
+_obj_a_{idx} = OrigClass_{idx}()
+_obj_b_{idx} = MutantClass_{idx}()
+_seq_strat_{idx} = generate_sequence_strategy(_obj_a_{idx}, _obj_b_{idx})
+
+@given(_seq_strat_{idx}, _st_data())
+@_settings(max_examples=1000)
+def test_{idx}(ops, data):
+    snap_a = snapshot_object_state(_obj_a_{idx})
+    snap_b = snapshot_object_state(_obj_b_{idx})
+    unique_id = f"{{type(_obj_a_{idx}).__name__}}_{{type(_obj_b_{idx}).__name__}}"
+    try:
+        for op in ops:
+            func_name = op[0]
+            func_a = getattr(_obj_a_{idx}, func_name)
+            func_b = getattr(_obj_b_{idx}, func_name)
+            raw_args, raw_kwargs = op[1]
+            # Instantiate checker directly so covered_lines can be captured in a
+            # finally block. If we used _rte() the return value is never reached
+            # when AssertionError is raised (mutant killed), losing all coverage.
+            _c = _EqChecker(func_a, func_b, data, coverage_target=_coverage_target_func)
+            try:
+                _c.check(raw_args, raw_kwargs)
+            finally:
+                _merge_coverage(_c.covered_lines)
+    except AssertionError as e:
+        record_failure(type(_obj_a_{idx}).__name__, e, unique_id)
+        raise
+    finally:
+        restore_object_state(_obj_a_{idx}, snap_a)
+        restore_object_state(_obj_b_{idx}, snap_b)
+"""
+
+
+def _coverage_aware_func_test_body(idx: int) -> str:
+    """
+    Returns the replacement test body for function equivalence tests that threads
+    _coverage_target and merges covered lines.
+    """
+    return f"""
+from src.EquivalenceChecker import EquivalenceChecker as _EqChecker
+from src.FuzzingStrategy import build_args_strategy as _build_strat
+from src.Profiler import record_failure
+from hypothesis import given, settings as _settings
+from hypothesis.strategies import data as _st_data
+
+_input_strat_{idx} = _build_strat(orig_func_{idx})
+
+@given(_input_strat_{idx}, _st_data())
+@_settings(max_examples=1000, deadline=None)
+def test_{idx}(inputs, data):
+    raw_args, raw_kwargs = inputs
+    _c = _EqChecker(orig_func_{idx}, mutant_func_{idx}, data, coverage_target=_coverage_target_func)
+    try:
+        _c.check(raw_args, raw_kwargs)
+    except AssertionError as e:
+        record_failure(orig_func_{idx}.__module__, e, f"{{orig_func_{idx}.__name__}}_{{mutant_func_{idx}.__name__}}")
+        raise
+    finally:
+        _merge_coverage(_c.covered_lines)
+"""
 
 def run_fuzzing_session():
     os.environ["MUTANT_UNDER_TEST"] = ""
@@ -41,20 +201,25 @@ def run_fuzzing_session():
 
     total_mutants_found = 0
     mutants_identified = 0
+    # Per-mutant coverage summary: list of dicts
+    coverage_report: list[dict] = []
+
     func_mutant_pattern = re.compile(r"^x_(.+)__mutmut_(\d+)$")
     idx = 0
 
     for module in modules:
         print(f"\n--- Scanning Module: {module.__name__} ---")
 
-        # test class mutants
+        # ── class mutants ──────────────────────────────────────────────────
         try:
             class_mutant_info = get_class_mutants(module)
         except Exception as e:
             print(f"Skipping class scan of {module.__name__}: {e}")
             class_mutant_info = {}
+
         module_mutants_found = 0
         module_mutants_identified = 0
+
         for class_name, info in class_mutant_info.items():
             orig_methods = {
                 method_name: f"xǁ{class_name}ǁ{method_name}__mutmut_orig"
@@ -63,14 +228,22 @@ def run_fuzzing_session():
             for mutant_entry in info["mutants"]:
                 total_mutants_found += 1
                 module_mutants_found += 1
-                killed = run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx)
+                killed, cov = run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx)
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
                     mutants_killed.append(mutant_entry['attr_name'])
+                coverage_report.append({
+                    "mutant":  mutant_entry['attr_name'],
+                    "killed":  killed,
+                    "covered": cov["covered"],
+                    "total":   cov["total"],
+                    "pct":     round(cov["pct"], 1),
+                })
+                _print_coverage_line(mutant_entry['attr_name'], killed, cov)
                 idx += 1
 
-        # test function mutants that don't belong to a class
+        # ── function mutants ───────────────────────────────────────────────
         try:
             funcs = get_module_functions(module)
         except Exception as e:
@@ -88,19 +261,61 @@ def run_fuzzing_session():
             if orig_func:
                 total_mutants_found += 1
                 module_mutants_found += 1
-                killed = run_func_fuzz_case(module, orig_func, func_obj, idx)
+                killed, cov = run_func_fuzz_case(module, orig_func, func_obj, idx)
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
                     mutants_killed.append(func_obj)
+                coverage_report.append({
+                    "mutant":  func_obj.__qualname__,
+                    "killed":  killed,
+                    "covered": cov["covered"],
+                    "total":   cov["total"],
+                    "pct":     round(cov["pct"], 1),
+                })
+                _print_coverage_line(func_obj.__qualname__, killed, cov)
                 idx += 1
+
         print(f"{module_mutants_identified}/{module_mutants_found} mutants identified in module {module}")
-    print(f"5 Longest times taken: {sorted(times_taken)[-5:]}")
-    print(f"")
+
+    print(f"\n5 Longest times taken: {sorted(times_taken)[-5:]}")
     print(f"\nMutants identified: {mutants_identified}/{total_mutants_found}")
+
     with open("killed_mutants.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(mutants_killed))
-    #clean_directory()
+        f.write("\n".join(str(m) for m in mutants_killed))
+
+    with open("coverage_report.json", "w", encoding="utf-8") as f:
+        json.dump(coverage_report, f, indent=2)
+
+    _print_coverage_summary(coverage_report)
+
+
+def _print_coverage_line(mutant_name: str, killed: bool, cov: dict) -> None:
+    status = "KILLED" if killed else "SURVIVED"
+    if cov["total"] == 0:
+        cov_str = "coverage: n/a"
+    else:
+        cov_str = f"coverage: {cov['covered']}/{cov['total']} lines ({cov['pct']:.1f}%)"
+    print(f"    [{status}] {mutant_name}  —  {cov_str}")
+
+
+def _print_coverage_summary(report: list[dict]) -> None:
+    survived_low_cov = [
+        r for r in report
+        if not r["killed"] and r["total"] > 0 and r["pct"] < 50
+    ]
+    survived_high_cov = [
+        r for r in report
+        if not r["killed"] and r["total"] > 0 and r["pct"] >= 50
+    ]
+    print("\n── Coverage summary ──────────────────────────────────────────────────")
+    print(f"  Survived with <50% coverage  (under-exercised): {len(survived_low_cov)}")
+    print(f"  Survived with ≥50% coverage  (genuine equivalents or weak assertions): {len(survived_high_cov)}")
+    if survived_low_cov:
+        print("\n  Under-exercised survivors — consider improving input generation:")
+        for r in survived_low_cov:
+            print(f"    {r['mutant']}  {r['covered']}/{r['total']} lines ({r['pct']:.1f}%)")
+    print("──────────────────────────────────────────────────────────────────────\n")
 
 
 def run_fuzz_file(log_file, label):
@@ -113,7 +328,6 @@ def run_fuzz_file(log_file, label):
     print(f"  {label}...", end=" ", flush=True)
 
     cmd = ["hypothesis", "fuzz", TEMP_FILENAME, "--no-dashboard"]
-    #cmd = ["pytest", TEMP_FILENAME]
     env = os.environ.copy()
     env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
     env["MUTANT_UNDER_TEST"] = ""
@@ -152,12 +366,15 @@ def run_fuzz_file(log_file, label):
         print(f"Error: {e}")
 
     kill_process_tree(process)
-    time.sleep(0.1)
+    # Brief pause to let the SIGTERM handler finish writing the coverage file
+    # before we try to read it.
+    time.sleep(0.3)
     return killed
 
 
 def run_func_fuzz_case(module, orig_func, mutant_func, idx):
     log_file = "hypofuzz_failures.log"
+    coverage_file = _coverage_file_path(idx)
     mod_alias = f"mod_{idx}"
 
     orig_setup, orig_accessor = generate_getter(orig_func, mod_alias, f"orig_instance_{idx}")
@@ -169,37 +386,42 @@ def run_func_fuzz_case(module, orig_func, mutant_func, idx):
     if mutant_setup:
         setup_lines += f"{mutant_setup}\n"
 
+    cov_boilerplate = _coverage_boilerplate(mutant_accessor, coverage_file)
+    test_body = _coverage_aware_func_test_body(idx)
+
     content = f"""
 import sys
 import os
 os.environ["MUTANT_UNDER_TEST"] = ""
 sys.path.insert(0, r'{PROJECT_ROOT}')
-from {UTILS_IMPORT_PATH} import make_function_equivalence_test
 import {module.__name__} as {mod_alias}
 {setup_lines}
 orig_func_{idx} = {orig_accessor}
 mutant_func_{idx} = {mutant_accessor}
-test_{idx} = make_function_equivalence_test(orig_func_{idx}, mutant_func_{idx}, log_failure=True)
+{cov_boilerplate}
+{test_body}
 """
 
     with open(TEMP_FILENAME, "w", encoding="utf-8") as f:
         f.write(content)
 
     label = f"{orig_func.__qualname__} vs {mutant_func.__qualname__}"
-    return run_fuzz_file(log_file, label)
+    killed = run_fuzz_file(log_file, label)
+    cov = _read_coverage_result(idx)
+    return killed, cov
 
 
 def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
     log_file = "hypofuzz_failures.log"
+    coverage_file = _coverage_file_path(idx)
     mod_alias = f"mod_{idx}"
     mutant_method = mutant_entry["method_name"]
-    mutant_attr = mutant_entry["attr_name"]
+    mutant_attr   = mutant_entry["attr_name"]
 
     orig_dict_entries = ", ".join(
         f'"{method_name}": getattr(getattr({mod_alias}, "{class_name}"), "{attr_name}")'
         for method_name, attr_name in orig_methods.items()
     )
-
     mutant_dict_entries = ", ".join(
         f'"{method_name}": getattr(getattr({mod_alias}, "{class_name}"), "{mutant_attr}")'
         if method_name == mutant_method
@@ -207,25 +429,33 @@ def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
         for method_name, attr_name in orig_methods.items()
     )
 
+    # The accessor for the mutant method specifically — this is what we want
+    # coverage for, not the whole class.
+    mutant_method_accessor = f'getattr(getattr({mod_alias}, "{class_name}"), "{mutant_attr}")'
+    cov_boilerplate = _coverage_boilerplate(mutant_method_accessor, coverage_file)
+    test_body = _coverage_aware_class_test_body(idx)
+
     content = f"""
 import sys
 import os
 os.environ["MUTANT_UNDER_TEST"] = ""
 sys.path.insert(0, r'{PROJECT_ROOT}')
-from src.ClassEquivalence import create_class_equivalence_test
 import {module.__name__} as {mod_alias}
 orig_methods_{idx} = {{{orig_dict_entries}}}
 mutant_methods_{idx} = {{{mutant_dict_entries}}}
 OrigClass_{idx} = type("Orig_{class_name}_{idx}", (), orig_methods_{idx})
 MutantClass_{idx} = type("Mutant_{class_name}_{idx}", (), mutant_methods_{idx})
-test_{idx} = create_class_equivalence_test(OrigClass_{idx}, MutantClass_{idx})
+{cov_boilerplate}
+{test_body}
 """
 
     with open(TEMP_FILENAME, "w", encoding="utf-8") as f:
         f.write(content)
 
     label = f"{class_name}.{mutant_method} mutant {mutant_entry['mutant_index']}"
-    return run_fuzz_file(log_file, label)
+    killed = run_fuzz_file(log_file, label)
+    cov = _read_coverage_result(idx)
+    return killed, cov
 
 
 def generate_getter(func_obj, mod_alias_str, instance_var=None):
@@ -241,24 +471,6 @@ def generate_getter(func_obj, mod_alias_str, instance_var=None):
 
 
 def get_class_mutants(module):
-    """
-    Returns a dict structured as:
-    {
-        class_name: {
-            "orig_methods": { method_name: func },   # __mutmut_orig versions
-            "mutants": [
-                { "method_name": str, "mutant_index": int, "func": func },
-                ...
-            ]
-        }
-    }
-    Only includes classes that have at least one mutant method.
-    1. This data is used to reconstruct an original class from a mutated module (none of its methods are mutants)
-    2. For each mutant method:
-            reconstruct a class identical to the un-mutated version, but with the mutant method in place of its original
-    This way, we can run create_class_equivalence_test on the original class vs a class with 1 mutant at a time and
-    iteratively test each mutant individually
-    """
     cls_mutant_pattern = re.compile(r"^xǁ(.+)ǁ(.+)__mutmut_(\d+)$")
     orig_pattern = re.compile(r"^xǁ(.+)ǁ(.+)__mutmut_orig$")
     result = {}
@@ -293,14 +505,13 @@ def get_class_mutants(module):
 
     return result
 
+
 def get_module_functions(module) -> Dict[str, Callable]:
-    functions = {
+    return {
         name: fn
         for name, fn in inspect.getmembers(module, inspect.isfunction)
         if fn.__module__ == module.__name__
     }
-
-    return functions
 
 
 if __name__ == "__main__":

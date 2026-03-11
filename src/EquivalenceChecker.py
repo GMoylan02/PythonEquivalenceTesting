@@ -4,7 +4,7 @@ import math
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any, Literal, Callable
+from typing import Any, Literal, Callable, Optional
 from hypothesis import strategies as st, event
 
 from src.DummyObject import DummyObject
@@ -37,6 +37,7 @@ class RunResult:
     value: Any
     log: list
     func_name: str
+    covered_lines: frozenset = frozenset()  # lines hit in the coverage-target function (empty if no target set)
 
     @property
     def ok(self) -> bool:
@@ -47,8 +48,11 @@ class RunResult:
         return self.value if not self.ok else None
 
 
-def run(fn, args, kwargs=None) -> RunResult:
-    profiler = Profiler()
+def run(fn, args, kwargs=None, coverage_target_func=None) -> RunResult:
+    """
+    Execute fn(*args, **kwargs) under the Profiler tracer.
+    """
+    profiler = Profiler(coverage_target_func=coverage_target_func)
 
     try:
         sys.settrace(profiler.trace)
@@ -59,14 +63,16 @@ def run(fn, args, kwargs=None) -> RunResult:
 
         sys.settrace(None)
         log = profiler.trace_log
+        covered = frozenset(profiler.covered_lines)
         profiler.clear_logs()
-        return RunResult("ok", result, log, fn.__name__)
+        return RunResult("ok", result, log, fn.__name__, covered)
 
     except Exception as e:
         sys.settrace(None)
         log = profiler.trace_log
+        covered = frozenset(profiler.covered_lines)
         profiler.clear_logs()
-        return RunResult("err", e, log, fn.__name__)
+        return RunResult("err", e, log, fn.__name__, covered)
 
 
 class EquivalenceChecker:
@@ -75,10 +81,17 @@ class EquivalenceChecker:
     Instantiate once per function pair, call check() for each set of arguments.
     """
 
-    def __init__(self, func_a: Callable, func_b: Callable, data):
+    def __init__(
+        self,
+        func_a: Callable,
+        func_b: Callable,
+        data,
+        coverage_target: Optional[tuple[str, str]] = None,
+    ):
         self.func_a = func_a
         self.func_b = func_b
         self.data = data
+        self.coverage_target = coverage_target
         # we want to treat non-annotated functions less strictly as more likely than not the types we pass in will be
         # problematic. without this, we could have false positives stemming from simple order of operations differences
         self.strict = has_type_annotations(func_a)
@@ -88,13 +101,22 @@ class EquivalenceChecker:
         self.args_b: tuple = ()
         self.kwargs_a: dict = {}
         self.kwargs_b: dict = {}
+        # Accumulates covered lines across ALL check() calls on this instance.
+        # The caller (generated test file) is responsible for merging this into
+        # a longer-lived module-level set after each hypothesis example
+        self.covered_lines: set[int] = set()
 
     def check(self, raw_args, raw_kwargs) -> None:
         self.args_a, self.kwargs_a = instantiate_args(raw_args, raw_kwargs, self.func_a)
         self.args_b, self.kwargs_b = instantiate_args(raw_args, raw_kwargs, self.func_b)
 
         a = run(self.func_a, self.args_a, self.kwargs_a)
-        b = run(self.func_b, self.args_b, self.kwargs_b)
+        # Only instrument func_b (the mutant); func_a is the reference implementation
+        # and we have no interest in its coverage.
+        b = run(self.func_b, self.args_b, self.kwargs_b, coverage_target_func=self.coverage_target)
+
+        # Merge newly-covered lines from this single call
+        self.covered_lines.update(b.covered_lines)
 
         self.equivalent_logs, self.logs_error_msg = logs_are_equivalent(
             a.log, b.log,
@@ -217,7 +239,8 @@ class EquivalenceChecker:
 
         for _ in range(MAX_CALLABLE_CALLS):
             raw_args, raw_kwargs = self.data.draw(input_strategy, label=f"callable_args_d{depth}")
-            run_and_test_equivalence(out_a, out_b, raw_args, raw_kwargs, self.data)
+            run_and_test_equivalence(out_a, out_b, raw_args, raw_kwargs, self.data,
+                                     coverage_target_func=self.coverage_target)
 
     def _assert_equivalent_callable_tuple(self, tuple_a, tuple_b, *, depth=0):
         """
@@ -245,7 +268,8 @@ class EquivalenceChecker:
         for op in ops:
             idx = op[0]
             raw_args, raw_kwargs = op[1]
-            run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, self.data)
+            run_and_test_equivalence(tuple_a[idx], tuple_b[idx], raw_args, raw_kwargs, self.data,
+                                     coverage_target_func=self.coverage_target)
 
     # both returned normally
     def _handle_both_ok(self, a, b) -> None:
@@ -253,8 +277,7 @@ class EquivalenceChecker:
             event("both ok: callable output")
         else:
             event("both ok")
-
-        self._assert_outputs_equivalent(a.value, b.value,)
+        self._assert_outputs_equivalent(a.value, b.value)
 
     # both raised exceptions
     def _handle_both_errored(self, a, b) -> None:
@@ -291,8 +314,21 @@ class EquivalenceChecker:
         )
 
 
-def run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data) -> None:
-    EquivalenceChecker(func_a, func_b, data).check(raw_args, raw_kwargs)
+def run_and_test_equivalence(
+    func_a,
+    func_b,
+    raw_args,
+    raw_kwargs,
+    data,
+    coverage_target_func: Optional[Callable] = None,
+) -> set[int]:
+    """
+    Run one differential check and return any newly-covered lines from the mutant.
+    The returned set should be merged into the caller's long-lived coverage accumulator.
+    """
+    checker = EquivalenceChecker(func_a, func_b, data, coverage_target=coverage_target_func)
+    checker.check(raw_args, raw_kwargs)
+    return checker.covered_lines
 
 
 def instantiate_value(val, target_func):

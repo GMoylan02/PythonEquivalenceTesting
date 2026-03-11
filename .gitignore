@@ -14,3 +14,4 @@ SortedContainers_mutants/*
 !mutmut_test.gitkeep
 RunMutationTests.py
 MutationTestDir/RunMutationTests.py
+MutationTestDir/.mutant_coverage
