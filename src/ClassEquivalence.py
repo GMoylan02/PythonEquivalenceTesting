@@ -1,7 +1,9 @@
 import inspect
+from typing import Optional, Callable
+
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from src.EquivalenceChecker import run_and_test_equivalence
+from src.EquivalenceChecker import run_and_test_equivalence, EquivalenceChecker
 from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
@@ -28,20 +30,29 @@ def generate_sequence_strategy(obj1, obj2, max_size=20):
     sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=max_size)
     return sequence_strategy
 
-def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True):
-    object_a, object_b = class1(), class2()
-    sequence_strategy = generate_sequence_strategy(object_a, object_b, max_size=max_size)
+def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_func: Optional[Callable] = None,
+    on_coverage: Optional[Callable[[set], None]] = None):
 
-    @given(sequence_strategy, st_data())
+    init_strategy = build_args_strategy(class1)
+    # create uninitialised instances just for method inspection since we dont actually have constructor args yet
+    probe_a = class1.__new__(class1)
+    probe_b = class2.__new__(class2)
+    sequence_strategy = generate_sequence_strategy(probe_a, probe_b, max_size=max_size)
+
+    @given(init_strategy, sequence_strategy, st_data())
     @settings(max_examples=1000)
-    def test_class_equivalence(ops, data):
+    def test_class_equivalence(init_inputs, ops, data):
         """
         ops should be in the form [(method, args), (method, args)]
         """
-        snap_a = snapshot_object_state(object_a) if object_a and reset_state else {}
-        snap_b = snapshot_object_state(object_b) if object_b and reset_state else {}
-
-        unique_test_id = f"{type(object_a).__name__}_{type(object_b).__name__}"
+        init_args, init_kwargs = init_inputs
+        try:
+            object_a = class1(*init_args, **init_kwargs)
+            object_b = class2(*init_args, **init_kwargs)
+        except Exception:
+            # If the fuzzed constructor args are invalid, skip this example
+            return
+        unique_test_id = f"{class1.__name__}_{class2.__name__}"
 
         try:
             METHOD = 0
@@ -52,16 +63,20 @@ def create_class_equivalence_test(class1, class2, max_size=20, reset_state=True)
                 func_a = getattr(object_a, func_name)
                 func_b = getattr(object_b, func_name)
                 raw_args, raw_kwargs = op[ARGS]
-                run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+
+                checker = EquivalenceChecker(
+                    func_a, func_b, data,
+                    coverage_target=coverage_target_func,
+                )
+                try:
+                    checker.check(raw_args, raw_kwargs)
+                finally:
+                    if on_coverage is not None and checker.covered_lines:
+                        on_coverage(checker.covered_lines)
 
         except AssertionError as e:
-            record_failure(type(object_a).__name__, e, unique_test_id)
+            record_failure(class1.__name__, e, unique_test_id)
             raise
-
-        finally:
-            if reset_state:
-                if object_a: restore_object_state(object_a, snap_a)
-                if object_b: restore_object_state(object_b, snap_b)
 
     return test_class_equivalence
 

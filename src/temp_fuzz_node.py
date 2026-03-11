@@ -3,16 +3,16 @@ import sys
 import os
 os.environ["MUTANT_UNDER_TEST"] = ""
 sys.path.insert(0, r'C:\Users\eyeba\Documents\PythonEquivalenceTesting\MutationTestDir')
-import fixed_mutants_annotated.dll as mod_389
-orig_methods_389 = {"__init__": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁ__init____mutmut_orig"), "_repr": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁ_repr__mutmut_orig"), "append": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁappend__mutmut_orig"), "pop": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁpop__mutmut_orig"), "push": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁpush__mutmut_orig"), "remove": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁremove__mutmut_orig"), "shift": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁshift__mutmut_orig")}
-mutant_methods_389 = {"__init__": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁ__init____mutmut_orig"), "_repr": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁ_repr__mutmut_orig"), "append": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁappend__mutmut_orig"), "pop": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁpop__mutmut_orig"), "push": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁpush__mutmut_orig"), "remove": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁremove__mutmut_orig"), "shift": getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁshift__mutmut_6")}
-OrigClass_389 = type("Orig_DoubleLinkedList_389", (), orig_methods_389)
-MutantClass_389 = type("Mutant_DoubleLinkedList_389", (), mutant_methods_389)
+import fixed_mutants_annotated.linked_list as mod_451
+orig_methods_451 = {"__init__": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁ__init____mutmut_orig"), "display": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁdisplay__mutmut_orig"), "pop": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁpop__mutmut_orig"), "push": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁpush__mutmut_orig"), "remove": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁremove__mutmut_orig"), "search": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁsearch__mutmut_orig")}
+mutant_methods_451 = {"__init__": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁ__init____mutmut_orig"), "display": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁdisplay__mutmut_3"), "pop": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁpop__mutmut_orig"), "push": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁpush__mutmut_orig"), "remove": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁremove__mutmut_orig"), "search": getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁsearch__mutmut_orig")}
+OrigClass_451 = type("Orig_LinkedList_451", (), orig_methods_451)
+MutantClass_451 = type("Mutant_LinkedList_451", (), mutant_methods_451)
 
 import os as _os, json as _json, inspect as _inspect
 
 # ── coverage setup ────────────────────────────────────────────────────────────
-_mutant_func_for_cov = getattr(getattr(mod_389, "DoubleLinkedList"), "xǁDoubleLinkedListǁshift__mutmut_6")
+_mutant_func_for_cov = getattr(getattr(mod_451, "LinkedList"), "xǁLinkedListǁdisplay__mutmut_3")
 _coverage_target_func = _mutant_func_for_cov
 
 try:
@@ -37,7 +37,7 @@ def _merge_coverage(new_lines):
             "lines_covered": sorted(_covered_lines),
             "lines_total":   _coverage_total_lines,
         }
-        with open(r'C:\Users\eyeba\Documents\PythonEquivalenceTesting\MutationTestDir\.mutant_coverage\coverage_389.json', 'w', encoding='utf-8') as _f:
+        with open(r'C:\Users\eyeba\Documents\PythonEquivalenceTesting\MutationTestDir\.mutant_coverage\coverage_451.json', 'w', encoding='utf-8') as _f:
             _json.dump(payload, _f)
     except Exception:
         pass
@@ -52,21 +52,21 @@ from src.ClassEquivalence import generate_sequence_strategy
 from src.StateUtils import snapshot_object_state, restore_object_state
 from src.Profiler import record_failure
 
-_obj_a_389 = OrigClass_389()
-_obj_b_389 = MutantClass_389()
-_seq_strat_389 = generate_sequence_strategy(_obj_a_389, _obj_b_389)
+_obj_a_451 = OrigClass_451()
+_obj_b_451 = MutantClass_451()
+_seq_strat_451 = generate_sequence_strategy(_obj_a_451, _obj_b_451)
 
-@given(_seq_strat_389, _st_data())
+@given(_seq_strat_451, _st_data())
 @_settings(max_examples=1000)
-def test_389(ops, data):
-    snap_a = snapshot_object_state(_obj_a_389)
-    snap_b = snapshot_object_state(_obj_b_389)
-    unique_id = f"{type(_obj_a_389).__name__}_{type(_obj_b_389).__name__}"
+def test_451(ops, data):
+    snap_a = snapshot_object_state(_obj_a_451)
+    snap_b = snapshot_object_state(_obj_b_451)
+    unique_id = f"{type(_obj_a_451).__name__}_{type(_obj_b_451).__name__}"
     try:
         for op in ops:
             func_name = op[0]
-            func_a = getattr(_obj_a_389, func_name)
-            func_b = getattr(_obj_b_389, func_name)
+            func_a = getattr(_obj_a_451, func_name)
+            func_b = getattr(_obj_b_451, func_name)
             raw_args, raw_kwargs = op[1]
             # Instantiate checker directly so covered_lines can be captured in a
             # finally block. If we used _rte() the return value is never reached
@@ -77,9 +77,9 @@ def test_389(ops, data):
             finally:
                 _merge_coverage(_c.covered_lines)
     except AssertionError as e:
-        record_failure(type(_obj_a_389).__name__, e, unique_id)
+        record_failure(type(_obj_a_451).__name__, e, unique_id)
         raise
     finally:
-        restore_object_state(_obj_a_389, snap_a)
-        restore_object_state(_obj_b_389, snap_b)
+        restore_object_state(_obj_a_451, snap_a)
+        restore_object_state(_obj_b_451, snap_b)
 
