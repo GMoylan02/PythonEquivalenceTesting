@@ -68,26 +68,21 @@ def _coverage_boilerplate(mutant_func_accessor: str, coverage_file: str) -> str:
     Generates setup code injected into every temp file.
     """
     return f"""
-import os as _os, json as _json, inspect as _inspect
+import json as _json, inspect as _inspect
 
-# ── coverage setup ────────────────────────────────────────────────────────────
 _mutant_func_for_cov = {mutant_func_accessor}
 _coverage_target_func = _mutant_func_for_cov
 
 try:
-    # getsourcelines can fail on bound methods in some Python versions; unwrap first.
     _fn_for_src = getattr(_mutant_func_for_cov, '__func__', _mutant_func_for_cov)
     _mutant_source_lines, _mutant_start = _inspect.getsourcelines(_fn_for_src)
     _coverage_total_lines = list(range(_mutant_start, _mutant_start + len(_mutant_source_lines)))
-except Exception as _e:
+except Exception:
     _coverage_total_lines = []
 
 _covered_lines = set()
 
 def _merge_coverage(new_lines):
-    # Write incrementally on every update so the file always reflects the latest
-    # state. atexit/SIGTERM are unreliable when the parent kills us with a hard
-    # kill (taskkill /F on Windows, SIGKILL on Unix), so we can't rely on them.
     if not new_lines:
         return
     _covered_lines.update(new_lines)
@@ -102,83 +97,27 @@ def _merge_coverage(new_lines):
         pass
 """
 
-# todo: tidy this to remove essentially inlined code
-def _coverage_aware_class_test_body(idx: int) -> str:
-    """
-    Returns the replacement test body for class equivalence tests that threads
-    _coverage_target through create_class_equivalence_test and merges covered
-    lines back into _covered_lines after every check.
 
-    This is appended to the generated file in place of the plain test assignment.
-    """
+def _class_test_assignment(idx: int) -> str:
     return f"""
 from src.ClassEquivalence import create_class_equivalence_test as _make_cls_test
-from src.EquivalenceChecker import EquivalenceChecker as _EqChecker, run_and_test_equivalence as _rte
-from hypothesis import given, settings as _settings
-from hypothesis.strategies import data as _st_data
-from src.ClassEquivalence import generate_sequence_strategy
-from src.StateUtils import snapshot_object_state, restore_object_state
-from src.Profiler import record_failure
-
-_obj_a_{idx} = OrigClass_{idx}()
-_obj_b_{idx} = MutantClass_{idx}()
-_seq_strat_{idx} = generate_sequence_strategy(_obj_a_{idx}, _obj_b_{idx})
-
-@given(_seq_strat_{idx}, _st_data())
-@_settings(max_examples=1000)
-def test_{idx}(ops, data):
-    snap_a = snapshot_object_state(_obj_a_{idx})
-    snap_b = snapshot_object_state(_obj_b_{idx})
-    unique_id = f"{{type(_obj_a_{idx}).__name__}}_{{type(_obj_b_{idx}).__name__}}"
-    try:
-        for op in ops:
-            func_name = op[0]
-            func_a = getattr(_obj_a_{idx}, func_name)
-            func_b = getattr(_obj_b_{idx}, func_name)
-            raw_args, raw_kwargs = op[1]
-            # Instantiate checker directly so covered_lines can be captured in a
-            # finally block. If we used _rte() the return value is never reached
-            # when AssertionError is raised (mutant killed), losing all coverage.
-            _c = _EqChecker(func_a, func_b, data, coverage_target=_coverage_target_func)
-            try:
-                _c.check(raw_args, raw_kwargs)
-            finally:
-                _merge_coverage(_c.covered_lines)
-    except AssertionError as e:
-        record_failure(type(_obj_a_{idx}).__name__, e, unique_id)
-        raise
-    finally:
-        restore_object_state(_obj_a_{idx}, snap_a)
-        restore_object_state(_obj_b_{idx}, snap_b)
+test_{idx} = _make_cls_test(
+    OrigClass_{idx}, MutantClass_{idx},
+    coverage_target_func=_coverage_target_func,
+    on_coverage=_merge_coverage,
+)
 """
 
 
-def _coverage_aware_func_test_body(idx: int) -> str:
-    """
-    Returns the replacement test body for function equivalence tests that threads
-    _coverage_target and merges covered lines.
-    """
+def _func_test_assignment(idx: int) -> str:
     return f"""
-from src.EquivalenceChecker import EquivalenceChecker as _EqChecker
-from src.FuzzingStrategy import build_args_strategy as _build_strat
-from src.Profiler import record_failure
-from hypothesis import given, settings as _settings
-from hypothesis.strategies import data as _st_data
-
-_input_strat_{idx} = _build_strat(orig_func_{idx})
-
-@given(_input_strat_{idx}, _st_data())
-@_settings(max_examples=1000, deadline=None)
-def test_{idx}(inputs, data):
-    raw_args, raw_kwargs = inputs
-    _c = _EqChecker(orig_func_{idx}, mutant_func_{idx}, data, coverage_target=_coverage_target_func)
-    try:
-        _c.check(raw_args, raw_kwargs)
-    except AssertionError as e:
-        record_failure(orig_func_{idx}.__module__, e, f"{{orig_func_{idx}.__name__}}_{{mutant_func_{idx}.__name__}}")
-        raise
-    finally:
-        _merge_coverage(_c.covered_lines)
+from src.FunctionEquivalence import make_function_equivalence_test as _make_func_test
+test_{idx} = _make_func_test(
+    orig_func_{idx}, mutant_func_{idx},
+    log_failure=True,
+    coverage_target_func=_coverage_target_func,
+    on_coverage=_merge_coverage,
+)
 """
 
 def run_fuzzing_session():
@@ -387,7 +326,7 @@ def run_func_fuzz_case(module, orig_func, mutant_func, idx):
         setup_lines += f"{mutant_setup}\n"
 
     cov_boilerplate = _coverage_boilerplate(mutant_accessor, coverage_file)
-    test_body = _coverage_aware_func_test_body(idx)
+    test_body = _func_test_assignment(idx)
 
     content = f"""
 import sys
@@ -433,7 +372,7 @@ def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
     # coverage for, not the whole class.
     mutant_method_accessor = f'getattr(getattr({mod_alias}, "{class_name}"), "{mutant_attr}")'
     cov_boilerplate = _coverage_boilerplate(mutant_method_accessor, coverage_file)
-    test_body = _coverage_aware_class_test_body(idx)
+    test_body = _class_test_assignment(idx)
 
     content = f"""
 import sys

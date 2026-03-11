@@ -3,7 +3,7 @@ from typing import Optional, Callable
 
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from src.EquivalenceChecker import run_and_test_equivalence, EquivalenceChecker
+from src.EquivalenceChecker import EquivalenceChecker
 from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2

@@ -1,15 +1,17 @@
 import sys
+from typing import Optional, Callable
 
 from hypothesis import given, settings
 
-from src.EquivalenceChecker import run_and_test_equivalence
+from src.EquivalenceChecker import EquivalenceChecker
 from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import record_failure
 from src.StateUtils import snapshot_module_state, restore_module_state
 from hypothesis.strategies import data as st_data
 
 
-def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False):
+def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False,
+    coverage_target_func: Optional[Callable] = None, on_coverage: Optional[Callable[[set], None]] = None,):
     input_strategy = build_args_strategy(func_a)
 
     module_a = sys.modules.get(func_a.__module__)
@@ -30,13 +32,18 @@ def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
         raw_args, raw_kwargs = inputs
-        if log_failure:
-            try:
-                run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
-            except AssertionError as e:
+        checker = EquivalenceChecker(
+            func_a, func_b, data,
+            coverage_target=coverage_target_func,
+        )
+        try:
+            checker.check(raw_args, raw_kwargs)
+        except AssertionError as e:
+            if log_failure:
                 record_failure(module_a.__name__, e, unique_test_id)
-                raise
-        else:
-            run_and_test_equivalence(func_a, func_b, raw_args, raw_kwargs, data)
+            raise
+        finally:
+            if on_coverage is not None and checker.covered_lines:
+                on_coverage(checker.covered_lines)
 
     return equivalence_test
