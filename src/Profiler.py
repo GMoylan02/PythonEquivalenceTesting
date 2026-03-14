@@ -136,6 +136,45 @@ def normalise_string(s):
     """Strip memory addresses from string representations of objects."""
     return address_re.sub(' at 0x?', s)
 
+number_re = re.compile(r'-?\d+(\.\d+)?')
+
+def normalise_exception_message(msg: str) -> str:
+    """
+    Simplify exception messages for comparison, without this, messages like "index x out of range" would raise
+    false inequivalences
+    """
+    msg = address_re.sub('0x?', msg)
+    msg = number_re.sub('#', msg)
+    return msg.casefold().strip()
+
+def exception_messages_are_equivalent(exc_a: Exception, exc_b: Exception) -> tuple[bool, str]:
+    """
+    Compare the normalised messages of two exceptions of the same type
+    """
+    msg_a = str(exc_a).strip()
+    msg_b = str(exc_b).strip()
+
+    if not msg_a and not msg_b:
+        return True, ""
+    if bool(msg_a) != bool(msg_b):
+        return False, (
+            f"Exception message presence mismatch: "
+            f"A raised {type(exc_a).__name__}({msg_a!r}), "
+            f"B raised {type(exc_b).__name__}({msg_b!r})"
+        )
+
+    norm_a = normalise_exception_message(msg_a)
+    norm_b = normalise_exception_message(msg_b)
+
+    if norm_a != norm_b:
+        return False, (
+            f"Exception message mismatch:\n"
+            f"  A: {type(exc_a).__name__}({msg_a!r})\n"
+            f"  B: {type(exc_b).__name__}({msg_b!r})"
+        )
+
+    return True, ""
+
 
 @dataclass
 class _LogInfo:

@@ -11,7 +11,8 @@ from src.DummyObject import DummyObject
 from src.FuzzingStrategy import generate_tuple_operation_strategy, build_args_strategy
 from src.GenerateFunctions import RecursiveRef, construct_dummies, GlobalMutatorPlan, create_global_mutator, \
     CallablePlan
-from src.Profiler import Profiler, logs_are_equivalent, is_user_object, value_equivalence
+from src.Profiler import Profiler, logs_are_equivalent, is_user_object, value_equivalence, \
+    exception_messages_are_equivalent
 
 MAX_CALLABLE_DEPTH = 2
 MAX_CALLABLE_CALLS = 20
@@ -155,7 +156,7 @@ class EquivalenceChecker:
         self._assert_inputs_equivalent()
 
     def _assert_inputs_equivalent(self) -> None:
-        args_ok   = value_equivalence(self.args_a,   self.args_b)
+        args_ok = value_equivalence(self.args_a, self.args_b)
         kwargs_ok = value_equivalence(self.kwargs_a, self.kwargs_b)
         if not args_ok or not kwargs_ok:
             raise AssertionError(
@@ -279,10 +280,9 @@ class EquivalenceChecker:
             event("both ok")
         self._assert_outputs_equivalent(a.value, b.value)
 
-    # both raised exceptions
     def _handle_both_errored(self, a, b) -> None:
-        # if the inputs were bad (eg wrong type), we don't count it as an inequivalence
         both_bad_input = is_bad_input_exception(a.exc) and is_bad_input_exception(b.exc)
+        either_bad_input = is_bad_input_exception(a.exc) or is_bad_input_exception(b.exc)
         types_match = type(a.exc) is type(b.exc)
 
         if not types_match and self.strict and not both_bad_input:
@@ -296,6 +296,12 @@ class EquivalenceChecker:
                 f"  {self._format_a(a.exc)}\n"
                 f"  {self._format_b(b.exc)}"
             )
+
+        if types_match and not either_bad_input:
+            msgs_ok, msgs_err = exception_messages_are_equivalent(a.exc, b.exc)
+            if not msgs_ok:
+                event("both errored: message mismatch")
+                raise AssertionError(msgs_err)
 
     # one returned normally, one raised an exception
     def _handle_domain_mismatch(self, a, b) -> None:
