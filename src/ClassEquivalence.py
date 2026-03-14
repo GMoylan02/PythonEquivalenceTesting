@@ -3,7 +3,7 @@ from typing import Optional, Callable
 
 from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
-from src.EquivalenceChecker import EquivalenceChecker
+from src.EquivalenceChecker import EquivalenceChecker, run
 from src.FuzzingStrategy import build_args_strategy
 from src.Profiler import value_equivalence, record_failure
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
@@ -22,11 +22,14 @@ def generate_operation_strategy(obj1, obj2):
     strats = []
     for method in all_methods.keys():
         strats.append(st.tuples(st.just(method), build_args_strategy(getattr(obj1, method))))
-    operation_strategy = st.one_of(strats)
-    return operation_strategy
+    return st.one_of(strats) if strats else None
 
 def generate_sequence_strategy(obj1, obj2, max_size=20):
     operation_strategy = generate_operation_strategy(obj1, obj2)
+    operation_strategy = generate_operation_strategy(obj1, obj2)
+    if operation_strategy is None:
+        # the class has no public methods
+        return st.just([])
     sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=max_size)
     return sequence_strategy
 
@@ -45,15 +48,27 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
         """
         ops should be in the form [(method, args), (method, args)]
         """
-        init_args, init_kwargs = init_inputs
-        try:
-            object_a = class1(*init_args, **init_kwargs)
-            object_b = class2(*init_args, **init_kwargs)
-        except Exception:
-            # If the fuzzed constructor args are invalid, skip this example
-            return
-        unique_test_id = f"{class1.__name__}_{class2.__name__}"
 
+        init_args, init_kwargs = init_inputs if init_inputs else ((), {})
+        result_a = run(class1, init_args, init_kwargs)
+        result_b = run(class2, init_args, init_kwargs,
+                       coverage_target_func=coverage_target_func)
+        if on_coverage is not None and result_b.covered_lines:
+            on_coverage(result_b.covered_lines)
+        if not result_a.ok or not result_b.ok:
+            return
+        object_a = result_a.value
+        object_b = result_b.value
+
+        unique_test_id = f"{class1.__name__}_{class2.__name__}"
+        state_a = vars(object_a) if hasattr(object_a, '__dict__') else {}
+        state_b = vars(object_b) if hasattr(object_b, '__dict__') else {}
+        if not value_equivalence(state_a, state_b):
+            raise AssertionError(
+                f"Instance state mismatch after construction:\n"
+                f"  {class1.__name__}({init_args}, {init_kwargs}): {state_a}\n"
+                f"  {class2.__name__}({init_args}, {init_kwargs}): {state_b}"
+            )
         try:
             METHOD = 0
             ARGS = 1
@@ -84,6 +99,8 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
 def get_object_methods(obj):
     methods = {}
     for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
+        if name.startswith("_"):   # excludes __dunder__ and _private
+            continue
         if name == "__init__":
             continue
         sig = inspect.signature(method)
