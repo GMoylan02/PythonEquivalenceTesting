@@ -118,7 +118,10 @@ def build_args_strategy(func):
             continue
 
         if param.annotation != inspect.Parameter.empty:
-            positional_strategies.append(strategy_from_annotation(param.annotation))
+            strat = strategy_from_annotation(param.annotation)
+            if param.default is None:
+                strat = st.one_of(st.none(), strat)
+            positional_strategies.append(strat)
         elif param.default != inspect.Parameter.empty:
             positional_strategies.append(strategy_from_default(param.default))
         else:
