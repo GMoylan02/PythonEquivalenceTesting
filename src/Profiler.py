@@ -1,10 +1,15 @@
+import dis
 import inspect
 import itertools
+import json
 import math
 import re
+import traceback
 from dataclasses import field, dataclass
 from pathlib import Path
 from typing import Optional, Callable
+
+from libcst.testing.utils import none_throws
 
 from src.DummyObject import DummyObject
 
@@ -391,3 +396,65 @@ def record_failure(module_name, exc, unique_id):
     with FAIL_MARKER.open("a", encoding="utf-8") as f:
         f.write(entry)
         f.flush()
+
+class CoverageRecorder:
+    """
+    Accumulates line coverage data for a single mutant function
+    ClassEquivalence and FunctionEquivalence write this to self.coverage_file
+    """
+    def __init__(self, target_func, coverage_file):
+        self.coverage_file = coverage_file
+        self.covered_lines: set[int] = set()
+        fn = getattr(target_func, "__func__", target_func)
+        code = getattr(fn, "__code__", None)
+        self.total_lines = []
+        setup_error = None
+
+        if code is not None:
+            try:
+                body_lines = set()
+                try:
+                    for _, _, ln in code.co_lines():
+                        if ln is not None:
+                            body_lines.add(ln)
+                except AttributeError:
+                    for _, ln in dis.findlinestarts(code):
+                        if ln is not None:
+                            body_lines.add(ln)
+                self.total_lines = sorted(body_lines | {code.co_firstlineno})
+            except Exception:
+                setup_error = traceback.format_exc()
+
+        if setup_error:
+            self._write_with_error(setup_error)
+        else:
+            self._write()
+
+    def merge(self, new_lines):
+        if not new_lines:
+            return
+        self.covered_lines.update(new_lines)
+        self._write()
+
+    def _write(self):
+        payload = {
+            "lines_covered": sorted(self.covered_lines),
+            "lines_total": self.total_lines,
+        }
+        try:
+            with open(self.coverage_file, "w", encoding="utf-8") as f:
+                json.dump(payload, f)
+        except Exception:
+            pass
+
+    def _write_with_error(self, setup_error: str):
+        payload = {
+            "lines_covered": [],
+            "lines_total": self.total_lines,
+            "setup_error": setup_error,
+        }
+        try:
+            with open(self.coverage_file, 'w', encoding='utf-8') as f:
+                json.dump(payload, f)
+        except Exception:
+            pass

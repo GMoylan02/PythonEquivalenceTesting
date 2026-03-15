@@ -14,10 +14,10 @@ from typing import Dict, Callable
 from src.ClassEquivalence import get_module_methods
 from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
-TIMEOUT_SECONDS = 60
+TIMEOUT_SECONDS = 400
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
-TARGET_PACKAGE = "fixed_mutants_annotated"
+TARGET_PACKAGE = "fixed_mutants"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
 # Directory where per-mutant coverage JSON files are written by the subprocesses.
@@ -25,7 +25,8 @@ COVERAGE_DIR = os.path.join(PROJECT_ROOT, ".mutant_coverage")
 
 times_taken = []
 mutants_killed = []
-
+# todo: bst._step mutant 4 got n/a coverage
+# todo: delete methods usually survive
 
 def _coverage_file_path(idx: int) -> str:
     os.makedirs(COVERAGE_DIR, exist_ok=True)
@@ -33,90 +34,58 @@ def _coverage_file_path(idx: int) -> str:
 
 
 def _read_coverage_result(idx: int) -> dict:
-    """
-    Read the JSON file written by the subprocess and return a dict:
-        {
-            "covered":  <int>,   # lines actually executed
-            "total":    <int>,   # total lines in the mutant method
-            "pct":      <float>, # 0-100
-            "lines_covered": [...],
-            "lines_total":   [...],
-        }
-    Returns zeroed-out values if the file doesn't exist or is malformed.
-    """
     path = _coverage_file_path(idx)
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
+
+        if "setup_error" in data:
+            print(f"\n    [COVERAGE SETUP ERROR idx={idx}]:\n{data['setup_error'].strip()}")
+
         covered = len(data.get("lines_covered", []))
-        total   = len(data.get("lines_total",   []))
-        pct     = (covered / total * 100) if total > 0 else 0.0
+        total = len(data.get("lines_total", []))
+        pct = (covered / total * 100) if total > 0 else 0.0
         return {
-            "covered":       covered,
-            "total":         total,
-            "pct":           pct,
+            "covered": covered,
+            "total": total,
+            "pct": pct,
             "lines_covered": data.get("lines_covered", []),
-            "lines_total":   data.get("lines_total",   []),
+            "lines_total": data.get("lines_total", []),
         }
+    except FileNotFoundError:
+        return {"covered": 0, "total": 0, "pct": 0.0,
+                "lines_covered": [], "lines_total": []}
     except Exception:
         return {"covered": 0, "total": 0, "pct": 0.0,
                 "lines_covered": [], "lines_total": []}
 
-
 def _coverage_boilerplate(mutant_func_accessor: str, coverage_file: str) -> str:
-    """
-    Generates setup code injected into every temp file.
-    """
     return f"""
-import json as _json, inspect as _inspect
-
-_mutant_func_for_cov = {mutant_func_accessor}
-_coverage_target_func = _mutant_func_for_cov
-
-try:
-    _fn_for_src = getattr(_mutant_func_for_cov, '__func__', _mutant_func_for_cov)
-    _mutant_source_lines, _mutant_start = _inspect.getsourcelines(_fn_for_src)
-    _coverage_total_lines = list(range(_mutant_start, _mutant_start + len(_mutant_source_lines)))
-except Exception:
-    _coverage_total_lines = []
-
-_covered_lines = set()
-
-def _merge_coverage(new_lines):
-    if not new_lines:
-        return
-    _covered_lines.update(new_lines)
-    try:
-        payload = {{
-            "lines_covered": sorted(_covered_lines),
-            "lines_total":   _coverage_total_lines,
-        }}
-        with open(r'{coverage_file}', 'w', encoding='utf-8') as _f:
-            _json.dump(payload, _f)
-    except Exception:
-        pass
+from src.Profiler import CoverageRecorder
+coverage_target_func = {mutant_func_accessor}
+recorder = CoverageRecorder(coverage_target_func, r'{coverage_file}')
 """
 
 
 def _class_test_assignment(idx: int) -> str:
     return f"""
-from src.ClassEquivalence import create_class_equivalence_test as _make_cls_test
-test_{idx} = _make_cls_test(
+from src.ClassEquivalence import create_class_equivalence_test
+test_{idx} = create_class_equivalence_test(
     OrigClass_{idx}, MutantClass_{idx},
-    coverage_target_func=_coverage_target_func,
-    on_coverage=_merge_coverage,
+    coverage_target_func=coverage_target_func,
+    coverage_recorder=recorder,
 )
 """
 
 
 def _func_test_assignment(idx: int) -> str:
     return f"""
-from src.FunctionEquivalence import make_function_equivalence_test as _make_func_test
-test_{idx} = _make_func_test(
+from src.FunctionEquivalence import make_function_equivalence_test
+test_{idx} = make_function_equivalence_test(
     orig_func_{idx}, mutant_func_{idx},
     log_failure=True,
-    coverage_target_func=_coverage_target_func,
-    on_coverage=_merge_coverage,
+    coverage_target_func=coverage_target_func,
+    coverage_recorder=recorder,
 )
 """
 
@@ -167,17 +136,18 @@ def run_fuzzing_session():
             for mutant_entry in info["mutants"]:
                 total_mutants_found += 1
                 module_mutants_found += 1
-                killed, cov = run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx)
+                killed, cov, time_to_kill = run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx)
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
                     mutants_killed.append(mutant_entry['attr_name'])
                 coverage_report.append({
-                    "mutant":  mutant_entry['attr_name'],
-                    "killed":  killed,
+                    "mutant": mutant_entry['attr_name'],
+                    "killed": killed,
+                    "time_to_kill": round(time_to_kill, 2) if time_to_kill is not None else None,
                     "covered": cov["covered"],
-                    "total":   cov["total"],
-                    "pct":     round(cov["pct"], 1),
+                    "total": cov["total"],
+                    "pct": round(cov["pct"], 1),
                 })
                 _print_coverage_line(mutant_entry['attr_name'], killed, cov)
                 idx += 1
@@ -200,7 +170,7 @@ def run_fuzzing_session():
             if orig_func:
                 total_mutants_found += 1
                 module_mutants_found += 1
-                killed, cov = run_func_fuzz_case(module, orig_func, func_obj, idx)
+                killed, cov, time_to_kill = run_func_fuzz_case(module, orig_func, func_obj, idx)
                 if killed:
                     mutants_identified += 1
                     module_mutants_identified += 1
@@ -208,9 +178,10 @@ def run_fuzzing_session():
                 coverage_report.append({
                     "mutant":  func_obj.__qualname__,
                     "killed":  killed,
+                    "time_to_kill": round(time_to_kill, 2) if time_to_kill is not None else None,
                     "covered": cov["covered"],
-                    "total":   cov["total"],
-                    "pct":     round(cov["pct"], 1),
+                    "total": cov["total"],
+                    "pct": round(cov["pct"], 1),
                 })
                 _print_coverage_line(func_obj.__qualname__, killed, cov)
                 idx += 1
@@ -239,23 +210,36 @@ def _print_coverage_line(mutant_name: str, killed: bool, cov: dict) -> None:
 
 
 def _print_coverage_summary(report: list[dict]) -> None:
+    survived_setup_failed = [r for r in report if not r["killed"] and r["total"] == 0]
+    survived_never_reached = [
+        r for r in report
+        if not r["killed"] and r["total"] > 0 and r["covered"] == 0
+    ]
     survived_low_cov = [
         r for r in report
-        if not r["killed"] and r["total"] > 0 and r["pct"] < 50
+        if not r["killed"] and r["total"] > 0 and 0 < r["pct"] < 50
     ]
     survived_high_cov = [
         r for r in report
         if not r["killed"] and r["total"] > 0 and r["pct"] >= 50
     ]
+
     print("\n── Coverage summary ──────────────────────────────────────────────────")
-    print(f"  Survived with <50% coverage  (under-exercised): {len(survived_low_cov)}")
-    print(f"  Survived with ≥50% coverage  (genuine equivalents or weak assertions): {len(survived_high_cov)}")
+    print(f"  Setup failed / constructor mutants (total=0):         {len(survived_setup_failed)}")
+    print(f"  Method never reached by fuzzer (total>0, covered=0):  {len(survived_never_reached)}")
+    print(f"  Survived with <50% coverage  (under-exercised):       {len(survived_low_cov)}")
+    print(f"  Survived with >=50% coverage (possible equivalents):  {len(survived_high_cov)}")
+
+    if survived_never_reached:
+        print("\n  Never-reached survivors:")
+        for r in survived_never_reached:
+            print(f"    {r['mutant']}  (0/{r['total']} lines)")
+
     if survived_low_cov:
         print("\n  Under-exercised survivors — consider improving input generation:")
         for r in survived_low_cov:
             print(f"    {r['mutant']}  {r['covered']}/{r['total']} lines ({r['pct']:.1f}%)")
     print("──────────────────────────────────────────────────────────────────────\n")
-
 
 def run_fuzz_file(log_file, label):
     """Write the temp file, run hypofuzz, return True if a failure was detected."""
@@ -271,6 +255,7 @@ def run_fuzz_file(log_file, label):
     env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
     env["MUTANT_UNDER_TEST"] = ""
 
+    elapsed = None
     process = None
     killed = False
     try:
@@ -295,8 +280,9 @@ def run_fuzz_file(log_file, label):
                     current_failure_count = sum(1 for _ in f)
 
             if current_failure_count > initial_failure_count:
+                elapsed = time.time() - start_time
+                times_taken.append(elapsed)
                 print("Killed!")
-                times_taken.append(time.time() - start_time)
                 killed = True
                 break
 
@@ -305,10 +291,18 @@ def run_fuzz_file(log_file, label):
         print(f"Error: {e}")
 
     kill_process_tree(process)
+    if not killed:
+        final_count = 0
+        if os.path.exists(log_file):
+            with open(log_file, 'rb') as f:
+                final_count = sum(1 for _ in f)
+        if final_count > initial_failure_count:
+            print("Killed! (detected on exit)")
+            killed = True
     # Brief pause to let the SIGTERM handler finish writing the coverage file
     # before we try to read it.
     time.sleep(0.3)
-    return killed
+    return killed, elapsed
 
 
 def run_func_fuzz_case(module, orig_func, mutant_func, idx):
@@ -345,9 +339,9 @@ mutant_func_{idx} = {mutant_accessor}
         f.write(content)
 
     label = f"{orig_func.__qualname__} vs {mutant_func.__qualname__}"
-    killed = run_fuzz_file(log_file, label)
+    killed, time_to_kill = run_fuzz_file(log_file, label)
     cov = _read_coverage_result(idx)
-    return killed, cov
+    return killed, cov, time_to_kill
 
 
 def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
@@ -355,13 +349,19 @@ def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
     coverage_file = _coverage_file_path(idx)
     mod_alias = f"mod_{idx}"
     mutant_method = mutant_entry["method_name"]
-    mutant_attr   = mutant_entry["attr_name"]
+    mutant_attr = mutant_entry["attr_name"]
 
-    orig_dict_entries = ", ".join(
+    init_entry = ""
+    if "__init__" not in orig_methods:
+        init_entry = (
+            f'"__init__": getattr({mod_alias}, "{class_name}").__init__, '
+        )
+
+    orig_dict_entries = init_entry + ", ".join(
         f'"{method_name}": getattr(getattr({mod_alias}, "{class_name}"), "{attr_name}")'
         for method_name, attr_name in orig_methods.items()
     )
-    mutant_dict_entries = ", ".join(
+    mutant_dict_entries = init_entry + ", ".join(
         f'"{method_name}": getattr(getattr({mod_alias}, "{class_name}"), "{mutant_attr}")'
         if method_name == mutant_method
         else f'"{method_name}": getattr(getattr({mod_alias}, "{class_name}"), "{attr_name}")'
@@ -392,9 +392,9 @@ MutantClass_{idx} = type("Mutant_{class_name}_{idx}", (), mutant_methods_{idx})
         f.write(content)
 
     label = f"{class_name}.{mutant_method} mutant {mutant_entry['mutant_index']}"
-    killed = run_fuzz_file(log_file, label)
+    killed, time_to_kill = run_fuzz_file(log_file, label)
     cov = _read_coverage_result(idx)
-    return killed, cov
+    return killed, cov, time_to_kill
 
 
 def generate_getter(func_obj, mod_alias_str, instance_var=None):

@@ -5,13 +5,13 @@ from hypothesis import given, settings
 
 from src.EquivalenceChecker import EquivalenceChecker
 from src.FuzzingStrategy import build_args_strategy
-from src.Profiler import record_failure
+from src.Profiler import record_failure, CoverageRecorder
 from src.StateUtils import snapshot_module_state, restore_module_state
 from hypothesis.strategies import data as st_data
 
 
 def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False,
-    coverage_target_func: Optional[Callable] = None, on_coverage: Optional[Callable[[set], None]] = None,):
+    coverage_target_func: Optional[Callable] = None, coverage_recorder: CoverageRecorder=None,):
     input_strategy = build_args_strategy(func_a)
 
     module_a = sys.modules.get(func_a.__module__)
@@ -43,7 +43,7 @@ def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log
                 record_failure(module_a.__name__, e, unique_test_id)
             raise
         finally:
-            if on_coverage is not None and checker.covered_lines:
-                on_coverage(checker.covered_lines)
+            if coverage_recorder and checker.covered_lines:
+                coverage_recorder.merge(checker.covered_lines)
 
     return equivalence_test

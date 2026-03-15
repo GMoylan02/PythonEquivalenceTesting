@@ -5,9 +5,12 @@ from hypothesis import given, strategies as st, settings, event
 from hypothesis.strategies import data as st_data
 from src.EquivalenceChecker import EquivalenceChecker, run
 from src.FuzzingStrategy import build_args_strategy
-from src.Profiler import value_equivalence, record_failure
+from src.Profiler import value_equivalence, record_failure, CoverageRecorder
 from src.SampleCodeForEquivTest.TestDataStructures import Stack1, Stack2
 from src.StateUtils import snapshot_object_state, restore_object_state
+import dis
+import traceback as tb
+import json
 
 
 def generate_operation_strategy(obj1, obj2):
@@ -34,7 +37,7 @@ def generate_sequence_strategy(obj1, obj2, max_size=20):
     return sequence_strategy
 
 def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_func: Optional[Callable] = None,
-    on_coverage: Optional[Callable[[set], None]] = None):
+    coverage_recorder: CoverageRecorder=None):
 
     init_strategy = build_args_strategy(class1)
     # create uninitialised instances just for method inspection since we dont actually have constructor args yet
@@ -53,8 +56,8 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
         result_a = run(class1, init_args, init_kwargs)
         result_b = run(class2, init_args, init_kwargs,
                        coverage_target_func=coverage_target_func)
-        if on_coverage is not None and result_b.covered_lines:
-            on_coverage(result_b.covered_lines)
+        if coverage_recorder and result_b.covered_lines:
+            coverage_recorder.merge(result_b.covered_lines)
         if not result_a.ok or not result_b.ok:
             return
         object_a = result_a.value
@@ -87,8 +90,8 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                 try:
                     checker.check(raw_args, raw_kwargs)
                 finally:
-                    if on_coverage is not None and checker.covered_lines:
-                        on_coverage(checker.covered_lines)
+                    if coverage_recorder and checker.covered_lines:
+                        coverage_recorder.merge(checker.covered_lines)
 
         except AssertionError as e:
             record_failure(class1.__name__, e, unique_test_id)
