@@ -3,7 +3,9 @@ import inspect
 import itertools
 import json
 import math
+import os
 import re
+import tempfile
 import traceback
 from dataclasses import field, dataclass
 from pathlib import Path
@@ -465,19 +467,35 @@ class CoverageRecorder:
         self.failing_method_calls = ops
         self._write()
 
-    def _write(self):
+    def _build_report(self):
         payload = {
             "lines_covered": sorted(self.covered_lines),
             "lines_total": self.total_lines,
             "iterations": self.iterations,
             "total_method_calls": self.method_calls,
-            "failing_init_args": self.failing_init_args,
-            "failing_init_kwargs": self.failing_init_kwargs,
-            "failing_method_calls": self.failing_method_calls,
         }
+        if hasattr(self, 'failing_init_args'):
+            payload["failing_init_args"] = self.failing_init_args
+            payload["failing_init_kwargs"] = self.failing_init_kwargs
+            payload["failing_method_calls"] = self.failing_method_calls
+        return payload
+
+    def _write(self):
         try:
-            with open(self.coverage_file, "w", encoding="utf-8") as f:
-                json.dump(payload, f)
+            data = json.dumps(self._build_report())
+            dir_name = os.path.dirname(self.coverage_file)
+            with tempfile.NamedTemporaryFile(
+                    'w', dir=dir_name, suffix='.tmp', delete=False
+            ) as tmp:
+                tmp.write(data)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                tmp_path = tmp.name
+            # writing to a temp file and then renaming it is to prevent an annoying race condition in
+            # RunMutationTests.py where the process is killed while the write is still taking place, leaving a truncated
+            # json file. os.replace is atomic, so now in the worst case we only lose the contents of the latest write,
+            # but never get malformed data
+            os.replace(tmp_path, self.coverage_file)
         except Exception:
             pass
 
