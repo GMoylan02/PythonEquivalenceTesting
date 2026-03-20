@@ -31,6 +31,8 @@ def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log
         if reset_module_state:
             if module_a: restore_module_state(module_a, snap_a)
             if module_b: restore_module_state(module_b, snap_b)
+        if coverage_recorder:
+            coverage_recorder.increment_iterations()
         raw_args, raw_kwargs = inputs
         checker = EquivalenceChecker(
             func_a, func_b, data,

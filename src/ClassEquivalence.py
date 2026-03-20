@@ -53,10 +53,13 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
         """
 
         init_args, init_kwargs = init_inputs if init_inputs else ((), {})
+        if coverage_recorder:
+            coverage_recorder.increment_iterations()
         result_a = run(class1, init_args, init_kwargs)
         result_b = run(class2, init_args, init_kwargs,
                        coverage_target_func=coverage_target_func)
         if coverage_recorder and result_b.covered_lines:
+            coverage_recorder.increment_method_calls()
             coverage_recorder.merge(result_b.covered_lines)
         if not result_a.ok or not result_b.ok:
             return
@@ -89,6 +92,8 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                 )
                 try:
                     checker.check(raw_args, raw_kwargs)
+                    if coverage_recorder:
+                        coverage_recorder.increment_method_calls()
                 finally:
                     if coverage_recorder and checker.covered_lines:
                         coverage_recorder.merge(checker.covered_lines)
@@ -103,7 +108,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
 def get_object_methods(obj):
     methods = {}
     for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
-        if name.startswith("_"):   # excludes __dunder__ and _private
+        if name.startswith("_") :   # excludes __dunder__ and _private
             continue
         sig = inspect.signature(method)
         params = [

@@ -1,0 +1,5272 @@
+[
+  {
+    "mutant": "x\u01c1Queue\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 12,
+    "total_method_calls": 16,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 7,
+    "total_method_calls": 12,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 7,
+    "total_method_calls": 8,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 165,
+    "total_method_calls": 485,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 168,
+    "total_method_calls": 605,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_5",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 3,
+    "total_method_calls": 5,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1dequeue__mutmut_6",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 9,
+    "total_method_calls": 39,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1enqueue__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 14,
+    "total_method_calls": 23,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1isEmpty__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 13,
+    "total_method_calls": 0,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1isEmpty__mutmut_2",
+    "killed": true,
+    "time_to_kill": 3.51,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Queue\u01c1peek__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 6,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 6,
+    "total_method_calls": 6,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 12,
+    "total_method_calls": 21,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 352,
+    "total_method_calls": 780,
+    "covered": 3,
+    "total": 8,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_10",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 6,
+    "total_method_calls": 38,
+    "covered": 4,
+    "total": 8,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_11",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 24,
+    "total_method_calls": 103,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_12",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 108,
+    "total_method_calls": 374,
+    "covered": 6,
+    "total": 8,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_13",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 18,
+    "total_method_calls": 51,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_14",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 10,
+    "total_method_calls": 17,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_15",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 155,
+    "total_method_calls": 746,
+    "covered": 4,
+    "total": 8,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_16",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 5,
+    "total_method_calls": 37,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_17",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_18",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 581,
+    "total_method_calls": 3855,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_19",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 251,
+    "total_method_calls": 939,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 20,
+    "total_method_calls": 29,
+    "covered": 4,
+    "total": 8,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_20",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 431,
+    "total_method_calls": 1119,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_3",
+    "killed": true,
+    "time_to_kill": 10.02,
+    "iterations": 72,
+    "total_method_calls": 415,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 1040,
+    "total_method_calls": 3738,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_5",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 27,
+    "total_method_calls": 101,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 549,
+    "total_method_calls": 4092,
+    "covered": 5,
+    "total": 8,
+    "pct": 62.5
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_7",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 19,
+    "total_method_calls": 38,
+    "covered": 4,
+    "total": 8,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_8",
+    "killed": true,
+    "time_to_kill": 15.03,
+    "iterations": 339,
+    "total_method_calls": 669,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_balance__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 20,
+    "total_method_calls": 164,
+    "covered": 4,
+    "total": 8,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 51,
+    "total_method_calls": 150,
+    "covered": 3,
+    "total": 10,
+    "pct": 30.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_10",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 51,
+    "total_method_calls": 208,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_11",
+    "killed": true,
+    "time_to_kill": 19.04,
+    "iterations": 148,
+    "total_method_calls": 872,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_12",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 5,
+    "total_method_calls": 14,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 25,
+    "total_method_calls": 58,
+    "covered": 8,
+    "total": 10,
+    "pct": 80.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_14",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 67,
+    "total_method_calls": 160,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_15",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 86,
+    "total_method_calls": 261,
+    "covered": 3,
+    "total": 10,
+    "pct": 30.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_16",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 53,
+    "total_method_calls": 221,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_17",
+    "killed": true,
+    "time_to_kill": 10.52,
+    "iterations": 168,
+    "total_method_calls": 281,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_18",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 13,
+    "total_method_calls": 26,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_19",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 90,
+    "total_method_calls": 98,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 42,
+    "total_method_calls": 97,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_20",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 539,
+    "total_method_calls": 1448,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_21",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 198,
+    "total_method_calls": 1400,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_22",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 32,
+    "total_method_calls": 86,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_23",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 75,
+    "total_method_calls": 98,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_24",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 34,
+    "total_method_calls": 61,
+    "covered": 8,
+    "total": 10,
+    "pct": 80.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_25",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 13,
+    "total_method_calls": 22,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_26",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 47,
+    "total_method_calls": 98,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_27",
+    "killed": true,
+    "time_to_kill": 13.53,
+    "iterations": 197,
+    "total_method_calls": 723,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_28",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 244,
+    "total_method_calls": 844,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_29",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 34,
+    "total_method_calls": 75,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_3",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 76,
+    "total_method_calls": 267,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_30",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 204,
+    "total_method_calls": 481,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_31",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 173,
+    "total_method_calls": 939,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_4",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 8,
+    "total_method_calls": 19,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_5",
+    "killed": true,
+    "time_to_kill": 9.52,
+    "iterations": 115,
+    "total_method_calls": 320,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_6",
+    "killed": true,
+    "time_to_kill": 11.02,
+    "iterations": 179,
+    "total_method_calls": 499,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 24,
+    "total_method_calls": 80,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_8",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 57,
+    "total_method_calls": 233,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1_sift_down__mutmut_9",
+    "killed": true,
+    "time_to_kill": 8.52,
+    "iterations": 66,
+    "total_method_calls": 321,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 10,
+    "total_method_calls": 5,
+    "covered": 8,
+    "total": 16,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_10",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 2,
+    "total_method_calls": 5,
+    "covered": 8,
+    "total": 16,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_11",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 16,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_12",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_13",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 83,
+    "total_method_calls": 192,
+    "covered": 9,
+    "total": 16,
+    "pct": 56.2
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_14",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 2,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_15",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 0,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_16",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 7,
+    "total_method_calls": 47,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_17",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 6,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_18",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 25,
+    "total_method_calls": 30,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_19",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 38,
+    "total_method_calls": 89,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 314,
+    "total_method_calls": 951,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_20",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 9,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_21",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 1505,
+    "total_method_calls": 4928,
+    "covered": 12,
+    "total": 16,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_22",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 150,
+    "total_method_calls": 688,
+    "covered": 12,
+    "total": 16,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_23",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_24",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 467,
+    "total_method_calls": 1888,
+    "covered": 13,
+    "total": 16,
+    "pct": 81.2
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_25",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 4,
+    "total_method_calls": 5,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_26",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 471,
+    "total_method_calls": 1349,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_27",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 37,
+    "total_method_calls": 63,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_28",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 18,
+    "total_method_calls": 12,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_29",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 1243,
+    "total_method_calls": 2652,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_3",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 5,
+    "total_method_calls": 0,
+    "covered": 8,
+    "total": 16,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_30",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 10,
+    "total_method_calls": 1,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_31",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 4,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_32",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 10,
+    "total_method_calls": 16,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_33",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 117,
+    "total_method_calls": 380,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_34",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 8,
+    "total_method_calls": 3,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_4",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_5",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 4,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_6",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 3,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_7",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 3,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_8",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 2,
+    "total_method_calls": 6,
+    "covered": 15,
+    "total": 16,
+    "pct": 93.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1display__mutmut_9",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 255,
+    "total_method_calls": 1673,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 4,
+    "total_method_calls": 4,
+    "covered": 3,
+    "total": 9,
+    "pct": 33.3
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_10",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 5,
+    "total_method_calls": 6,
+    "covered": 5,
+    "total": 9,
+    "pct": 55.6
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_11",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 20,
+    "total_method_calls": 62,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_12",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 19,
+    "total_method_calls": 88,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_13",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 804,
+    "total_method_calls": 3186,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_14",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 152,
+    "total_method_calls": 465,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_15",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 35,
+    "total_method_calls": 142,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_16",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 22,
+    "total_method_calls": 67,
+    "covered": 8,
+    "total": 9,
+    "pct": 88.9
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 6,
+    "total_method_calls": 9,
+    "covered": 3,
+    "total": 9,
+    "pct": 33.3
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_3",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 5,
+    "total_method_calls": 3,
+    "covered": 3,
+    "total": 9,
+    "pct": 33.3
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_4",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 8,
+    "total_method_calls": 3,
+    "covered": 3,
+    "total": 9,
+    "pct": 33.3
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 436,
+    "total_method_calls": 508,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 215,
+    "total_method_calls": 566,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_7",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 10,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_8",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 1,
+    "total_method_calls": 3,
+    "covered": 8,
+    "total": 9,
+    "pct": 88.9
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1pop__mutmut_9",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 28,
+    "total_method_calls": 69,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Binheap\u01c1push__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 8,
+    "total_method_calls": 10,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 7,
+    "total_method_calls": 7,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 3,
+    "total_method_calls": 3,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1__init____mutmut_3",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 4,
+    "total_method_calls": 4,
+    "covered": 4,
+    "total": 6,
+    "pct": 66.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1__init____mutmut_4",
+    "killed": true,
+    "time_to_kill": 4.01,
+    "iterations": 6,
+    "total_method_calls": 7,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_find_replacement__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3832,
+    "total_method_calls": 30770,
+    "covered": 0,
+    "total": 2,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_findmin__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3742,
+    "total_method_calls": 29072,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_in_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_in_order__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_in_order__mutmut_3",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 19,
+    "total_method_calls": 44,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_post_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 13,
+    "total_method_calls": 19,
+    "covered": 4,
+    "total": 6,
+    "pct": 66.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_post_order__mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 14,
+    "total_method_calls": 26,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_post_order__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 45,
+    "total_method_calls": 187,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_pre_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 16,
+    "total_method_calls": 12,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_pre_order__mutmut_2",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 5,
+    "total_method_calls": 33,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_pre_order__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 20,
+    "total_method_calls": 102,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_1",
+    "killed": true,
+    "time_to_kill": 7.52,
+    "iterations": 153,
+    "total_method_calls": 237,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_10",
+    "killed": true,
+    "time_to_kill": 68.13,
+    "iterations": 1349,
+    "total_method_calls": 4557,
+    "covered": 9,
+    "total": 11,
+    "pct": 81.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_11",
+    "killed": true,
+    "time_to_kill": 14.03,
+    "iterations": 415,
+    "total_method_calls": 518,
+    "covered": 10,
+    "total": 11,
+    "pct": 90.9
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_12",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 59,
+    "total_method_calls": 170,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 25,
+    "total_method_calls": 112,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_14",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 175,
+    "total_method_calls": 69,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_15",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 28,
+    "total_method_calls": 133,
+    "covered": 4,
+    "total": 11,
+    "pct": 36.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_16",
+    "killed": true,
+    "time_to_kill": 8.02,
+    "iterations": 75,
+    "total_method_calls": 235,
+    "covered": 4,
+    "total": 11,
+    "pct": 36.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_17",
+    "killed": true,
+    "time_to_kill": 6.02,
+    "iterations": 34,
+    "total_method_calls": 77,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_18",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 35,
+    "total_method_calls": 235,
+    "covered": 4,
+    "total": 11,
+    "pct": 36.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_19",
+    "killed": true,
+    "time_to_kill": 15.04,
+    "iterations": 274,
+    "total_method_calls": 627,
+    "covered": 4,
+    "total": 11,
+    "pct": 36.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_2",
+    "killed": true,
+    "time_to_kill": 12.6,
+    "iterations": 248,
+    "total_method_calls": 365,
+    "covered": 2,
+    "total": 11,
+    "pct": 18.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_20",
+    "killed": true,
+    "time_to_kill": 10.54,
+    "iterations": 135,
+    "total_method_calls": 287,
+    "covered": 4,
+    "total": 11,
+    "pct": 36.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_21",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 45,
+    "total_method_calls": 65,
+    "covered": 9,
+    "total": 11,
+    "pct": 81.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_22",
+    "killed": true,
+    "time_to_kill": 6.03,
+    "iterations": 55,
+    "total_method_calls": 114,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_23",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_24",
+    "killed": true,
+    "time_to_kill": 9.03,
+    "iterations": 55,
+    "total_method_calls": 362,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_25",
+    "killed": true,
+    "time_to_kill": 10.02,
+    "iterations": 200,
+    "total_method_calls": 228,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_26",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 11,
+    "total_method_calls": 99,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_27",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 22,
+    "total_method_calls": 61,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_28",
+    "killed": true,
+    "time_to_kill": 10.05,
+    "iterations": 106,
+    "total_method_calls": 410,
+    "covered": 7,
+    "total": 11,
+    "pct": 63.6
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_29",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 38,
+    "total_method_calls": 86,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_3",
+    "killed": true,
+    "time_to_kill": 7.02,
+    "iterations": 41,
+    "total_method_calls": 173,
+    "covered": 2,
+    "total": 11,
+    "pct": 18.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_30",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 11,
+    "total_method_calls": 25,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_31",
+    "killed": true,
+    "time_to_kill": 6.02,
+    "iterations": 49,
+    "total_method_calls": 111,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_32",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 25,
+    "total_method_calls": 173,
+    "covered": 8,
+    "total": 11,
+    "pct": 72.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_4",
+    "killed": true,
+    "time_to_kill": 6.72,
+    "iterations": 53,
+    "total_method_calls": 240,
+    "covered": 2,
+    "total": 11,
+    "pct": 18.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_5",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 35,
+    "total_method_calls": 159,
+    "covered": 2,
+    "total": 11,
+    "pct": 18.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_6",
+    "killed": true,
+    "time_to_kill": 238.26,
+    "iterations": 2997,
+    "total_method_calls": 18210,
+    "covered": 10,
+    "total": 11,
+    "pct": 90.9
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_7",
+    "killed": true,
+    "time_to_kill": 247.47,
+    "iterations": 4457,
+    "total_method_calls": 18027,
+    "covered": 11,
+    "total": 11,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_8",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3496,
+    "total_method_calls": 33472,
+    "covered": 9,
+    "total": 11,
+    "pct": 81.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_set_child__mutmut_9",
+    "killed": true,
+    "time_to_kill": 184.52,
+    "iterations": 3372,
+    "total_method_calls": 13108,
+    "covered": 9,
+    "total": 11,
+    "pct": 81.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_1",
+    "killed": true,
+    "time_to_kill": 245.33,
+    "iterations": 2540,
+    "total_method_calls": 19910,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_10",
+    "killed": true,
+    "time_to_kill": 33.85,
+    "iterations": 357,
+    "total_method_calls": 2611,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_11",
+    "killed": true,
+    "time_to_kill": 33.09,
+    "iterations": 338,
+    "total_method_calls": 2323,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_12",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 47,
+    "total_method_calls": 281,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_13",
+    "killed": true,
+    "time_to_kill": 7.58,
+    "iterations": 45,
+    "total_method_calls": 222,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_14",
+    "killed": true,
+    "time_to_kill": 11.54,
+    "iterations": 133,
+    "total_method_calls": 477,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_15",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_16",
+    "killed": true,
+    "time_to_kill": 11.04,
+    "iterations": 120,
+    "total_method_calls": 466,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_17",
+    "killed": true,
+    "time_to_kill": 11.61,
+    "iterations": 190,
+    "total_method_calls": 461,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_18",
+    "killed": true,
+    "time_to_kill": 31.11,
+    "iterations": 520,
+    "total_method_calls": 1878,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_19",
+    "killed": true,
+    "time_to_kill": 14.05,
+    "iterations": 327,
+    "total_method_calls": 594,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_2",
+    "killed": true,
+    "time_to_kill": 21.07,
+    "iterations": 360,
+    "total_method_calls": 1200,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_20",
+    "killed": true,
+    "time_to_kill": 8.52,
+    "iterations": 85,
+    "total_method_calls": 277,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_3",
+    "killed": true,
+    "time_to_kill": 28.68,
+    "iterations": 448,
+    "total_method_calls": 1668,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_4",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 43,
+    "total_method_calls": 233,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_5",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 7,
+    "total_method_calls": 18,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_6",
+    "killed": true,
+    "time_to_kill": 7.55,
+    "iterations": 60,
+    "total_method_calls": 204,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 33,
+    "total_method_calls": 81,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_8",
+    "killed": true,
+    "time_to_kill": 9.52,
+    "iterations": 122,
+    "total_method_calls": 337,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1_step__mutmut_9",
+    "killed": true,
+    "time_to_kill": 20.55,
+    "iterations": 469,
+    "total_method_calls": 1053,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.54,
+    "iterations": 16,
+    "total_method_calls": 9,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_10",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 49,
+    "total_method_calls": 277,
+    "covered": 6,
+    "total": 8,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_11",
+    "killed": true,
+    "time_to_kill": 12.65,
+    "iterations": 133,
+    "total_method_calls": 574,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_2",
+    "killed": true,
+    "time_to_kill": 27.77,
+    "iterations": 447,
+    "total_method_calls": 1562,
+    "covered": 6,
+    "total": 8,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_3",
+    "killed": true,
+    "time_to_kill": 9.52,
+    "iterations": 111,
+    "total_method_calls": 232,
+    "covered": 6,
+    "total": 8,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_4",
+    "killed": true,
+    "time_to_kill": 14.05,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_5",
+    "killed": true,
+    "time_to_kill": 4.51,
+    "iterations": 7,
+    "total_method_calls": 8,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_6",
+    "killed": true,
+    "time_to_kill": 9.05,
+    "iterations": 168,
+    "total_method_calls": 169,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 14,
+    "total_method_calls": 62,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_8",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3778,
+    "total_method_calls": 20966,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1balance__mutmut_9",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 19,
+    "total_method_calls": 41,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1breadth_first__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 14,
+    "total_method_calls": 39,
+    "covered": 3,
+    "total": 10,
+    "pct": 30.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1breadth_first__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 13,
+    "total_method_calls": 19,
+    "covered": 4,
+    "total": 10,
+    "pct": 40.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1breadth_first__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 2,
+    "covered": 6,
+    "total": 10,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1breadth_first__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.52,
+    "iterations": 13,
+    "total_method_calls": 96,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1breadth_first__mutmut_5",
+    "killed": true,
+    "time_to_kill": 18.04,
+    "iterations": 347,
+    "total_method_calls": 558,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1contains__mutmut_1",
+    "killed": true,
+    "time_to_kill": 30.56,
+    "iterations": 322,
+    "total_method_calls": 1663,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1contains__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 7,
+    "total_method_calls": 11,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_1",
+    "killed": true,
+    "time_to_kill": 14.03,
+    "iterations": 96,
+    "total_method_calls": 523,
+    "covered": 5,
+    "total": 19,
+    "pct": 26.3
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_10",
+    "killed": true,
+    "time_to_kill": 202.91,
+    "iterations": 2350,
+    "total_method_calls": 13884,
+    "covered": 13,
+    "total": 19,
+    "pct": 68.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_11",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4285,
+    "total_method_calls": 23211,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_12",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3745,
+    "total_method_calls": 25029,
+    "covered": 12,
+    "total": 19,
+    "pct": 63.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_13",
+    "killed": true,
+    "time_to_kill": 91.68,
+    "iterations": 996,
+    "total_method_calls": 6312,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_14",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3683,
+    "total_method_calls": 21790,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_15",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3173,
+    "total_method_calls": 20085,
+    "covered": 13,
+    "total": 19,
+    "pct": 68.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_16",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3985,
+    "total_method_calls": 25098,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_17",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3168,
+    "total_method_calls": 19812,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_18",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4188,
+    "total_method_calls": 25873,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_19",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4185,
+    "total_method_calls": 22065,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_2",
+    "killed": true,
+    "time_to_kill": 99.19,
+    "iterations": 1439,
+    "total_method_calls": 7550,
+    "covered": 3,
+    "total": 19,
+    "pct": 15.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_20",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3708,
+    "total_method_calls": 24223,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_21",
+    "killed": true,
+    "time_to_kill": 342.68,
+    "iterations": 4054,
+    "total_method_calls": 25335,
+    "covered": 12,
+    "total": 19,
+    "pct": 63.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_22",
+    "killed": true,
+    "time_to_kill": 311.62,
+    "iterations": 4468,
+    "total_method_calls": 23839,
+    "covered": 11,
+    "total": 19,
+    "pct": 57.9
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_23",
+    "killed": true,
+    "time_to_kill": 147.29,
+    "iterations": 1730,
+    "total_method_calls": 11828,
+    "covered": 10,
+    "total": 19,
+    "pct": 52.6
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_24",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 5792,
+    "total_method_calls": 29058,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_25",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 5440,
+    "total_method_calls": 23569,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_26",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 7528,
+    "total_method_calls": 29808,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_27",
+    "killed": true,
+    "time_to_kill": 52.6,
+    "iterations": 645,
+    "total_method_calls": 2917,
+    "covered": 14,
+    "total": 19,
+    "pct": 73.7
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_28",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4207,
+    "total_method_calls": 23952,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_29",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4324,
+    "total_method_calls": 29692,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_3",
+    "killed": true,
+    "time_to_kill": 135.77,
+    "iterations": 1567,
+    "total_method_calls": 9875,
+    "covered": 3,
+    "total": 19,
+    "pct": 15.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_30",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4039,
+    "total_method_calls": 24287,
+    "covered": 12,
+    "total": 19,
+    "pct": 63.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_31",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3642,
+    "total_method_calls": 27611,
+    "covered": 9,
+    "total": 19,
+    "pct": 47.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_32",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3389,
+    "total_method_calls": 22230,
+    "covered": 13,
+    "total": 19,
+    "pct": 68.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_33",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3947,
+    "total_method_calls": 31152,
+    "covered": 3,
+    "total": 19,
+    "pct": 15.8
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_34",
+    "killed": true,
+    "time_to_kill": 31.06,
+    "iterations": 363,
+    "total_method_calls": 2074,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_35",
+    "killed": true,
+    "time_to_kill": 20.04,
+    "iterations": 260,
+    "total_method_calls": 880,
+    "covered": 8,
+    "total": 19,
+    "pct": 42.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_36",
+    "killed": true,
+    "time_to_kill": 42.59,
+    "iterations": 1185,
+    "total_method_calls": 1832,
+    "covered": 12,
+    "total": 19,
+    "pct": 63.2
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_4",
+    "killed": true,
+    "time_to_kill": 13.03,
+    "iterations": 160,
+    "total_method_calls": 548,
+    "covered": 5,
+    "total": 19,
+    "pct": 26.3
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_5",
+    "killed": true,
+    "time_to_kill": 42.08,
+    "iterations": 542,
+    "total_method_calls": 2639,
+    "covered": 5,
+    "total": 19,
+    "pct": 26.3
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_6",
+    "killed": true,
+    "time_to_kill": 35.57,
+    "iterations": 571,
+    "total_method_calls": 2184,
+    "covered": 5,
+    "total": 19,
+    "pct": 26.3
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_7",
+    "killed": true,
+    "time_to_kill": 53.61,
+    "iterations": 661,
+    "total_method_calls": 3125,
+    "covered": 4,
+    "total": 19,
+    "pct": 21.1
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_8",
+    "killed": true,
+    "time_to_kill": 186.87,
+    "iterations": 2094,
+    "total_method_calls": 14284,
+    "covered": 17,
+    "total": 19,
+    "pct": 89.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1delete__mutmut_9",
+    "killed": true,
+    "time_to_kill": 26.55,
+    "iterations": 525,
+    "total_method_calls": 1304,
+    "covered": 13,
+    "total": 19,
+    "pct": 68.4
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1depth__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 8,
+    "total_method_calls": 26,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1depth__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 18,
+    "total_method_calls": 44,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1in_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 21,
+    "total_method_calls": 54,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 68,
+    "total_method_calls": 68,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_10",
+    "killed": true,
+    "time_to_kill": 17.54,
+    "iterations": 307,
+    "total_method_calls": 1017,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 4,
+    "total_method_calls": 16,
+    "covered": 4,
+    "total": 5,
+    "pct": 80.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4494,
+    "total_method_calls": 27676,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 9,
+    "total_method_calls": 11,
+    "covered": 4,
+    "total": 5,
+    "pct": 80.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 9,
+    "total_method_calls": 18,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_7",
+    "killed": true,
+    "time_to_kill": 18.04,
+    "iterations": 401,
+    "total_method_calls": 1000,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 4,
+    "total_method_calls": 17,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1insert__mutmut_9",
+    "killed": true,
+    "time_to_kill": 11.02,
+    "iterations": 181,
+    "total_method_calls": 565,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1post_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 36,
+    "total_method_calls": 50,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1pre_order__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 9,
+    "total_method_calls": 15,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1search__mutmut_1",
+    "killed": true,
+    "time_to_kill": 21.04,
+    "iterations": 431,
+    "total_method_calls": 820,
+    "covered": 3,
+    "total": 8,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1search__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 5,
+    "total_method_calls": 22,
+    "covered": 5,
+    "total": 8,
+    "pct": 62.5
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1search__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4355,
+    "total_method_calls": 20558,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1search__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 4409,
+    "total_method_calls": 29196,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Bst\u01c1search__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 3747,
+    "total_method_calls": 25249,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 12,
+    "total_method_calls": 13,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 16,
+    "total_method_calls": 16,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 11,
+    "total_method_calls": 11,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 13,
+    "total_method_calls": 13,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 15,
+    "total_method_calls": 15,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 17,
+    "total_method_calls": 17,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1is_interior__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1is_leaf__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 8,
+    "total_method_calls": 16,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1is_leaf__mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8582,
+    "total_method_calls": 52840,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 8,
+    "total_method_calls": 12,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 9134,
+    "total_method_calls": 52522,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8403,
+    "total_method_calls": 48241,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8183,
+    "total_method_calls": 48685,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 3,
+    "total_method_calls": 2,
+    "covered": 4,
+    "total": 5,
+    "pct": 80.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8380,
+    "total_method_calls": 50812,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_7",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8077,
+    "total_method_calls": 48658,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1onlychild__mutmut_8",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8130,
+    "total_method_calls": 50098,
+    "covered": 3,
+    "total": 5,
+    "pct": 60.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1side__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8364,
+    "total_method_calls": 49856,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1side__mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 8537,
+    "total_method_calls": 50464,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1side__mutmut_3",
+    "killed": true,
+    "time_to_kill": 23.55,
+    "iterations": 445,
+    "total_method_calls": 2751,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1side__mutmut_4",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 58,
+    "total_method_calls": 305,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1side__mutmut_5",
+    "killed": true,
+    "time_to_kill": 18.04,
+    "iterations": 342,
+    "total_method_calls": 2102,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 33,
+    "total_method_calls": 33,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1append__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 1,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1appendleft__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1appendleft__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 5,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1appendleft__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1appendleft__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 33,
+    "total_method_calls": 47,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1appendleft__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1isEmpty__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 2,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1isEmpty__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 10,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1peek__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 62,
+    "total_method_calls": 182,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1peek__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 4,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1peekleft__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 22,
+    "total_method_calls": 92,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 8,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 8.02,
+    "iterations": 37,
+    "total_method_calls": 166,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 20,
+    "total_method_calls": 107,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 119,
+    "total_method_calls": 393,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 2,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 9,
+    "total_method_calls": 30,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1pop__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 5,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 24,
+    "total_method_calls": 79,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 4,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 455,
+    "total_method_calls": 5577,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 162,
+    "total_method_calls": 567,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 31,
+    "total_method_calls": 69,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Deque\u01c1popleft__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 34,
+    "total_method_calls": 78,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 5,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 27,
+    "total_method_calls": 47,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_3",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 54,
+    "total_method_calls": 54,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 2,
+    "covered": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 10,
+    "pct": 70.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1__init____mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 9,
+    "total": 10,
+    "pct": 90.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1_repr__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 372,
+    "total_method_calls": 1919,
+    "covered": 0,
+    "total": 7,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1_repr__mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 122,
+    "total_method_calls": 576,
+    "covered": 0,
+    "total": 7,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1_repr__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 137,
+    "total_method_calls": 547,
+    "covered": 0,
+    "total": 7,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1_repr__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 450,
+    "total_method_calls": 4111,
+    "covered": 0,
+    "total": 7,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 17,
+    "covered": 6,
+    "total": 8,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_10",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 16,
+    "total_method_calls": 18,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_11",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 8,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_12",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 11,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 10,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 3,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 12,
+    "total_method_calls": 13,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 2,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 50,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 11,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1append__mutmut_9",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 18,
+    "total_method_calls": 22,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 0,
+    "covered": 3,
+    "total": 12,
+    "pct": 25.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_10",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 20,
+    "total_method_calls": 45,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_11",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 10,
+    "total": 12,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_12",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 1,
+    "total_method_calls": 12,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 9,
+    "total_method_calls": 8,
+    "covered": 10,
+    "total": 12,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_14",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 12,
+    "total_method_calls": 56,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_15",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 16,
+    "total_method_calls": 30,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_16",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 14,
+    "total_method_calls": 18,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 8.02,
+    "iterations": 21,
+    "total_method_calls": 100,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_3",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 20,
+    "total_method_calls": 72,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_4",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 14,
+    "total_method_calls": 42,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 136,
+    "total_method_calls": 679,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 305,
+    "total_method_calls": 3170,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 2,
+    "total_method_calls": 4,
+    "covered": 9,
+    "total": 12,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1pop__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 15,
+    "total_method_calls": 38,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 22,
+    "total_method_calls": 37,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_10",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 31,
+    "total_method_calls": 55,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_11",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_12",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 2,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 29,
+    "total_method_calls": 29,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 24,
+    "total_method_calls": 38,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 7,
+    "total_method_calls": 8,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 17,
+    "total_method_calls": 69,
+    "covered": 8,
+    "total": 8,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1push__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 7,
+    "total": 8,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_1",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_10",
+    "killed": true,
+    "time_to_kill": 31.56,
+    "iterations": 220,
+    "total_method_calls": 1661,
+    "covered": 13,
+    "total": 16,
+    "pct": 81.2
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_11",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 125,
+    "total_method_calls": 417,
+    "covered": 10,
+    "total": 16,
+    "pct": 62.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_12",
+    "killed": true,
+    "time_to_kill": 11.02,
+    "iterations": 56,
+    "total_method_calls": 266,
+    "covered": 12,
+    "total": 16,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_13",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 266,
+    "total_method_calls": 983,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_14",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 441,
+    "total_method_calls": 1712,
+    "covered": 12,
+    "total": 16,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_15",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 62,
+    "total_method_calls": 187,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_16",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 44,
+    "total_method_calls": 131,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_17",
+    "killed": true,
+    "time_to_kill": 8.02,
+    "iterations": 29,
+    "total_method_calls": 186,
+    "covered": 13,
+    "total": 16,
+    "pct": 81.2
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_18",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 19,
+    "total_method_calls": 21,
+    "covered": 9,
+    "total": 16,
+    "pct": 56.2
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_19",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 31,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 26,
+    "total_method_calls": 48,
+    "covered": 12,
+    "total": 16,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_20",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 25,
+    "total_method_calls": 21,
+    "covered": 10,
+    "total": 16,
+    "pct": 62.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_21",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 122,
+    "total_method_calls": 320,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_3",
+    "killed": true,
+    "time_to_kill": 17.04,
+    "iterations": 196,
+    "total_method_calls": 1258,
+    "covered": 10,
+    "total": 16,
+    "pct": 62.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 293,
+    "total_method_calls": 570,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 79,
+    "total_method_calls": 137,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_6",
+    "killed": true,
+    "time_to_kill": 30.56,
+    "iterations": 360,
+    "total_method_calls": 3344,
+    "covered": 11,
+    "total": 16,
+    "pct": 68.8
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_7",
+    "killed": true,
+    "time_to_kill": 19.04,
+    "iterations": 69,
+    "total_method_calls": 441,
+    "covered": 14,
+    "total": 16,
+    "pct": 87.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_8",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 87,
+    "total_method_calls": 343,
+    "covered": 6,
+    "total": 16,
+    "pct": 37.5
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1remove__mutmut_9",
+    "killed": true,
+    "time_to_kill": 23.05,
+    "iterations": 199,
+    "total_method_calls": 1031,
+    "covered": 16,
+    "total": 16,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 6,
+    "total_method_calls": 21,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_10",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 5,
+    "total_method_calls": 20,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_11",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 17,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_12",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 10,
+    "total": 12,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 10,
+    "total_method_calls": 31,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_14",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 15,
+    "total_method_calls": 37,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_15",
+    "killed": true,
+    "time_to_kill": 7.02,
+    "iterations": 20,
+    "total_method_calls": 61,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_16",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 8,
+    "covered": 10,
+    "total": 12,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_2",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 12,
+    "total_method_calls": 46,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 28,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 10,
+    "total_method_calls": 53,
+    "covered": 10,
+    "total": 12,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 186,
+    "total_method_calls": 855,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 194,
+    "total_method_calls": 977,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 16,
+    "total_method_calls": 26,
+    "covered": 12,
+    "total": 12,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 12,
+    "total_method_calls": 32,
+    "covered": 9,
+    "total": 12,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1DoubleLinkedList\u01c1shift__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 19,
+    "covered": 11,
+    "total": 12,
+    "pct": 91.7
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 29,
+    "total_method_calls": 29,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 22,
+    "total_method_calls": 22,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 7,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__repr____mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 49600,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 2,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__repr____mutmut_2",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 49563,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 2,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__repr____mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 54889,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 2,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__repr____mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 47435,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 2,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 80,
+    "total_method_calls": 80,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 18,
+    "total_method_calls": 29,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 11,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 11,
+    "total_method_calls": 5,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 5,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 5,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 2,
+    "total_method_calls": 15,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_6",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 14,
+    "total_method_calls": 15,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_7",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 56,
+    "total_method_calls": 41,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_8",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 38,
+    "total_method_calls": 71,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_edge__mutmut_9",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 50,
+    "total_method_calls": 47,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_node__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 40,
+    "total_method_calls": 33,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_node__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 9,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_node__mutmut_3",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 25,
+    "total_method_calls": 34,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1add_node__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 5,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_1",
+    "killed": true,
+    "time_to_kill": 7.51,
+    "iterations": 55,
+    "total_method_calls": 63,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_2",
+    "killed": true,
+    "time_to_kill": 9.52,
+    "iterations": 161,
+    "total_method_calls": 40,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_3",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 48,
+    "total_method_calls": 18,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_4",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 23,
+    "total_method_calls": 9,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_5",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 32,
+    "total_method_calls": 49,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_6",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 19,
+    "total_method_calls": 36,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 12,
+    "total_method_calls": 8,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1adjacent__mutmut_8",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 15,
+    "total_method_calls": 3,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_1",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 39,
+    "total_method_calls": 61,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_2",
+    "killed": true,
+    "time_to_kill": 7.01,
+    "iterations": 38,
+    "total_method_calls": 36,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_3",
+    "killed": true,
+    "time_to_kill": 8.52,
+    "iterations": 91,
+    "total_method_calls": 24,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_4",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 13,
+    "total_method_calls": 17,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_5",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 34,
+    "total_method_calls": 43,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_6",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 34,
+    "total_method_calls": 39,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 5,
+    "covered": 0,
+    "total": 4,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_edge__mutmut_8",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 28,
+    "total_method_calls": 39,
+    "covered": 2,
+    "total": 4,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_node__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 15,
+    "total_method_calls": 22,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_node__mutmut_2",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 45,
+    "total_method_calls": 9,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1del_node__mutmut_3",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 6,
+    "total_method_calls": 36,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1has_node__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 4,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1neighbors__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 32,
+    "total_method_calls": 36,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1neighbors__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 11,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Graph\u01c1nodes__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 8,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 14,
+    "total_method_calls": 14,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 17,
+    "total_method_calls": 17,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1__init____mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 15,
+    "total_method_calls": 15,
+    "covered": 8,
+    "total": 9,
+    "pct": 88.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1__init____mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.01,
+    "iterations": 1,
+    "total_method_calls": 1,
+    "covered": 6,
+    "total": 9,
+    "pct": 66.7
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1__init____mutmut_5",
+    "killed": true,
+    "time_to_kill": 9.02,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 3,
+    "covered": 7,
+    "total": 9,
+    "pct": 77.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_10",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 10,
+    "total_method_calls": 12,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_11",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 19,
+    "total_method_calls": 44,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_12",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 115,
+    "total_method_calls": 855,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_13",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 9,
+    "covered": 8,
+    "total": 9,
+    "pct": 88.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_14",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 17,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_15",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 11,
+    "total_method_calls": 21,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_2",
+    "killed": true,
+    "time_to_kill": 43.09,
+    "iterations": 127,
+    "total_method_calls": 946,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 10,
+    "total_method_calls": 5,
+    "covered": 7,
+    "total": 9,
+    "pct": 77.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 190,
+    "total_method_calls": 556,
+    "covered": 7,
+    "total": 9,
+    "pct": 77.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 32,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 14,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_7",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 210,
+    "total_method_calls": 1278,
+    "covered": 7,
+    "total": 9,
+    "pct": 77.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_8",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 100,
+    "total_method_calls": 346,
+    "covered": 7,
+    "total": 9,
+    "pct": 77.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1display__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 11,
+    "covered": 9,
+    "total": 9,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 18,
+    "covered": 3,
+    "total": 7,
+    "pct": 42.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_10",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 9,
+    "total_method_calls": 9,
+    "covered": 6,
+    "total": 7,
+    "pct": 85.7
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 17,
+    "total_method_calls": 61,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 9,
+    "total_method_calls": 14,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 402,
+    "total_method_calls": 754,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 146,
+    "total_method_calls": 517,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 19,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 13,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 9,
+    "total_method_calls": 14,
+    "covered": 7,
+    "total": 7,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1pop__mutmut_9",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 13,
+    "total_method_calls": 39,
+    "covered": 6,
+    "total": 7,
+    "pct": 85.7
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 16,
+    "total_method_calls": 16,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 23,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 25,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 13,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_5",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 19,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 2,
+    "total_method_calls": 3,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 13,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1push__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 10,
+    "total_method_calls": 10,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_1",
+    "killed": true,
+    "time_to_kill": 8.02,
+    "iterations": 27,
+    "total_method_calls": 165,
+    "covered": 5,
+    "total": 13,
+    "pct": 38.5
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_10",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 190,
+    "total_method_calls": 892,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_11",
+    "killed": true,
+    "time_to_kill": 10.02,
+    "iterations": 64,
+    "total_method_calls": 364,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_12",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 325,
+    "total_method_calls": 1706,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_13",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 561,
+    "total_method_calls": 2741,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_14",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 156,
+    "total_method_calls": 697,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_15",
+    "killed": true,
+    "time_to_kill": 6.51,
+    "iterations": 8,
+    "total_method_calls": 15,
+    "covered": 7,
+    "total": 13,
+    "pct": 53.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_16",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 13,
+    "covered": 7,
+    "total": 13,
+    "pct": 53.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_17",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 4,
+    "covered": 7,
+    "total": 13,
+    "pct": 53.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_18",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 647,
+    "total_method_calls": 6826,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 7,
+    "covered": 6,
+    "total": 13,
+    "pct": 46.2
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 12,
+    "total_method_calls": 12,
+    "covered": 8,
+    "total": 13,
+    "pct": 61.5
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 480,
+    "total_method_calls": 4443,
+    "covered": 7,
+    "total": 13,
+    "pct": 53.8
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 295,
+    "total_method_calls": 1497,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_6",
+    "killed": true,
+    "time_to_kill": 9.02,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_7",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 349,
+    "total_method_calls": 941,
+    "covered": 10,
+    "total": 13,
+    "pct": 76.9
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_8",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 10,
+    "total_method_calls": 43,
+    "covered": 9,
+    "total": 13,
+    "pct": 69.2
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1remove__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 6,
+    "covered": 8,
+    "total": 13,
+    "pct": 61.5
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1search__mutmut_1",
+    "killed": true,
+    "time_to_kill": 10.52,
+    "iterations": 32,
+    "total_method_calls": 191,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1search__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 12,
+    "covered": 5,
+    "total": 6,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1LinkedList\u01c1search__mutmut_3",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 315,
+    "total_method_calls": 1808,
+    "covered": 5,
+    "total": 6,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 13,
+    "total_method_calls": 13,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Node\u01c1__init____mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 11,
+    "total_method_calls": 11,
+    "covered": 3,
+    "total": 3,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 8,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1insert__mutmut_1",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 227,
+    "total_method_calls": 1248,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1insert__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 3,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1peek__mutmut_1",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 15,
+    "total_method_calls": 54,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1peek__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 2,
+    "total_method_calls": 11,
+    "covered": 5,
+    "total": 5,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 9,
+    "total_method_calls": 13,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 18,
+    "total_method_calls": 32,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_4",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 7,
+    "covered": 3,
+    "total": 6,
+    "pct": 50.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_5",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 41,
+    "total_method_calls": 97,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_6",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 89,
+    "total_method_calls": 294,
+    "covered": 6,
+    "total": 6,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_7",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 6,
+    "covered": 5,
+    "total": 6,
+    "pct": 83.3
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_8",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 4,
+    "covered": 4,
+    "total": 6,
+    "pct": 66.7
+  },
+  {
+    "mutant": "x\u01c1PriorityQ\u01c1pop__mutmut_9",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 16,
+    "covered": 4,
+    "total": 6,
+    "pct": 66.7
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1__init____mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 7,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1isEmpty__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 4,
+    "total_method_calls": 8,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1isEmpty__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 3,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 5,
+    "total_method_calls": 17,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 7,
+    "total_method_calls": 21,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 10,
+    "total_method_calls": 12,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 215,
+    "total_method_calls": 1791,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_5",
+    "killed": true,
+    "time_to_kill": 6.01,
+    "iterations": 12,
+    "total_method_calls": 107,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1peek__mutmut_6",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 3,
+    "total_method_calls": 21,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 0,
+    "total_method_calls": 0,
+    "covered": 0,
+    "total": 0,
+    "pct": 0.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_2",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 15,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_3",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 8,
+    "total_method_calls": 7,
+    "covered": 3,
+    "total": 4,
+    "pct": 75.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1pop__mutmut_4",
+    "killed": false,
+    "time_to_kill": null,
+    "iterations": 103,
+    "total_method_calls": 369,
+    "covered": 4,
+    "total": 4,
+    "pct": 100.0
+  },
+  {
+    "mutant": "x\u01c1Stack\u01c1push__mutmut_1",
+    "killed": true,
+    "time_to_kill": 5.51,
+    "iterations": 6,
+    "total_method_calls": 14,
+    "covered": 2,
+    "total": 2,
+    "pct": 100.0
+  }
+]

@@ -142,6 +142,7 @@ def normalise_string(s):
     return address_re.sub(' at 0x?', s)
 
 number_re = re.compile(r'-?\d+(\.\d+)?')
+qualname_re = re.compile(r'[\w]+(?:\.(?:<locals>|<[^>]+>|\w+))*(?=\(\))')
 
 def normalise_exception_message(msg: str) -> str:
     """
@@ -149,6 +150,7 @@ def normalise_exception_message(msg: str) -> str:
     false inequivalences
     """
     msg = address_re.sub('0x?', msg)
+    msg = qualname_re.sub('func', msg)
     msg = number_re.sub('#', msg)
     return msg.casefold().strip()
 
@@ -339,7 +341,8 @@ def value_equivalence(value_a, value_b, visited=None):
         return False
 
     if type(value_a) is not type(value_b):
-        return False
+        if not (isinstance(value_a, (int, float)) and isinstance(value_b, (int, float))):
+            return False
 
     fa, fb = is_function(value_a), is_function(value_b)
     if fa and fb:
@@ -405,6 +408,10 @@ class CoverageRecorder:
     def __init__(self, target_func, coverage_file):
         self.coverage_file = coverage_file
         self.covered_lines: set[int] = set()
+        # fuzz iterations
+        self.iterations = 0
+        # for class equivalence, one iteration consists of multiple method calls as we have to sequence calls
+        self.method_calls = 0
         fn = getattr(target_func, "__func__", target_func)
         code = getattr(fn, "__code__", None)
         self.total_lines = []
@@ -430,6 +437,14 @@ class CoverageRecorder:
         else:
             self._write()
 
+    def increment_iterations(self):
+        self.iterations += 1
+        self._write()
+
+    def increment_method_calls(self):
+        self.method_calls += 1
+        self._write()
+
     def merge(self, new_lines):
         if not new_lines:
             return
@@ -440,6 +455,8 @@ class CoverageRecorder:
         payload = {
             "lines_covered": sorted(self.covered_lines),
             "lines_total": self.total_lines,
+            "iterations": self.iterations,
+            "total_method_calls": self.method_calls
         }
         try:
             with open(self.coverage_file, "w", encoding="utf-8") as f:
@@ -451,6 +468,8 @@ class CoverageRecorder:
         payload = {
             "lines_covered": [],
             "lines_total": self.total_lines,
+            "iterations": self.iterations,
+            "total_method_calls": self.method_calls,
             "setup_error": setup_error,
         }
         try:

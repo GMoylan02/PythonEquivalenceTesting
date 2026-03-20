@@ -1,7 +1,9 @@
 import argparse
 import os
+import re
 import subprocess
 import time
+from collections import defaultdict
 from pathlib import Path
 
 from TestingUtils import clear_log, kill_process_tree
@@ -30,7 +32,7 @@ def parse_args():
     parser.add_argument(
         "--timeout",
         type=int,
-        default=15,
+        default=300,
         help="Number of seconds to wait for a test failure"
     )
 
@@ -42,7 +44,8 @@ def main():
     timeout_seconds = args.timeout
     run_existing_suite(suite, timeout_seconds)
 
-def run_existing_suite(suite="inequiv", timeout_seconds=15):
+
+def run_existing_suite(suite="inequiv", timeout_seconds=280):
     clear_log()
 
     if suite == "inequiv":
@@ -51,16 +54,25 @@ def run_existing_suite(suite="inequiv", timeout_seconds=15):
         paths = list(EQUIV_DIR.glob("*.py"))
     before = time.time()
 
+    results = []
     for path in paths:
-        run_script(path, timeout_seconds)
+        if "__init__" in path.name: continue
+        result = run_script(path, timeout_seconds)
+        results.append(result)
+
     after = time.time()
-    print(f"Completed in: {(after - before)/60} minutes")
+    print(f"\nCompleted in: {(after - before)/60:.2f} minutes")
     print(f"5 longest runtimes: {sorted(runtimes.items(), key=lambda item: item[1], reverse=True)[:5]}")
 
-def run_script(filepath, timeout_seconds=15):
-    print(f"Running test on {str(filepath).split("\\")[-1]}")
+    if suite == "inequiv":
+        print_results_table(results)
+
+
+def run_script(filepath, timeout_seconds=280):
+    name = filepath.stem
+    print(f"Running test on {name}...", end=" ", flush=True)
     log_file = "hypofuzz_failures.log"
-    cmd = ["hypothesis", "fuzz", filepath, "--no-dashboard"]
+    cmd = ["hypothesis", "fuzz", str(filepath), "--no-dashboard"]
     env = os.environ.copy()
     env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
     env["MUTANT_UNDER_TEST"] = ""
@@ -68,6 +80,9 @@ def run_script(filepath, timeout_seconds=15):
     if os.path.exists(log_file):
         with open(log_file, 'r', encoding="utf-8") as f:
             initial_failure_count = len(f.readlines())
+
+    killed = False
+    elapsed = None
     process = None
     try:
         process = subprocess.Popen(
@@ -93,8 +108,10 @@ def run_script(filepath, timeout_seconds=15):
             new_failures = current_failure_count - initial_failure_count
 
             if new_failures >= 1:
-                print(f"⚡ Early Exit! ({new_failures} failures found)")
-                runtimes[filepath] = time.time() - start_time
+                elapsed = time.time() - start_time
+                runtimes[filepath] = elapsed
+                killed = True
+                print(f"Early Exit! ({new_failures} failures found)")
                 break
             time.sleep(0.5)
     except Exception as e:
@@ -102,6 +119,39 @@ def run_script(filepath, timeout_seconds=15):
 
     kill_process_tree(process)
     time.sleep(0.1)
+
+    return {
+        "name": name,
+        "killed": killed,
+        "time": elapsed,
+    }
+
+
+def print_results_table(results):
+    total = len(results)
+    total_killed = sum(1 for r in results if r["killed"])
+
+    print()
+    print("=" * 78)
+    print(f"HOBBIT SUITE RESULTS: {total_killed}/{total} detected ({total_killed/total*100:.1f}%)")
+    print("=" * 78)
+
+    # detailed per-test results
+    print(f"\n{'─' * 78}")
+    print(f"  {'Test':50s}  {'Result':>8s}  {'Time':>8s}")
+    print(f"  {'─' * 50}  {'─' * 8}  {'─' * 8}")
+
+    for r in results:
+        status = "PASS" if r["killed"] else "FAIL"
+        time_str = f"{r['time']:.2f}s" if r["time"] is not None else "—"
+        print(f"  {r['name']:50s}  {status:>8s}  {time_str:>8s}")
+
+    # summary of failures
+    failures = [r for r in results if not r["killed"]]
+    if failures:
+        print(f"\n{'─' * 78}")
+        print(f"  UNDETECTED PATTERNS ({len(failures)}):")
+    print("=" * 78)
 
 
 if __name__ == "__main__":
