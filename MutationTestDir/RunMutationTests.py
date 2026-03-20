@@ -14,7 +14,7 @@ from typing import Dict, Callable
 from src.ClassEquivalence import get_module_methods
 from src.TestingUtils import kill_process_tree, clean_directory, clear_log
 
-TIMEOUT_SECONDS = 350
+TIMEOUT_SECONDS = 300
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "fixed_mutants"
@@ -51,6 +51,9 @@ def _read_coverage_result(idx: int) -> dict:
             "pct": pct,
             "iterations": data.get("iterations", 0),
             "total_method_calls": data.get("total_method_calls", 0),
+            "failing_init_args": data.get("failing_init_args", []),
+            "failing_init_kwargs": data.get("failing_init_kwargs", {}),
+            "failing_method_calls": data.get("failing_method_calls", []),
             "lines_covered": data.get("lines_covered", []),
             "lines_total": data.get("lines_total", []),
         }
@@ -122,7 +125,7 @@ def run_fuzzing_session():
     for module in modules:
         print(f"\n--- Scanning Module: {module.__name__} ---")
 
-        # ── class mutants ──────────────────────────────────────────────────
+        # class mutants
         try:
             class_mutant_info = get_class_mutants(module)
         except Exception as e:
@@ -151,6 +154,9 @@ def run_fuzzing_session():
                     "time_to_kill": round(time_to_kill, 2) if time_to_kill is not None else None,
                     "iterations": cov["iterations"],
                     "total_method_calls": cov["total_method_calls"],
+                    "failing_init_args": cov["failing_init_args"],
+                    "failing_init_kwargs": cov["failing_init_kwargs"],
+                    "failing_method_calls": cov["failing_method_calls"],
                     "covered": cov["covered"],
                     "total": cov["total"],
                     "pct": round(cov["pct"], 1),
@@ -158,7 +164,7 @@ def run_fuzzing_session():
                 _print_coverage_line(mutant_entry['attr_name'], killed, cov)
                 idx += 1
 
-        # ── function mutants ───────────────────────────────────────────────
+        # function mutants
         try:
             funcs = get_module_functions(module)
         except Exception as e:
