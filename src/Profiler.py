@@ -417,6 +417,10 @@ class CoverageRecorder:
         self.total_lines = []
         setup_error = None
 
+        self.failing_init_args = None
+        self.failing_init_kwargs = None
+        self.failing_method_calls = None
+
         if code is not None:
             try:
                 body_lines = set()
@@ -451,12 +455,25 @@ class CoverageRecorder:
         self.covered_lines.update(new_lines)
         self._write()
 
+    def record_input_sequence(self, init_args, init_kwargs, ops):
+        """
+        Record the constructor args, method call sequence, and method args that caused
+        an inequivalence. From this data, we can potentially construct test cases automatically
+        """
+        self.failing_init_args = init_args
+        self.failing_init_kwargs = init_kwargs
+        self.failing_method_calls = ops
+        self._write()
+
     def _write(self):
         payload = {
             "lines_covered": sorted(self.covered_lines),
             "lines_total": self.total_lines,
             "iterations": self.iterations,
-            "total_method_calls": self.method_calls
+            "total_method_calls": self.method_calls,
+            "failing_init_args": self.failing_init_args,
+            "failing_init_kwargs": self.failing_init_kwargs,
+            "failing_method_calls": self.failing_method_calls,
         }
         try:
             with open(self.coverage_file, "w", encoding="utf-8") as f:
@@ -471,6 +488,9 @@ class CoverageRecorder:
             "iterations": self.iterations,
             "total_method_calls": self.method_calls,
             "setup_error": setup_error,
+            "failing_init_args": self.failing_init_args,
+            "failing_init_kwargs": self.failing_init_kwargs,
+            "failing_method_calls": self.failing_method_calls,
         }
         try:
             with open(self.coverage_file, 'w', encoding='utf-8') as f:

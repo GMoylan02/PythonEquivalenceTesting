@@ -99,6 +99,8 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                         coverage_recorder.merge(checker.covered_lines)
 
         except AssertionError as e:
+            if coverage_recorder:
+                coverage_recorder.record_input_sequence(init_args, init_kwargs, ops)
             record_failure(class1.__name__, e, unique_test_id)
             raise
 
