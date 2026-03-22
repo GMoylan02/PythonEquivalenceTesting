@@ -1,5 +1,6 @@
 import inspect
 import typing
+from dataclasses import dataclass
 
 from hypothesis import strategies as st
 from typing import Callable
@@ -14,30 +15,36 @@ already_logged = False
 The logic surrounding custom strategies
 """
 
+@dataclass
+class FuzzConfig:
+    higher_order: bool = True
+
+_config = FuzzConfig()
+
+def configure(higher_order=True):
+    global _config
+    _config = FuzzConfig(higher_order=higher_order)
 
 def get_universal_strategy():
-    primitives = st.one_of(
+    primitives = [
         st.integers(),
         st.floats(allow_nan=False, allow_infinity=False),
         st.text(),
         st.booleans(),
         st.none(),
-        *_all_callable_strategies(),
-        dummy_object_strategy()
-       # global_mutator_strategy()   # not applicable for hobbit suite
-    )
+        dummy_object_strategy(),
+    ]
+    if _config.higher_order:
+        primitives.extend(_all_callable_strategies())
 
-    # recursive strategy that can build any combination of primitives and lists/dicts of primitives
-    # can be thought of as the following recursive definition
-    # universal_strat = int|str|float|bool|None|Callable|dummy|list[universal_strat]|dict[str,universal_strat]|tuple[universal_strat]
     return st.recursive(
-        primitives,
+        st.one_of(*primitives),
         lambda children: st.one_of(
             st.lists(children),
             st.tuples(children),
             st.dictionaries(st.text(), children),
         ),
-        max_leaves=10
+        max_leaves=10,
     )
 
 def _all_callable_strategies():
@@ -46,7 +53,7 @@ def _all_callable_strategies():
         preset_functions(),
         interleaved_caller_strategy(),
         flat_combiner_strategy(),
-        #global_mutator_strategy()  temporarily commented out
+        #global_mutator_strategy()
     ]
 
 def global_mutator_strategy():

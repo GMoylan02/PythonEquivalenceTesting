@@ -83,7 +83,7 @@ from src.ClassEquivalence import create_class_equivalence_test
 test_{idx} = create_class_equivalence_test(
     OrigClass_{idx}, MutantClass_{idx},
     coverage_target_func=coverage_target_func,
-    coverage_recorder=recorder,
+    coverage_recorder=recorder, higher_order=False
 )
 """
 
@@ -95,7 +95,7 @@ test_{idx} = make_function_equivalence_test(
     orig_func_{idx}, mutant_func_{idx},
     log_failure=True,
     coverage_target_func=coverage_target_func,
-    coverage_recorder=recorder,
+    coverage_recorder=recorder, higher_order=False
 )
 """
 

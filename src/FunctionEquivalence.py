@@ -4,14 +4,15 @@ from typing import Optional, Callable
 from hypothesis import given, settings
 
 from src.EquivalenceChecker import EquivalenceChecker
-from src.FuzzingStrategy import build_args_strategy
+from src.FuzzingStrategy import build_args_strategy, configure
 from src.Profiler import record_failure, CoverageRecorder
 from src.StateUtils import snapshot_module_state, restore_module_state
 from hypothesis.strategies import data as st_data
 
 
 def make_function_equivalence_test(func_a, func_b, reset_module_state=False, log_failure=False,
-    coverage_target_func: Optional[Callable] = None, coverage_recorder: CoverageRecorder=None,):
+    coverage_target_func: Optional[Callable] = None, coverage_recorder: CoverageRecorder=None, higher_order=True):
+    configure(higher_order=higher_order)
     input_strategy = build_args_strategy(func_a)
 
     module_a = sys.modules.get(func_a.__module__)
