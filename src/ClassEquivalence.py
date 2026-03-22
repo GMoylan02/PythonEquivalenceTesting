@@ -67,6 +67,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
         object_b = result_b.value
 
         unique_test_id = f"{class1.__name__}_{class2.__name__}"
+        recorded_calls = []
         try:
             state_a = vars(object_a) if hasattr(object_a, '__dict__') else {}
             state_b = vars(object_b) if hasattr(object_b, '__dict__') else {}
@@ -98,9 +99,22 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                     if coverage_recorder and checker.covered_lines:
                         coverage_recorder.merge(checker.covered_lines)
 
+                recorded_calls.append({
+                    "method": func_name,
+                    "args": checker.args_a,
+                    "kwargs": checker.kwargs_a,
+                    "return": checker.result_a.value if checker.result_a.ok else None,
+                    "raised": type(checker.result_a.exc).__name__ if not checker.result_a.ok else None,
+                })
+
         except AssertionError as e:
             if coverage_recorder:
-                coverage_recorder.record_input_sequence(init_args, init_kwargs, ops)
+                final_state = vars(object_a) if hasattr(object_a, '__dict__') else {}
+                coverage_recorder.record_input_sequence(
+                    init_args, init_kwargs,
+                    recorded_calls,
+                    final_state,
+                )
             record_failure(class1.__name__, e, unique_test_id)
             raise
 

@@ -54,6 +54,7 @@ def _read_coverage_result(idx: int) -> dict:
             "failing_init_args": data.get("failing_init_args", []),
             "failing_init_kwargs": data.get("failing_init_kwargs", {}),
             "failing_method_calls": data.get("failing_method_calls", []),
+            "failing_final_state": data.get("failing_final_state", {}),
             "lines_covered": data.get("lines_covered", []),
             "lines_total": data.get("lines_total", []),
         }
@@ -61,9 +62,11 @@ def _read_coverage_result(idx: int) -> dict:
         # File was never written at all -- the subprocess was killed before
         # even the initial write completed (extremely fast kill).
         return {"covered": 0, "total": 0, "pct": 0.0, "iterations": 0, "total_method_calls": 0,
+                "failing_init_args": [], "failing_init_kwargs": {}, "failing_method_calls": [], "failing_final_state": {},
                 "lines_covered": [], "lines_total": []}
     except Exception:
         return {"covered": 0, "total": 0, "pct": 0.0, "iterations": 0, "total_method_calls": 0,
+                "failing_init_args": [], "failing_init_kwargs": {}, "failing_method_calls": [], "failing_final_state": {},
                 "lines_covered": [], "lines_total": []}
 
 def _coverage_boilerplate(mutant_func_accessor: str, coverage_file: str) -> str:
@@ -157,6 +160,7 @@ def run_fuzzing_session():
                     "failing_init_args": cov["failing_init_args"],
                     "failing_init_kwargs": cov["failing_init_kwargs"],
                     "failing_method_calls": cov["failing_method_calls"],
+                    "failing_final_state": cov["failing_final_state"],
                     "covered": cov["covered"],
                     "total": cov["total"],
                     "pct": round(cov["pct"], 1),

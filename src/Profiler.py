@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import sys
 import tempfile
 import traceback
 from dataclasses import field, dataclass
@@ -457,7 +458,7 @@ class CoverageRecorder:
         self.covered_lines.update(new_lines)
         self._write()
 
-    def record_input_sequence(self, init_args, init_kwargs, ops):
+    def record_input_sequence(self, init_args, init_kwargs, ops, final_state=None):
         """
         Record the constructor args, method call sequence, and method args that caused
         an inequivalence. From this data, we can potentially construct test cases automatically
@@ -465,6 +466,7 @@ class CoverageRecorder:
         self.failing_init_args = init_args
         self.failing_init_kwargs = init_kwargs
         self.failing_method_calls = ops
+        self.failing_final_state = final_state
         self._write()
 
     def _build_report(self):
@@ -474,10 +476,10 @@ class CoverageRecorder:
             "iterations": self.iterations,
             "total_method_calls": self.method_calls,
         }
-        if hasattr(self, 'failing_init_args'):
-            payload["failing_init_args"] = self.failing_init_args
-            payload["failing_init_kwargs"] = self.failing_init_kwargs
-            payload["failing_method_calls"] = self.failing_method_calls
+        if self.failing_init_args is not None:
+            payload["failing_init_args"] = self._make_serializable(self.failing_init_args)
+            payload["failing_init_kwargs"] = self._make_serializable(self.failing_init_kwargs)
+            payload["failing_method_calls"] = self._make_serializable(self.failing_method_calls)
         return payload
 
     def _write(self):
@@ -496,8 +498,8 @@ class CoverageRecorder:
             # json file. os.replace is atomic, so now in the worst case we only lose the contents of the latest write,
             # but never get malformed data
             os.replace(tmp_path, self.coverage_file)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[CoverageRecorder] _write failed: {e}", file=sys.stderr)
 
     def _write_with_error(self, setup_error: str):
         payload = {
@@ -509,9 +511,21 @@ class CoverageRecorder:
             "failing_init_args": self.failing_init_args,
             "failing_init_kwargs": self.failing_init_kwargs,
             "failing_method_calls": self.failing_method_calls,
+            "failing_final_state": self.failing_final_state,
         }
         try:
             with open(self.coverage_file, 'w', encoding='utf-8') as f:
                 json.dump(payload, f)
         except Exception:
             pass
+
+    def _make_serializable(self, obj, depth=0):
+        if depth > 5:
+            return repr(obj)
+        if obj is None or isinstance(obj, (bool, int, float, str)):
+            return obj
+        if isinstance(obj, (list, tuple)):
+            return [self._make_serializable(x, depth + 1) for x in obj]
+        if isinstance(obj, dict):
+            return {str(k): self._make_serializable(v, depth + 1) for k, v in obj.items()}
+        return repr(obj)

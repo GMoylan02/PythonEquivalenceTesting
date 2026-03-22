@@ -116,6 +116,9 @@ class EquivalenceChecker:
         # and we have no interest in its coverage.
         b = run(self.func_b, self.args_b, self.kwargs_b, coverage_target_func=self.coverage_target)
 
+        self.result_a = a
+        self.result_b = b
+
         # Merge newly-covered lines from this single call
         self.covered_lines.update(b.covered_lines)
 
