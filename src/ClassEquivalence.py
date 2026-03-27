@@ -94,6 +94,9 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                     if coverage_recorder and checker.covered_lines:
                         coverage_recorder.merge(checker.covered_lines)
 
+                # check observable dunders
+                _assert_dunder_equivalence(object_a, object_b)
+
                 """
                 recorded_calls.append({
                     "method": func_name,
@@ -129,3 +132,27 @@ def get_object_methods(obj):
         ]
         methods[name] = len(params)
     return methods
+
+OBSERVABLE_DUNDERS = [
+    ("__repr__", repr),
+    ("__str__", str),
+    ("__len__", len),
+    ("__bool__", bool),
+]
+
+def _assert_dunder_equivalence(obj_a, obj_b):
+    for dunder_name, builtin_fn in OBSERVABLE_DUNDERS:
+        # only check if the class explicitly defines it
+        if dunder_name not in type(obj_a).__dict__:
+            continue
+        try:
+            val_a = builtin_fn(obj_a)
+            val_b = builtin_fn(obj_b)
+        except Exception:
+            continue
+        if not value_equivalence(val_a, val_b):
+            raise AssertionError(
+                f"{dunder_name} mismatch after method call:\n"
+                f"  A: {val_a!r}\n"
+                f"  B: {val_b!r}"
+            )
