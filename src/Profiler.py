@@ -1,6 +1,5 @@
 import dis
 import inspect
-import itertools
 import json
 import math
 import os
@@ -12,7 +11,6 @@ from dataclasses import field, dataclass
 from pathlib import Path
 from typing import Optional, Callable
 
-from libcst.testing.utils import none_throws
 
 from src.DummyObject import DummyObject
 
@@ -521,11 +519,13 @@ class CoverageRecorder:
 
     def _make_serializable(self, obj, depth=0):
         if depth > 5:
-            return repr(obj)
+            return {"__repr__": repr(obj)}
         if obj is None or isinstance(obj, (bool, int, float, str)):
             return obj
-        if isinstance(obj, (list, tuple)):
+        if isinstance(obj, tuple):
+            return {"__tuple__": [self._make_serializable(x, depth + 1) for x in obj]}
+        if isinstance(obj, list):
             return [self._make_serializable(x, depth + 1) for x in obj]
         if isinstance(obj, dict):
             return {str(k): self._make_serializable(v, depth + 1) for k, v in obj.items()}
-        return repr(obj)
+        return {"__repr__": repr(obj)}

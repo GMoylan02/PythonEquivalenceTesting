@@ -1,12 +1,9 @@
 import argparse
 import os
-import re
-import subprocess
 import time
-from collections import defaultdict
 from pathlib import Path
 
-from TestingUtils import clear_log, kill_process_tree
+from TestingUtils import clear_log, run_hypothesis_fuzz
 
 BASE_DIR = Path(__file__).resolve().parent
 INEQUIV_DIR = BASE_DIR / "programs" / "inequiv"
@@ -71,61 +68,25 @@ def run_existing_suite(suite="inequiv", timeout_seconds=280):
 def run_script(filepath, timeout_seconds=280):
     name = filepath.stem
     print(f"Running test on {name}...", end=" ", flush=True)
-    log_file = "hypofuzz_failures.log"
-    cmd = ["hypothesis", "fuzz", str(filepath), "--no-dashboard"]
-    env = os.environ.copy()
-    env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
-    env["MUTANT_UNDER_TEST"] = ""
-    initial_failure_count = 0
-    if os.path.exists(log_file):
-        with open(log_file, 'r', encoding="utf-8") as f:
-            initial_failure_count = len(f.readlines())
+    clear_log()
 
-    killed = False
-    elapsed = None
-    process = None
-    try:
-        process = subprocess.Popen(
-            cmd, env=env,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            preexec_fn=os.setsid if os.name != 'nt' else None
-        )
+    result = run_hypothesis_fuzz(
+        filepath,
+        timeout_seconds=timeout_seconds,
+        project_root=PROJECT_ROOT,
+    )
 
-        start_time = time.time()
-        while True:
-            if process.poll() is not None:
-                print("Finished (Process Exited)")
-                break
-            if time.time() - start_time > timeout_seconds:
-                print("Timeout (Done)")
-                break
-
-            current_failure_count = 0
-            if os.path.exists(log_file):
-                with open(log_file, 'rb') as f:
-                    current_failure_count = sum(1 for _ in f)
-
-            new_failures = current_failure_count - initial_failure_count
-
-            if new_failures >= 1:
-                elapsed = time.time() - start_time
-                runtimes[filepath] = elapsed
-                killed = True
-                print(f"Early Exit! ({new_failures} failures found)")
-                break
-            time.sleep(0.5)
-    except Exception as e:
-        print(f"Error: {e}")
-
-    kill_process_tree(process)
-    time.sleep(0.1)
+    if result.killed:
+        runtimes[filepath] = result.elapsed
+        print(f"Killed! ({result.elapsed:.2f}s)")
+    else:
+        print("Survived")
 
     return {
         "name": name,
-        "killed": killed,
-        "time": elapsed,
+        "killed": result.killed,
+        "time": result.elapsed,
     }
-
 
 def print_results_table(results):
     total = len(results)

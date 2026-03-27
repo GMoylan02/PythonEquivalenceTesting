@@ -90,7 +90,7 @@ class RecursiveRef:
 
 # plan: as part of fuzzing, if a func g take a callable we give it either f0, f1, or f2, but we need to make it so if we pass f2
 # or f1, that f2 calls g with f1, f1 calls g with f0 and so on
-def construct_dummies(g, limit=10):
+def construct_dummies(g, limit=20):
     def f0(): pass
     functions = [f0]
     for i in range(limit-1):

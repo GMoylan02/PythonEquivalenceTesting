@@ -1,20 +1,16 @@
 import inspect
 import json
 import re
-import signal
 import sys
 import os
-import subprocess
 import importlib
 import pkgutil
 import time
-from pathlib import Path
 from typing import Dict, Callable
 
-from src.ClassEquivalence import get_module_methods
-from src.TestingUtils import kill_process_tree, clean_directory, clear_log
+from src.TestingUtils import clear_log, run_hypothesis_fuzz
 
-TIMEOUT_SECONDS = 300
+TIMEOUT_SECONDS = 400
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "fixed_mutants"
@@ -28,12 +24,12 @@ mutants_killed = []
 # todo: bst._step mutant 4 got n/a coverage
 # todo: delete methods usually survive
 
-def _coverage_file_path(idx: int) -> str:
+def _coverage_file_path(idx):
     os.makedirs(COVERAGE_DIR, exist_ok=True)
     return os.path.join(COVERAGE_DIR, f"coverage_{idx}.json")
 
 
-def _read_coverage_result(idx: int) -> dict:
+def _read_coverage_result(idx):
     path = _coverage_file_path(idx)
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -59,8 +55,8 @@ def _read_coverage_result(idx: int) -> dict:
             "lines_total": data.get("lines_total", []),
         }
     except FileNotFoundError:
-        # File was never written at all -- the subprocess was killed before
-        # even the initial write completed (extremely fast kill).
+        # File was never written at all, the subprocess was killed before
+        # even the initial write completed
         return {"covered": 0, "total": 0, "pct": 0.0, "iterations": 0, "total_method_calls": 0,
                 "failing_init_args": [], "failing_init_kwargs": {}, "failing_method_calls": [], "failing_final_state": {},
                 "lines_covered": [], "lines_total": []}
@@ -69,7 +65,7 @@ def _read_coverage_result(idx: int) -> dict:
                 "failing_init_args": [], "failing_init_kwargs": {}, "failing_method_calls": [], "failing_final_state": {},
                 "lines_covered": [], "lines_total": []}
 
-def _coverage_boilerplate(mutant_func_accessor: str, coverage_file: str) -> str:
+def _coverage_boilerplate(mutant_func_accessor, coverage_file):
     return f"""
 from src.Profiler import CoverageRecorder
 coverage_target_func = {mutant_func_accessor}
@@ -77,25 +73,25 @@ recorder = CoverageRecorder(coverage_target_func, r'{coverage_file}')
 """
 
 
-def _class_test_assignment(idx: int) -> str:
+def _class_test_assignment(idx):
     return f"""
 from src.ClassEquivalence import create_class_equivalence_test
 test_{idx} = create_class_equivalence_test(
     OrigClass_{idx}, MutantClass_{idx},
     coverage_target_func=coverage_target_func,
-    coverage_recorder=recorder, higher_order=False
+    coverage_recorder=recorder, higher_order=True
 )
 """
 
 
-def _func_test_assignment(idx: int) -> str:
+def _func_test_assignment(idx):
     return f"""
 from src.FunctionEquivalence import make_function_equivalence_test
 test_{idx} = make_function_equivalence_test(
     orig_func_{idx}, mutant_func_{idx},
     log_failure=True,
     coverage_target_func=coverage_target_func,
-    coverage_recorder=recorder, higher_order=False
+    coverage_recorder=recorder, higher_order=True
 )
 """
 
@@ -218,7 +214,7 @@ def run_fuzzing_session():
     _print_coverage_summary(coverage_report)
 
 
-def _print_coverage_line(mutant_name: str, killed: bool, cov: dict) -> None:
+def _print_coverage_line(mutant_name: str, killed: bool, cov: dict):
     status = "KILLED" if killed else "SURVIVED"
     iters = cov.get("iterations", 0)
     method_calls = cov.get("total_method_calls", 0)
@@ -229,7 +225,7 @@ def _print_coverage_line(mutant_name: str, killed: bool, cov: dict) -> None:
     print(f"    [{status}] {mutant_name}  —  {cov_str}  —  {method_calls} method calls in {iters} iterations")
 
 
-def _print_coverage_summary(report: list[dict]) -> None:
+def _print_coverage_summary(report: list[dict]):
     survived_setup_failed = [r for r in report if not r["killed"] and r["total"] == 0]
     survived_never_reached = [
         r for r in report
@@ -262,67 +258,22 @@ def _print_coverage_summary(report: list[dict]) -> None:
     print("──────────────────────────────────────────────────────────────────────\n")
 
 def run_fuzz_file(log_file, label):
-    """Write the temp file, run hypofuzz, return True if a failure was detected."""
-    initial_failure_count = 0
-    if os.path.exists(log_file):
-        with open(log_file, 'r', encoding="utf-8") as f:
-            initial_failure_count = len(f.readlines())
-
     print(f"  {label}...", end=" ", flush=True)
 
-    cmd = ["hypothesis", "fuzz", TEMP_FILENAME, "--no-dashboard"]
-    env = os.environ.copy()
-    env["PYTHONPATH"] = PROJECT_ROOT + os.pathsep + env.get("PYTHONPATH", "")
-    env["MUTANT_UNDER_TEST"] = ""
+    result = run_hypothesis_fuzz(
+        TEMP_FILENAME,
+        log_file=log_file,
+        timeout_seconds=TIMEOUT_SECONDS,
+        project_root=PROJECT_ROOT,
+    )
 
-    elapsed = None
-    process = None
-    killed = False
-    try:
-        process = subprocess.Popen(
-            cmd, env=env,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            preexec_fn=os.setsid if os.name != 'nt' else None
-        )
+    if result.killed:
+        times_taken.append(result.elapsed)
+        print("Killed!")
+    else:
+        print("Survived")
 
-        start_time = time.time()
-        while True:
-            if process.poll() is not None:
-                print("Finished (Process Exited)")
-                break
-            if time.time() - start_time > TIMEOUT_SECONDS:
-                print("Timeout")
-                break
-
-            current_failure_count = 0
-            if os.path.exists(log_file):
-                with open(log_file, 'rb') as f:
-                    current_failure_count = sum(1 for _ in f)
-
-            if current_failure_count > initial_failure_count:
-                elapsed = time.time() - start_time
-                times_taken.append(elapsed)
-                print("Killed!")
-                killed = True
-                break
-
-            time.sleep(0.5)
-    except Exception as e:
-        print(f"Error: {e}")
-
-    kill_process_tree(process)
-    if not killed:
-        final_count = 0
-        if os.path.exists(log_file):
-            with open(log_file, 'rb') as f:
-                final_count = sum(1 for _ in f)
-        if final_count > initial_failure_count:
-            print("Killed! (detected on exit)")
-            killed = True
-    # Brief pause to let the SIGTERM handler finish writing the coverage file
-    # before we try to read it.
-    time.sleep(0.3)
-    return killed, elapsed
+    return result.killed, result.elapsed
 
 
 def run_func_fuzz_case(module, orig_func, mutant_func, idx):
@@ -388,8 +339,8 @@ def run_class_fuzz_case(module, class_name, orig_methods, mutant_entry, idx):
         for method_name, attr_name in orig_methods.items()
     )
 
-    # The accessor for the mutant method specifically — this is what we want
-    # coverage for, not the whole class.
+    # The accessor for the mutant method specifically. this is what we want
+    # coverage for, not the whole class
     mutant_method_accessor = f'getattr(getattr({mod_alias}, "{class_name}"), "{mutant_attr}")'
     cov_boilerplate = _coverage_boilerplate(mutant_method_accessor, coverage_file)
     test_body = _class_test_assignment(idx)

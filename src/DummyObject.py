@@ -56,8 +56,10 @@ class DummyObject:
             return val > object.__getattribute__(other, '_val')
         return val > other if val is not None else False
 
-    def __le__(self, other): return self == other or self < other
-    def __ge__(self, other): return self == other or self > other
+    def __le__(self, other):
+        return self == other or self < other
+    def __ge__(self, other):
+        return self == other or self > other
 
     def __iter__(self):
         return iter([])

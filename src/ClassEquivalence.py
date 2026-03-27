@@ -94,6 +94,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                     if coverage_recorder and checker.covered_lines:
                         coverage_recorder.merge(checker.covered_lines)
 
+                """
                 recorded_calls.append({
                     "method": func_name,
                     "args": checker.args_a,
@@ -101,7 +102,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
                     "return": checker.result_a.value if checker.result_a.ok else None,
                     "raised": type(checker.result_a.exc).__name__ if not checker.result_a.ok else None,
                 })
-
+                """
         except AssertionError as e:
             if coverage_recorder:
                 final_state = vars(object_a) if hasattr(object_a, '__dict__') else {}
@@ -128,24 +129,3 @@ def get_object_methods(obj):
         ]
         methods[name] = len(params)
     return methods
-
-def get_module_methods(module):
-    """
-        Returns a dictionary of all functions and class methods in the module.
-        Keys are 'FunctionName' or 'ClassName.MethodName'.
-        """
-    found_funcs = {}
-
-    for name, obj in inspect.getmembers(module, inspect.isfunction):
-        found_funcs[name] = obj
-
-    for cls_name, cls_obj in inspect.getmembers(module, inspect.isclass):
-        if cls_obj.__module__ != module.__name__:
-            continue
-
-        for method_name, method_obj in inspect.getmembers(cls_obj):
-            if inspect.isfunction(method_obj) or inspect.ismethod(method_obj):
-                key_name = f"{cls_name}.{method_name}"
-                found_funcs[key_name] = method_obj
-
-    return found_funcs
