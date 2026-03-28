@@ -8,10 +8,10 @@ __pycache__/
 *.tmp
 *.log
 mutmut_test/*
-fixed_mutants/*
 fixed_mutants_annotated/*
 SortedContainers_mutants/*
 !mutmut_test.gitkeep
 RunMutationTests.py
+src/temp_fuzz_node.py
 MutationTestDir/RunMutationTests.py
 MutationTestDir/.mutant_coverage

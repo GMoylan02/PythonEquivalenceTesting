@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument(
         "--timeout",
         type=int,
-        default=300,
+        default=220,
         help="Number of seconds to wait for a test failure"
     )
 
