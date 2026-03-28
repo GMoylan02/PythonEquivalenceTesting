@@ -96,16 +96,10 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
 
                 # check observable dunders
                 _assert_dunder_equivalence(object_a, object_b)
+            # also needed here if the class has no actual methods other than dunders (BST.Node for example)
+            _assert_dunder_equivalence(object_a, object_b)
 
-                """
-                recorded_calls.append({
-                    "method": func_name,
-                    "args": checker.args_a,
-                    "kwargs": checker.kwargs_a,
-                    "return": checker.result_a.value if checker.result_a.ok else None,
-                    "raised": type(checker.result_a.exc).__name__ if not checker.result_a.ok else None,
-                })
-                """
+
         except AssertionError as e:
             if coverage_recorder:
                 final_state = vars(object_a) if hasattr(object_a, '__dict__') else {}

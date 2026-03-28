@@ -13,7 +13,7 @@ from src.TestingUtils import clear_log, run_hypothesis_fuzz
 TIMEOUT_SECONDS = 400
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
-TARGET_PACKAGE = "fixed_mutants"
+TARGET_PACKAGE = "fixed_mutants.src"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
 # Directory where per-mutant coverage JSON files are written by the subprocesses.
