@@ -107,7 +107,7 @@ def plot_venn(records, ax):
 
 
 def plot_per_class_breakdown(records, ax):
-    """Stacked horizontal bar chart: per-class kill breakdown."""
+    """Stacked horizontal bar chart: per-class kill breakdown"""
     by_class = defaultdict(lambda: {"both": 0, "suite_only": 0, "equiv_only": 0, "neither": 0, "total": 0})
     for r in records:
         cls = r["class"]

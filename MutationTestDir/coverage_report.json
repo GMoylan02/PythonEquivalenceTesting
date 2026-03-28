@@ -2570,7 +2570,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_1",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_1",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 12,
@@ -2580,7 +2580,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_2",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_2",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 16,
@@ -2590,7 +2590,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_3",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_3",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 11,
@@ -2600,7 +2600,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_4",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_4",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 13,
@@ -2610,7 +2610,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_5",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_5",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 15,
@@ -2620,7 +2620,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1__init____mutmut_6",
+    "mutant": "x\u01c1BSTNode\u01c1__init____mutmut_6",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 17,
@@ -2630,7 +2630,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1is_interior__mutmut_1",
+    "mutant": "x\u01c1BSTNode\u01c1is_interior__mutmut_1",
     "killed": false,
     "time_to_kill": null,
     "iterations": 0,
@@ -2640,7 +2640,7 @@
     "pct": 0.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1is_leaf__mutmut_1",
+    "mutant": "x\u01c1BSTNode\u01c1is_leaf__mutmut_1",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 8,
@@ -2650,7 +2650,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1is_leaf__mutmut_2",
+    "mutant": "x\u01c1BSTNode\u01c1is_leaf__mutmut_2",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8582,
@@ -2660,7 +2660,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_1",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_1",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 8,
@@ -2670,7 +2670,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_2",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_2",
     "killed": false,
     "time_to_kill": null,
     "iterations": 9134,
@@ -2680,7 +2680,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_3",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_3",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8403,
@@ -2690,7 +2690,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_4",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_4",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8183,
@@ -2700,7 +2700,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_5",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_5",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 3,
@@ -2710,7 +2710,7 @@
     "pct": 80.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_6",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_6",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8380,
@@ -2720,7 +2720,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_7",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_7",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8077,
@@ -2730,7 +2730,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1onlychild__mutmut_8",
+    "mutant": "x\u01c1BSTNode\u01c1onlychild__mutmut_8",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8130,
@@ -2740,7 +2740,7 @@
     "pct": 60.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1side__mutmut_1",
+    "mutant": "x\u01c1BSTNode\u01c1side__mutmut_1",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8364,
@@ -2750,7 +2750,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1side__mutmut_2",
+    "mutant": "x\u01c1BSTNode\u01c1side__mutmut_2",
     "killed": false,
     "time_to_kill": null,
     "iterations": 8537,
@@ -2760,7 +2760,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1side__mutmut_3",
+    "mutant": "x\u01c1BSTNode\u01c1side__mutmut_3",
     "killed": true,
     "time_to_kill": 23.55,
     "iterations": 445,
@@ -2770,7 +2770,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1side__mutmut_4",
+    "mutant": "x\u01c1BSTNode\u01c1side__mutmut_4",
     "killed": true,
     "time_to_kill": 6.51,
     "iterations": 58,
@@ -2780,7 +2780,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node1\u01c1side__mutmut_5",
+    "mutant": "x\u01c1BSTNode\u01c1side__mutmut_5",
     "killed": true,
     "time_to_kill": 18.04,
     "iterations": 342,
@@ -3930,7 +3930,7 @@
     "pct": 91.7
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__init____mutmut_1",
+    "mutant": "x\u01c1DLLNode\u01c1__init____mutmut_1",
     "killed": true,
     "time_to_kill": 5.51,
     "iterations": 29,
@@ -3940,7 +3940,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__init____mutmut_2",
+    "mutant": "x\u01c1DLLNode\u01c1__init____mutmut_2",
     "killed": true,
     "time_to_kill": 5.51,
     "iterations": 22,
@@ -3950,7 +3950,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__init____mutmut_3",
+    "mutant": "x\u01c1DLLNode\u01c1__init____mutmut_3",
     "killed": true,
     "time_to_kill": 5.51,
     "iterations": 7,
@@ -3960,7 +3960,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__repr____mutmut_1",
+    "mutant": "x\u01c1DLLNode\u01c1__repr____mutmut_1",
     "killed": true,
     "time_to_kill": 9.52,
     "iterations": 3,
@@ -3970,7 +3970,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__repr____mutmut_2",
+    "mutant": "x\u01c1DLLNode\u01c1__repr____mutmut_2",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 5,
@@ -3980,7 +3980,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__repr____mutmut_3",
+    "mutant": "x\u01c1DLLNode\u01c1__repr____mutmut_3",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 1,
@@ -3990,7 +3990,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node2\u01c1__repr____mutmut_4",
+    "mutant": "x\u01c1DLLNode\u01c1__repr____mutmut_4",
     "killed": true,
     "time_to_kill": 5.01,
     "iterations": 6,
@@ -4970,7 +4970,7 @@
     "pct": 83.3
   },
   {
-    "mutant": "x\u01c1Node3\u01c1__init____mutmut_1",
+    "mutant": "x\u01c1LLNode\u01c1__init____mutmut_1",
     "killed": true,
     "time_to_kill": 5.51,
     "iterations": 13,
@@ -4980,7 +4980,7 @@
     "pct": 100.0
   },
   {
-    "mutant": "x\u01c1Node3\u01c1__init____mutmut_2",
+    "mutant": "x\u01c1LLNode\u01c1__init____mutmut_2",
     "killed": true,
     "time_to_kill": 5.51,
     "iterations": 11,

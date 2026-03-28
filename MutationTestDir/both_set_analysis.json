@@ -1,0 +1,10 @@
+{
+  "killed_by_suite": 437,
+  "killed_by_tool": 422,
+  "both": 363,
+  "suite_only": 74,
+  "total_tests": 217,
+  "tests_covering_both": 217,
+  "tests_not_covering_both": 0,
+  "uncovered_tests": []
+}
