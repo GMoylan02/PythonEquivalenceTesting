@@ -1,0 +1,51 @@
+{
+    "exit_code_by_key": {
+        "priorityq.x\u01c1PriorityQ\u01c1__init____mutmut_1": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_1": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_2": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_1": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_2": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_3": 0,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_4": 0,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_5": 0,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_6": 0,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_7": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_8": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_9": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_1": 1,
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_2": 1
+    },
+    "hash_by_function_name": {},
+    "durations_by_key": {
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_1": 0.551931,
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_2": 0.648855,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_1": 0.628484,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_2": 0.643878,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_3": 0.580418,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_4": 0.563845,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_5": 0.569654,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_6": 0.563706,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_7": 0.620551,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_8": 0.628517,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_9": 0.626693,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_1": 0.659237,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_2": 0.654858,
+        "priorityq.x\u01c1PriorityQ\u01c1__init____mutmut_1": 0.7331
+    },
+    "estimated_durations_by_key": {
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_1": 0.0019164540001384012,
+        "priorityq.x\u01c1PriorityQ\u01c1peek__mutmut_2": 0.0019164540001384012,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_1": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_2": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_3": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_4": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_5": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_6": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_7": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_8": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1pop__mutmut_9": 0.0022539650000226175,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_1": 0.02464750600017851,
+        "priorityq.x\u01c1PriorityQ\u01c1insert__mutmut_2": 0.02464750600017851,
+        "priorityq.x\u01c1PriorityQ\u01c1__init____mutmut_1": 0.026522360000285516
+    }
+}

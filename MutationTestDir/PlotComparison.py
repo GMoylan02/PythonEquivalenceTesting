@@ -56,8 +56,8 @@ def load_comparison(meta_dir, killed_file):
         for key, code in exit_codes.items():
             class_name, suffix = parse_meta_key(key)
             # skip node mutants and count them manually
-            if is_node_mutant(class_name):
-                continue
+            #if is_node_mutant(class_name):
+            #    continue
             name = f"{class_name}.{suffix}"
             suite_results[name] = (code != 0)
             mutant_classes[name] = class_name
@@ -70,8 +70,8 @@ def load_comparison(meta_dir, killed_file):
             if not line:
                 continue
             class_name, suffix = parse_killed_line(line)
-            if is_node_mutant(class_name):
-                continue
+            #if is_node_mutant(class_name):
+            #    continue
             equiv_kills.add(f"{class_name}.{suffix}")
 
     records = []
@@ -173,7 +173,7 @@ def print_analysis(records):
     combined = both + suite_only + equiv_only
 
     print("=" * 70)
-    print("ANALYTICAL SUMMARY (excluding Node mutants)")
+    #print("ANALYTICAL SUMMARY (excluding Node mutants)")
     print("=" * 70)
 
     print(f"\n  Mutation scores:")
@@ -237,7 +237,7 @@ def main(meta_dir, killed_file, output_dir="."):
 
 
 if __name__ == "__main__":
-    meta_dir = sys.argv[1] if len(sys.argv) > 1 else "../fixed_mutants"
+    meta_dir = sys.argv[1] if len(sys.argv) > 1 else "../fixed_mutants/src"
     killed_file = sys.argv[2] if len(sys.argv) > 2 else "killed_mutants.txt"
     out_dir = sys.argv[3] if len(sys.argv) > 3 else "."
     main(meta_dir, killed_file, out_dir)

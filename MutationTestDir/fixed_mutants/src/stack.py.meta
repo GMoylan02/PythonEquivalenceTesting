@@ -1,0 +1,51 @@
+{
+    "exit_code_by_key": {
+        "stack.x\u01c1Stack\u01c1__init____mutmut_1": 1,
+        "stack.x\u01c1Stack\u01c1push__mutmut_1": 1,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_1": 1,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_2": 0,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_3": 0,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_4": 0,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_1": 1,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_2": 0,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_3": 0,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_4": 0,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_5": 1,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_6": 1,
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_1": 1,
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_2": 1
+    },
+    "hash_by_function_name": {},
+    "durations_by_key": {
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_1": 0.542678,
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_2": 0.571651,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_2": 0.567623,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_1": 0.58769,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_3": 0.565957,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_4": 0.577176,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_5": 0.596675,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_6": 0.611576,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_1": 0.703396,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_2": 0.632089,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_3": 0.630369,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_4": 0.656198,
+        "stack.x\u01c1Stack\u01c1push__mutmut_1": 0.736182,
+        "stack.x\u01c1Stack\u01c1__init____mutmut_1": 0.907315
+    },
+    "estimated_durations_by_key": {
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_1": 0.0016066460000274674,
+        "stack.x\u01c1Stack\u01c1isEmpty__mutmut_2": 0.0016066460000274674,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_1": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_2": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_3": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_4": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_5": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1peek__mutmut_6": 0.002279466000231878,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_1": 0.005276852000065446,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_2": 0.005276852000065446,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_3": 0.005276852000065446,
+        "stack.x\u01c1Stack\u01c1pop__mutmut_4": 0.005276852000065446,
+        "stack.x\u01c1Stack\u01c1push__mutmut_1": 0.010922917000584675,
+        "stack.x\u01c1Stack\u01c1__init____mutmut_1": 0.041292587000498315
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "exit_code_by_key": {
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_1": 1,
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_2": 1,
+        "a_queue.x\u01c1Queue\u01c1enqueue__mutmut_1": 1,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_1": 0,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_2": 0,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_3": 0,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_4": 0,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_5": 1,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_6": 1,
+        "a_queue.x\u01c1Queue\u01c1peek__mutmut_1": 1,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_1": 1,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_2": 1
+    },
+    "hash_by_function_name": {},
+    "durations_by_key": {
+        "a_queue.x\u01c1Queue\u01c1peek__mutmut_1": 0.634016,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_1": 0.633235,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_2": 0.658044,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_3": 0.630128,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_4": 0.645517,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_5": 0.706459,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_6": 0.792477,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_1": 0.800441,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_2": 0.842851,
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_1": 0.675049,
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_2": 0.654347,
+        "a_queue.x\u01c1Queue\u01c1enqueue__mutmut_1": 0.725625
+    },
+    "estimated_durations_by_key": {
+        "a_queue.x\u01c1Queue\u01c1peek__mutmut_1": 0.0036277050002127,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_1": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_2": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_3": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_4": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_5": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1dequeue__mutmut_6": 0.004849540000122943,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_1": 0.007713522000244666,
+        "a_queue.x\u01c1Queue\u01c1isEmpty__mutmut_2": 0.007713522000244666,
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_1": 0.011612433000550482,
+        "a_queue.x\u01c1Queue\u01c1__init____mutmut_2": 0.011612433000550482,
+        "a_queue.x\u01c1Queue\u01c1enqueue__mutmut_1": 0.011612433000550482
+    }
+}

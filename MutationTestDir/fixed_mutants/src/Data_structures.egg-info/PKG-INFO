@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: Data-structures
+Version: 0.1
+Summary: implementation for common data structures
+Author: ['Claire Gatenby']
+Author-email: ['clairejgatenby@gmail.com']
+License-File: LICENSE
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-cov; extra == "test"
+Requires-Dist: tox; extra == "test"
+Requires-Dist: coveralls; extra == "test"
+Dynamic: author
+Dynamic: author-email
+Dynamic: license-file
+Dynamic: provides-extra
+Dynamic: summary
