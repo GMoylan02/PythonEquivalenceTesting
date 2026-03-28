@@ -1,15 +1,3 @@
-"""
-Analyses and plots mutation testing metrics from a coverage_report.json file.
-
-Outputs:
-  - Printed summary statistics to stdout
-  - coverage_plots.png  (original 3 plots)
-  - extra_plots.png     (cumulative kill curve, kill rate by method, iterations vs method calls)
-
-Usage:
-    python plot_coverage_report.py path/to/coverage_report.json [output_dir]
-"""
-
 import json
 import re
 import statistics
@@ -61,63 +49,6 @@ def _q3(data):
     return s[i] if n % 4 else (s[i - 1] + s[i]) / 2
 
 
-def print_summary(report):
-    total = len(report)
-    killed = [r for r in report if r["killed"]]
-    survived = [r for r in report if not r["killed"]]
-
-    n_killed = len(killed)
-    score = (n_killed / total * 100) if total else 0
-
-    print("=" * 70)
-    print("MUTATION TESTING SUMMARY")
-    print("=" * 70)
-    print(f"  Total mutants:    {total}")
-    print(f"  Killed:           {n_killed}")
-    print(f"  Survived:         {len(survived)}")
-    print(f"  Mutation score:   {score:.1f}%")
-    print()
-
-    high_cov_survived = [r for r in survived if r["total"] > 0 and r["pct"] >= 80]
-    low_cov_survived = [r for r in survived if r["total"] > 0 and r["pct"] < 80]
-    no_cov_survived = [r for r in survived if r["total"] == 0]
-    print("  Survived breakdown:")
-    print(f"    Likely equivalent (survived, coverage >= 80%):  {len(high_cov_survived)}")
-    print(f"    Under-exercised  (survived, coverage < 80%):   {len(low_cov_survived)}")
-    print(f"    Unreachable      (survived, total lines = 0):  {len(no_cov_survived)}")
-    if survived:
-        adjusted_total = total - len(high_cov_survived)
-        adjusted_score = (n_killed / adjusted_total * 100) if adjusted_total else 0
-        print(f"    Adjusted score (excluding likely equivalents): {adjusted_score:.1f}%")
-    print()
-
-    if killed:
-        iters = [r["iterations"] for r in killed]
-        calls = [r["total_method_calls"] for r in killed]
-        print("  Cost to kill (killed mutants only):")
-        print(f"    Iterations   — median: {statistics.median(iters):.0f},  "
-              f"mean: {statistics.mean(iters):.1f},  "
-              f"IQR: [{_q1(iters):.0f}, {_q3(iters):.0f}]")
-        print(f"    Method calls — median: {statistics.median(calls):.0f},  "
-              f"mean: {statistics.mean(calls):.1f},  "
-              f"IQR: [{_q1(calls):.0f}, {_q3(calls):.0f}]")
-    print()
-
-    by_class = defaultdict(lambda: {"killed": 0, "total": 0})
-    for r in report:
-        cls, _ = _parse_class_and_method(r["mutant"])
-        by_class[cls]["total"] += 1
-        if r["killed"]:
-            by_class[cls]["killed"] += 1
-
-    print("  Per-class mutation score:")
-    for cls in sorted(by_class):
-        info = by_class[cls]
-        cls_score = (info["killed"] / info["total"] * 100) if info["total"] else 0
-        print(f"    {cls:30s}  {info['killed']}/{info['total']}  ({cls_score:.0f}%)")
-    print("=" * 70)
-
-
 def plot_coverage_vs_killed(report, ax):
     """Box plot comparing coverage distributions of killed vs survived mutants."""
     killed_pcts = [r["pct"] for r in report if r["killed"] and r["total"] > 0]
@@ -162,7 +93,7 @@ def plot_coverage_vs_iterations(report, ax):
 
 
 def plot_coverage_vs_method_calls(report, ax):
-    """Scatter plot of coverage % vs total method calls to kill (killed mutants only)."""
+    """Scatter plot of coverage % vs total method calls to kill (killed mutants only)"""
     killed = [r for r in report if r["killed"] and r["total"] > 0]
     pcts = [r["pct"] for r in killed]
     calls = [r["total_method_calls"] for r in killed]
@@ -257,8 +188,6 @@ def plot_iterations_vs_method_calls(report, ax):
 
 def main(report_path, output_dir="."):
     report = load_report(report_path)
-
-    print_summary(report)
 
     fig1, axes1 = plt.subplots(1, 3, figsize=(18, 5))
     fig1.suptitle("Mutation Testing: Coverage Metrics", fontsize=14, fontweight="bold")

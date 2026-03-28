@@ -21,11 +21,6 @@ def load_meta_files(meta_dir):
     return results
 
 
-def is_node_mutant(class_name):
-
-    return class_name.lower() == "node"
-
-
 def parse_meta_key(key):
     """Returns (class_name, suffix) from a meta key."""
     m = re.search(r"x\u01c1(\w+)\u01c1(\w+__mutmut_\d+)$", key)
@@ -55,9 +50,6 @@ def load_comparison(meta_dir, killed_file):
     for source_file, exit_codes in meta_by_file.items():
         for key, code in exit_codes.items():
             class_name, suffix = parse_meta_key(key)
-            # skip node mutants and count them manually
-            #if is_node_mutant(class_name):
-            #    continue
             name = f"{class_name}.{suffix}"
             suite_results[name] = (code != 0)
             mutant_classes[name] = class_name
@@ -70,8 +62,6 @@ def load_comparison(meta_dir, killed_file):
             if not line:
                 continue
             class_name, suffix = parse_killed_line(line)
-            #if is_node_mutant(class_name):
-            #    continue
             equiv_kills.add(f"{class_name}.{suffix}")
 
     records = []
@@ -161,67 +151,8 @@ def plot_per_class_breakdown(records, ax):
         ax.text(t + 0.5, i, str(t), va="center", fontsize=8, color="gray")
 
 
-def print_analysis(records):
-    total = len(records)
-    both = sum(1 for r in records if r["suite_killed"] and r["equiv_killed"])
-    suite_only = sum(1 for r in records if r["suite_killed"] and not r["equiv_killed"])
-    equiv_only = sum(1 for r in records if r["equiv_killed"] and not r["suite_killed"])
-    neither = sum(1 for r in records if not r["suite_killed"] and not r["equiv_killed"])
-
-    suite_total = both + suite_only
-    equiv_total = both + equiv_only
-    combined = both + suite_only + equiv_only
-
-    print("=" * 70)
-    #print("ANALYTICAL SUMMARY (excluding Node mutants)")
-    print("=" * 70)
-
-    print(f"\n  Mutation scores:")
-    print(f"    Test suite:        {suite_total}/{total} ({suite_total/total*100:.1f}%)")
-    print(f"    Equiv tester:      {equiv_total}/{total} ({equiv_total/total*100:.1f}%)")
-    print(f"    Combined:          {combined}/{total} ({combined/total*100:.1f}%)")
-
-    # what fraction of each approach's kills are unique to it
-    if suite_total:
-        print(f"    Suite kills that are unique:    {suite_only}/{suite_total} ({suite_only/suite_total*100:.1f}%)")
-    if equiv_total:
-        print(f"    Equiv kills that are unique:    {equiv_only}/{equiv_total} ({equiv_only/equiv_total*100:.1f}%)")
-
-    print(f"\n  Equivalent mutant estimate:")
-    print(f"    Survived both approaches: {neither}/{total} ({neither/total*100:.1f}%)")
-
-    # per-class table
-    by_class = defaultdict(lambda: {"both": 0, "suite_only": 0, "equiv_only": 0, "neither": 0, "total": 0})
-    for r in records:
-        cls = r["class"]
-        by_class[cls]["total"] += 1
-        if r["suite_killed"] and r["equiv_killed"]:
-            by_class[cls]["both"] += 1
-        elif r["suite_killed"]:
-            by_class[cls]["suite_only"] += 1
-        elif r["equiv_killed"]:
-            by_class[cls]["equiv_only"] += 1
-        else:
-            by_class[cls]["neither"] += 1
-
-    print(f"\n  Per-class breakdown:")
-    print(f"    {'Class':20s}  {'Total':>5s}  {'Both':>5s}  {'Suite':>5s}  {'Equiv':>5s}  {'Neither':>7s}  {'Suite%':>6s}  {'Equiv%':>6s}  {'Comb%':>6s}")
-    print(f"    {'─'*80}")
-    for cls in sorted(by_class, key=lambda c: by_class[c]["total"], reverse=True):
-        v = by_class[cls]
-        t = v["total"]
-        s_percent = (v["both"] + v["suite_only"]) / t * 100 if t else 0
-        e_percent = (v["both"] + v["equiv_only"]) / t * 100 if t else 0
-        c_percent = (v["both"] + v["suite_only"] + v["equiv_only"]) / t * 100 if t else 0
-        print(f"    {cls:20s}  {t:5d}  {v['both']:5d}  {v['suite_only']:5d}  {v['equiv_only']:5d}  {v['neither']:7d}  {s_percent:5.1f}%  {e_percent:5.1f}%  {c_percent:5.1f}%")
-
-    print("=" * 70)
-
-
 def main(meta_dir, killed_file, output_dir="."):
     records = load_comparison(meta_dir, killed_file)
-
-    print_analysis(records)
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5),
                              gridspec_kw={"width_ratios": [1, 1.2]})
@@ -237,7 +168,7 @@ def main(meta_dir, killed_file, output_dir="."):
 
 
 if __name__ == "__main__":
-    meta_dir = sys.argv[1] if len(sys.argv) > 1 else "../fixed_mutants/src"
+    meta_dir = sys.argv[1] if len(sys.argv) > 1 else "fixed_mutants/src"
     killed_file = sys.argv[2] if len(sys.argv) > 2 else "killed_mutants.txt"
     out_dir = sys.argv[3] if len(sys.argv) > 3 else "."
     main(meta_dir, killed_file, out_dir)
