@@ -1,5 +1,6 @@
 # Python Equivalence Tester
-
+## What this is
+This project aims to produce a Python tool capable of performing automated equivalence verification that uses differential fuzz testing to detect observable differences between two Python function or class implementations. The tool was designed to operate without requiring manually written specifications, preconditions, or type annotations, and to support higher-order functions through a plan-based architecture for generating callable arguments. It was evaluated on two benchmarks: a suite of 78 higher-oirder function inequivalences adapted from the HOBBIT test suite, and a mutation testing benchmark of 524 mutants generated from common data structures. The tool detected 63 of the 78 HOBBIT inequivalences and killed 450 of the 524 mutants, outperforming a hand-written test suite with full code coverage which killed 437.
 ## Instructions to run
 These instructions assume you have already created a ```venv``` and imported all the 
 necessary dependencies from ```requirements.txt```.
