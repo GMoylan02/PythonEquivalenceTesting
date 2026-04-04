@@ -17,6 +17,10 @@ The logic surrounding custom strategies
 
 @dataclass
 class FuzzConfig:
+    """
+    FuzzConfig is not mentioned in the thesis writeup due to being unused in the final implementation.
+    Its intended purpose is to allow the user to toggle callable stategies off
+    """
     higher_order: bool = True
 
 _config = FuzzConfig()
@@ -26,25 +30,27 @@ def configure(higher_order=True):
     _config = FuzzConfig(higher_order=higher_order)
 
 def get_universal_strategy():
-    primitives = [
+    primitives = st.one_of(
         st.integers(),
         st.floats(allow_nan=False, allow_infinity=False),
         st.text(),
         st.booleans(),
         st.none(),
-        dummy_object_strategy(),
-    ]
-    if _config.higher_order:
-        primitives.extend(_all_callable_strategies())
+        *_all_callable_strategies(),
+        dummy_object_strategy()
+    )
 
+    # recursive strategy that can build any combination of primitives and lists/dicts of primitives
+    # can be thought of as the following recursive definition
+    # universal_strat = int|str|float|bool|None|Callable|dummy|list[universal_strat]|dict[str,universal_strat]|tuple[universal_strat]
     return st.recursive(
-        st.one_of(*primitives),
+        primitives,
         lambda children: st.one_of(
             st.lists(children),
             st.tuples(children),
             st.dictionaries(st.text(), children),
         ),
-        max_leaves=10,
+        max_leaves=10
     )
 
 def _all_callable_strategies():
@@ -57,6 +63,10 @@ def _all_callable_strategies():
     ]
 
 def global_mutator_strategy():
+    """
+    The global mutator strategy mutates any variables it sees in global scope.
+    It remains unused in the final implementation so it is not mentioned in the thesis writeup.
+    """
     return st.builds(GlobalMutatorPlan,
                   increments=st.lists(st.integers(min_value=-10, max_value=105)),
                   string_concats=st.lists(st.text()))
@@ -91,7 +101,7 @@ def dummy_object_strategy(draw, max_depth=3):
 def build_args_strategy(func):
     """
     Inspects a function and returns a strategy that generates
-    a tuple of arguments matching the function's signature.
+    a tuple of arguments matching the function's signature
     """
     sig = inspect.signature(func)
     positional_strategies = []

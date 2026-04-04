@@ -1,4 +1,5 @@
 import inspect
+import sys
 from typing import Optional, Callable
 
 from hypothesis import given, strategies as st, settings, event
@@ -6,6 +7,7 @@ from hypothesis.strategies import data as st_data
 from src.EquivalenceChecker import EquivalenceChecker, run
 from src.FuzzingStrategy import build_args_strategy, configure
 from src.Profiler import value_equivalence, record_failure, CoverageRecorder
+from src.StateUtils import snapshot_object_state
 
 
 def generate_operation_strategy(obj1, obj2):
@@ -53,6 +55,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
         result_a = run(class1, init_args, init_kwargs)
         result_b = run(class2, init_args, init_kwargs,
                        coverage_target_func=coverage_target_func)
+
         if coverage_recorder and result_b.covered_lines:
             coverage_recorder.increment_method_calls()
             coverage_recorder.merge(result_b.covered_lines)
@@ -117,7 +120,7 @@ def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_f
 def get_object_methods(obj):
     methods = {}
     for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
-        if name.startswith("_") :   # excludes __dunder__ and _private
+        if name.startswith("__") :   # excludes __dunder__
             continue
         sig = inspect.signature(method)
         params = [

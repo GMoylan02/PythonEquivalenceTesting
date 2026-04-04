@@ -47,7 +47,7 @@ class LLNode(object):
     }
     
     def __init__(self, *args, **kwargs):
-        result = _mutmut_trampoline(object.__getattribute__(self, "xǁNodeǁ__init____mutmut_orig"), object.__getattribute__(self, "xǁNodeǁ__init____mutmut_mutants"), args, kwargs, self)
+        result = _mutmut_trampoline(object.__getattribute__(self, "xǁLLNodeǁ__init____mutmut_orig"), object.__getattribute__(self, "xǁLLNodeǁ__init____mutmut_mutants"), args, kwargs, self)
         return result 
     
     __init__.__signature__ = _mutmut_signature(xǁLLNodeǁ__init____mutmut_orig)

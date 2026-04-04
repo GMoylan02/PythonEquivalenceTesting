@@ -10,19 +10,17 @@ from typing import Dict, Callable
 
 from src.TestingUtils import clear_log, run_hypothesis_fuzz
 
-TIMEOUT_SECONDS = 400
+TIMEOUT_SECONDS = 300
 TEMP_FILENAME = "../src/temp_fuzz_node.py"
 UTILS_IMPORT_PATH = "src.UniversalStrategy"
 TARGET_PACKAGE = "fixed_mutants.src"
 PROJECT_ROOT = os.path.abspath(os.getcwd())
 
-# Directory where per-mutant coverage JSON files are written by the subprocesses.
+# Directory where per-mutant coverage JSON files are written by the subprocesses
 COVERAGE_DIR = os.path.join(PROJECT_ROOT, ".mutant_coverage")
 
 times_taken = []
 mutants_killed = []
-# todo: bst._step mutant 4 got n/a coverage
-# todo: delete methods usually survive
 
 def _coverage_file_path(idx):
     os.makedirs(COVERAGE_DIR, exist_ok=True)
@@ -240,7 +238,7 @@ def _print_coverage_summary(report: list[dict]):
         if not r["killed"] and r["total"] > 0 and r["pct"] >= 50
     ]
 
-    print("\n── Coverage summary ──────────────────────────────────────────────────")
+    print("\n Coverage summary: ")
     print(f"  Setup failed / constructor mutants (total=0):         {len(survived_setup_failed)}")
     print(f"  Method never reached by fuzzer (total>0, covered=0):  {len(survived_never_reached)}")
     print(f"  Survived with <50% coverage  (under-exercised):       {len(survived_low_cov)}")
@@ -254,8 +252,7 @@ def _print_coverage_summary(report: list[dict]):
     if survived_low_cov:
         print("\n  Under-exercised survivors — consider improving input generation:")
         for r in survived_low_cov:
-            print(f"    {r['mutant']}  {r['covered']}/{r['total']} lines ({r['pct']:.1f}%)")
-    print("──────────────────────────────────────────────────────────────────────\n")
+            print(f"    {r['mutant']}  {r['covered']}/{r['total']} lines ({r['pct']:.1f}%)\n")
 
 def run_fuzz_file(log_file, label):
     print(f"  {label}...", end=" ", flush=True)

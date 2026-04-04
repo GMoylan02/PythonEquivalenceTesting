@@ -1,10 +1,11 @@
 {
   "killed_by_suite": 437,
-  "killed_by_tool": 422,
-  "both": 363,
-  "suite_only": 74,
+  "killed_by_tool": 450,
+  "both": 387,
+  "suite_only": 50,
   "total_tests": 217,
-  "tests_covering_both": 217,
-  "tests_not_covering_both": 0,
-  "uncovered_tests": []
+  "full_set_matters": 7,
+  "both_set_matters": 7,
+  "full_but_not_both": 0,
+  "missed_tests": []
 }

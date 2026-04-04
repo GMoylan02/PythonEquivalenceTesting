@@ -2,9 +2,10 @@
 Check whether the 'both' set (mutants killed by both the equivalence tester
 and the test suite) is sufficient to guide test writing.
 
-For each test in the suite, check whether it kills at least one mutant in
-the 'both' set. If every test kills at least one 'both' mutant, a developer
-working only with the 'both' set would notice the absence of any test.
+Primary experiment: For each test that uniquely kills a mutant in the full
+set, check whether it also uniquely kills a mutant in the 'both' set. If
+yes, the 'both' set would detect the test's absence.
+
 """
 
 import json
@@ -36,67 +37,89 @@ def main():
     mutant_tests_path = sys.argv[1] if len(sys.argv) > 1 else "mutant_tests.json"
     killed_by_tool_path = sys.argv[2] if len(sys.argv) > 2 else "killed_mutants.txt"
 
-    mutant_to_tests = load_mutant_tests(mutant_tests_path)
+    mutant_tests = load_mutant_tests(mutant_tests_path)
     killed_by_tool = load_killed_by_tool(killed_by_tool_path)
 
-    killed_by_suite = set(mutant_to_tests.keys())
+    killed_by_suite = set(mutant_tests.keys())
     both = killed_by_suite & killed_by_tool
     suite_only = killed_by_suite - killed_by_tool
 
-    test_sets = {m: set(tests) for m, tests in mutant_to_tests.items()}
+    # mutant to tests
+    mutant_to_tests = {m: set(tests) for m, tests in mutant_tests.items()}
 
-    print(f"Killed by suite: {len(killed_by_suite)}")
-    print(f"Killed by tool: {len(killed_by_tool)}")
-    print(f"Killed by both: {len(both)}")
-    print(f"Suite only (A\\B): {len(suite_only)}\n")
-
-    # build reverse mapping: test -> mutants it kills
+    # test to mutants
     test_to_mutants_all = defaultdict(set)
     test_to_mutants_both = defaultdict(set)
 
-    for m, tests in test_sets.items():
+    for m, tests in mutant_to_tests.items():
         for t in tests:
             test_to_mutants_all[t].add(m)
             if m in both:
                 test_to_mutants_both[t].add(m)
 
     all_tests = set(test_to_mutants_all.keys())
-    tests_with_both_kills = set(test_to_mutants_both.keys())
-    tests_without_both_kills = all_tests - tests_with_both_kills
 
-    print(f"Total unique tests: {len(all_tests)}")
-    print(f"Tests that kill a 'both' mutant: {len(tests_with_both_kills)}")
-    print(f"Tests that kill NO 'both' mutant: {len(tests_without_both_kills)}\n")
+    print(f"Killed by suite:   {len(killed_by_suite)}")
+    print(f"Killed by tool:    {len(killed_by_tool)}")
+    print(f"Killed by both:    {len(both)}")
+    print(f"Suite only (A\\B):  {len(suite_only)}")
+    print(f"Total tests:       {len(all_tests)}\n")
 
-    if tests_without_both_kills:
-        print(" Tests not represented in 'both' set:")
-        for t in sorted(tests_without_both_kills):
-            kills = test_to_mutants_all[t]
-            print(f"{t}")
-            print(f"kills {len(kills)} mutant(s), all suite-only:")
-            for m in sorted(kills):
-                print(f"-{m}")
-        print(f"\nResult: {len(tests_without_both_kills)} tests would NOT be flagged")
-        print(" as missing by the 'both' set alone.")
+    # subset sufficiency experiment
+    full_set_matters = []
+    both_set_matters = []
+    full_but_not_both = []
+
+    for test in all_tests:
+        full_unique = [m for m in test_to_mutants_all[test]
+                       if not (mutant_to_tests[m] - {test})]
+        both_unique = [m for m in test_to_mutants_both.get(test, set())
+                       if not (mutant_to_tests[m] - {test})]
+
+        if full_unique:
+            full_set_matters.append((test, full_unique))
+            if both_unique:
+                both_set_matters.append((test, both_unique))
+            else:
+                full_but_not_both.append((test, full_unique))
+
+    print("=" * 80)
+    print("SUBSET SUFFICIENCY")
+    print("  For each test that matters in the full set,")
+    print("  does it also matter in the both-set?")
+    print("=" * 80)
+    print(f"  Tests that uniquely kill a full-set mutant:  {len(full_set_matters)}")
+    print(f"  Of those, also uniquely kill a both-mutant:  {len(both_set_matters)}")
+    print(f"  Flagged by full set but NOT by both-set:     {len(full_but_not_both)}")
+    print()
+
+    if full_but_not_both:
+        print("  Tests the both-set would miss:")
+        for test, kills in full_but_not_both:
+            print(f"    {test}")
+            for m in kills:
+                print(f"      - {m}")
+        print()
     else:
-        print("Result: Every test in the suite kills at least one 'both' mutant")
-        print("Given only the mutants that the equiv. tester killed, a developer would notice the absence of any test in the suite")
+        print("  Every test that matters in the full set also matters in the")
+        print("  both-set. The subset is sufficient to detect any missing test.")
+        print()
 
-    # save results
+
     output = {
         "killed_by_suite": len(killed_by_suite),
         "killed_by_tool": len(killed_by_tool),
         "both": len(both),
         "suite_only": len(suite_only),
         "total_tests": len(all_tests),
-        "tests_covering_both": len(tests_with_both_kills),
-        "tests_not_covering_both": len(tests_without_both_kills),
-        "uncovered_tests": sorted(tests_without_both_kills),
+        "full_set_matters": len(full_set_matters),
+        "both_set_matters": len(both_set_matters),
+        "full_but_not_both": len(full_but_not_both),
+        "missed_tests": [t for t, _ in full_but_not_both],
     }
-    output_path = "both_set_analysis.json"
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open("both_set_analysis.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
-    print(f"\nDetailed results: {output_path}")
+    print(f"Saved: both_set_analysis.json")
 
 
 if __name__ == "__main__":

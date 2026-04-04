@@ -33,7 +33,6 @@ def snapshot_object_state(obj: Any) -> dict:
     """For resetting instance variables in an object between iterations"""
     snapshot = {}
 
-
     if not hasattr(obj, "__dict__"):
         return snapshot
 

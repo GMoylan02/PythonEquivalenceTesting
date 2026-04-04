@@ -475,6 +475,9 @@ class CoverageRecorder:
             "total_method_calls": self.method_calls,
         }
         if self.failing_init_args is not None:
+            # These fields remain unused in the final project, the 'future work' section of the thesis describes
+            # using mutation testing results to automatically generate tests: this would have been used for that
+            # experiment, but I axed it due to time constraints
             payload["failing_init_args"] = self._make_serializable(self.failing_init_args)
             payload["failing_init_kwargs"] = self._make_serializable(self.failing_init_kwargs)
             payload["failing_method_calls"] = self._make_serializable(self.failing_method_calls)
@@ -483,18 +486,11 @@ class CoverageRecorder:
     def _write(self):
         try:
             data = json.dumps(self._build_report())
-            dir_name = os.path.dirname(self.coverage_file)
-            with tempfile.NamedTemporaryFile(
-                    'w', dir=dir_name, suffix='.tmp', delete=False
-            ) as tmp:
-                tmp.write(data)
-                tmp.flush()
-                os.fsync(tmp.fileno())
-                tmp_path = tmp.name
-            # writing to a temp file and then renaming it is to prevent an annoying race condition in
-            # RunMutationTests.py where the process is killed while the write is still taking place, leaving a truncated
-            # json file. os.replace is atomic, so now in the worst case we only lose the contents of the latest write,
-            # but never get malformed data
+            tmp_path = self.coverage_file + ".tmp"
+            with open(tmp_path, 'w', encoding='utf-8') as f:
+                f.write(data)
+                f.flush()
+                os.fsync(f.fileno())
             os.replace(tmp_path, self.coverage_file)
         except Exception as e:
             print(f"[CoverageRecorder] _write failed: {e}", file=sys.stderr)

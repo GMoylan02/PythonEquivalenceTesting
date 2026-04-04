@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 class CallablePlan(ABC):
     @abstractmethod
     def build(self) -> Callable:
-        """Instantiate the plan into a concrete callable."""
+        """Instantiate the plan into a concrete callable"""
         ...
 
 @dataclass

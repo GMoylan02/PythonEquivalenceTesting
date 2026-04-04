@@ -15,7 +15,7 @@ from src.Profiler import Profiler, logs_are_equivalent, is_user_object, value_eq
     exception_messages_are_equivalent
 
 MAX_CALLABLE_DEPTH = 2
-MAX_CALLABLE_CALLS = 20
+MAX_CALLABLE_CALLS = 30
 MAX_TUPLE_CALLS = 30
 # exceptions that almost always indicate a bad input rather than a logic divergence
 # may cause us to throw away real divergences occasionally
