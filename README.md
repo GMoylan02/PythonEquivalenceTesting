@@ -20,7 +20,7 @@ test_classes = make_class_equivalence_test(class_A, class_B)
 ```
 And run:
 ```
-hypothis fuzz {filename}.py
+hypothesis fuzz {filename}.py
 ```
 
 ### Plot Mutation test experiment results
