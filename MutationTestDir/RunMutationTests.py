@@ -73,8 +73,8 @@ recorder = CoverageRecorder(coverage_target_func, r'{coverage_file}')
 
 def _class_test_assignment(idx):
     return f"""
-from src.ClassEquivalence import create_class_equivalence_test
-test_{idx} = create_class_equivalence_test(
+from src.ClassEquivalence import make_class_equivalence_test
+test_{idx} = make_class_equivalence_test(
     OrigClass_{idx}, MutantClass_{idx},
     coverage_target_func=coverage_target_func,
     coverage_recorder=recorder, higher_order=True

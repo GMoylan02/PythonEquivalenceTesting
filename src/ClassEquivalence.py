@@ -32,7 +32,7 @@ def generate_sequence_strategy(obj1, obj2, max_size=20):
     sequence_strategy = st.lists(operation_strategy, min_size=1, max_size=max_size)
     return sequence_strategy
 
-def create_class_equivalence_test(class1, class2, max_size=20, coverage_target_func: Optional[Callable] = None,
+def make_class_equivalence_test(class1, class2, max_size=20, coverage_target_func: Optional[Callable] = None,
     coverage_recorder: CoverageRecorder=None, higher_order=True):
     configure(higher_order=higher_order)
 
