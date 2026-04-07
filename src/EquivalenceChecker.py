@@ -38,7 +38,7 @@ class RunResult:
     value: Any
     log: list
     func_name: str
-    covered_lines: frozenset = frozenset()  # lines hit in the coverage-target function (empty if no target set)
+    covered_lines: frozenset = frozenset()  # lines hit in the coverage-target function
 
     @property
     def ok(self) -> bool:
@@ -51,7 +51,7 @@ class RunResult:
 
 def run(fn, args, kwargs=None, coverage_target_func=None) -> RunResult:
     """
-    Execute fn(*args, **kwargs) under the Profiler tracer.
+    Execute fn(*args, **kwargs) under the Profiler tracer
     """
     profiler = Profiler(coverage_target_func=coverage_target_func)
 
@@ -78,8 +78,8 @@ def run(fn, args, kwargs=None, coverage_target_func=None) -> RunResult:
 
 class EquivalenceChecker:
     """
-    Encapsulates a single differential fuzzing check between two functions.
-    Instantiate once per function pair, call check() for each set of arguments.
+    Encapsulates a single differential fuzzing check between two functions
+    Instantiate once per function pair, call check() for each set of arguments
     """
 
     def __init__(
@@ -102,9 +102,7 @@ class EquivalenceChecker:
         self.args_b: tuple = ()
         self.kwargs_a: dict = {}
         self.kwargs_b: dict = {}
-        # Accumulates covered lines across ALL check() calls on this instance.
-        # The caller (generated test file) is responsible for merging this into
-        # a longer-lived module-level set after each hypothesis example
+        # accumulates covered lines across all check() calls
         self.covered_lines: set[int] = set()
 
     def check(self, raw_args, raw_kwargs) -> None:
@@ -112,8 +110,8 @@ class EquivalenceChecker:
         self.args_b, self.kwargs_b = instantiate_args(raw_args, raw_kwargs, self.func_b)
 
         a = run(self.func_a, self.args_a, self.kwargs_a)
-        # Only instrument func_b (the mutant); func_a is the reference implementation
-        # and we have no interest in its coverage.
+
+        # coverage target is always b for experiments
         b = run(self.func_b, self.args_b, self.kwargs_b, coverage_target_func=self.coverage_target)
 
         self.result_a = a
@@ -203,12 +201,12 @@ class EquivalenceChecker:
             depth=0,
     ):
         """
-        Assert that the outputs from a pair of functions are equivalent when performing differential fuzzing.
+        Assert that the outputs from a pair of functions are equivalent when performing differential fuzzing
 
-        Case 1: The outputs are a pair of tuples of functions - In this case we perform interleaved calls of the functions
+        Case 1: The outputs are a pair of tuples of functions: case perform interleaved calls of the functions
             to catch stateful differences in function execution
-        Case 2: The outputs are simple values or containers of values - Pass them through value_equivalence
-        Case 3: The outputs are both functions - Perform differential fuzzing on both
+        Case 2: The outputs are simple values or containers of values: pass them through value_equivalence
+        Case 3: The outputs are both functions: perform differential fuzzing on both
         """
         if _is_callable_tuple(out_a) and _is_callable_tuple(out_b):
             if depth >= MAX_CALLABLE_DEPTH:
@@ -332,8 +330,8 @@ def run_and_test_equivalence(
     coverage_target_func: Optional[Callable] = None,
 ) -> set[int]:
     """
-    Run one differential check and return any newly-covered lines from the mutant.
-    The returned set should be merged into the caller's long-lived coverage accumulator.
+    Run one differential check and return any newly-covered lines from the mutant
+    The returned set should be merged into the caller's long-lived coverage accumulator
     """
     checker = EquivalenceChecker(func_a, func_b, data, coverage_target=coverage_target_func)
     checker.check(raw_args, raw_kwargs)
@@ -386,7 +384,7 @@ def format_call(name, args, kwargs, result):
 
 
 def has_type_annotations(func):
-    """Returns True if any parameter of func has a type annotation."""
+    """Returns True if any parameter of func has a type annotation"""
     try:
         sig = inspect.signature(func)
         return any(
@@ -411,7 +409,7 @@ def _is_callable_tuple(val):
 
 
 def get_instance_state(val):
-    """Returns the instance __dict__ if val is a bound method or user object, else None."""
+    """Returns the instance __dict__ if val is a bound method or user object, else None"""
     if inspect.ismethod(val):
         obj = val.__self__
     elif is_user_object(val):

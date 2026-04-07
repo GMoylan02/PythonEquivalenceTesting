@@ -24,8 +24,7 @@ def run_hypothesis_fuzz(
     post_kill_grace: float = 0.3,
 ) -> FuzzResult:
     """
-    Run `hypothesis fuzz` on a file, polling the shared log for failures.
-    Returns a FuzzResult with killed status and time-to-kill
+    Run `hypothesis fuzz` on a file, polling the shared log for failures
     """
     if project_root is None:
         project_root = os.path.abspath(os.getcwd())
