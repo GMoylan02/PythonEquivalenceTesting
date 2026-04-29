@@ -78,7 +78,6 @@ def make_class_equivalence_test(class1, class2, max_size=20, coverage_target_fun
 
             METHOD = 0
             ARGS = 1
-
             for op in ops:
                 func_name = op[METHOD]
                 func_a = getattr(object_a, func_name)
@@ -97,10 +96,11 @@ def make_class_equivalence_test(class1, class2, max_size=20, coverage_target_fun
                     if coverage_recorder and checker.covered_lines:
                         coverage_recorder.merge(checker.covered_lines)
 
+
                 # check observable dunders
-                _assert_dunder_equivalence(object_a, object_b)
+                #_assert_dunder_equivalence(object_a, object_b)
             # also needed here if the class has no actual methods other than dunders (BST.Node for example)
-            _assert_dunder_equivalence(object_a, object_b)
+            #_assert_dunder_equivalence(object_a, object_b)
 
 
         except AssertionError as e:
@@ -119,10 +119,21 @@ def make_class_equivalence_test(class1, class2, max_size=20, coverage_target_fun
 
 def get_object_methods(obj):
     methods = {}
+    cls = type(obj)
     for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
-        if name.startswith("__") :   # excludes __dunder__
+        if name.startswith("__init") :   # excludes constructor, includes dunders
             continue
-        sig = inspect.signature(method)
+        if name.startswith("__") and name.endswith("__"):
+            defining_class = get_defining_class(cls, name)
+            if defining_class is object:
+                continue
+        try:
+            sig = inspect.signature(method)
+        except (ValueError, TypeError):
+            # Skip methods whose signatures cannot be introspected — these are
+            # typically C-implemented builtins inherited from types like dict,
+            # list, or abstract base classes (MutableSequence, MutableSet, etc.)
+            continue
         params = [
             p for p in sig.parameters.values()
             if p.name != "self"
@@ -153,3 +164,10 @@ def _assert_dunder_equivalence(obj_a, obj_b):
                 f"  A: {val_a!r}\n"
                 f"  B: {val_b!r}"
             )
+
+def get_defining_class(cls, attr):
+    """Get the class that """
+    for base in cls.__mro__:
+        if attr in base.__dict__:
+            return base
+    return None

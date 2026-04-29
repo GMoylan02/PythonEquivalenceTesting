@@ -27,6 +27,7 @@ INPUT_TYPE_ERRORS = {
     "cannot be interpreted as",
     "object is not subscriptable",
     "object is not iterable",
+    "has no len()"
 }
 
 # cache function signatures since inspecting is slow

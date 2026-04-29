@@ -49,6 +49,7 @@ def get_universal_strategy():
             st.lists(children),
             st.tuples(children),
             st.dictionaries(st.text(), children),
+            primitives
         ),
         max_leaves=10
     )

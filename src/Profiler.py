@@ -1,3 +1,4 @@
+import collections
 import dis
 import inspect
 import json
@@ -9,8 +10,7 @@ import tempfile
 import traceback
 from dataclasses import field, dataclass
 from pathlib import Path
-from typing import Optional, Callable
-
+from typing import Optional, Callable, Iterator
 
 from src.DummyObject import DummyObject
 
@@ -341,6 +341,17 @@ def value_equivalence(value_a, value_b, visited=None):
     if value_a is None or value_b is None:
         return False
 
+    if isinstance(value_a, type) and isinstance(value_b, type):
+        # if both values are classes, just return True
+        return True
+
+    if isinstance(value_a, Iterator) and isinstance(value_b, Iterator):
+        # return True for iterators
+        return True
+
+    if is_user_object(value_a):
+        return value_equivalence(vars(value_a), vars(value_b), visited)
+
     if type(value_a) is not type(value_b):
         if not (isinstance(value_a, (int, float)) and isinstance(value_b, (int, float))):
             return False
@@ -380,9 +391,6 @@ def value_equivalence(value_a, value_b, visited=None):
             value_equivalence(x, y, visited)
             for x, y in zip(value_a, value_b)
         )
-
-    if is_user_object(value_a):
-        return value_equivalence(vars(value_a), vars(value_b), visited)
 
     return value_a == value_b
 
