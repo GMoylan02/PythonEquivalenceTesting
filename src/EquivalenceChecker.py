@@ -410,14 +410,27 @@ def _is_callable_tuple(val):
 
 
 def get_instance_state(val):
-    """Returns the instance __dict__ if val is a bound method or user object, else None"""
     if inspect.ismethod(val):
         obj = val.__self__
+        if isinstance(obj, type):
+            # if val is a @classmethod, val.__self__ is the class and not the instance
+            return None
     elif is_user_object(val):
         obj = val
     else:
         return None
 
-    if hasattr(obj, '__slots__'):
-        return {slot: getattr(obj, slot) for slot in obj.__slots__ if hasattr(obj, slot)}
-    return vars(obj).copy()
+    if hasattr(obj, '__dict__'):
+        return vars(obj).copy()
+
+    result = {}
+    for cls in type(obj).__mro__:
+        for slot in getattr(cls, '__slots__', ()):
+            if slot in ('__dict__', '__weakref__'):
+                continue
+            if slot not in result:
+                try:
+                    result[slot] = getattr(obj, slot)
+                except AttributeError:
+                    pass
+    return result

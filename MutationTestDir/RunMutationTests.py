@@ -65,9 +65,9 @@ def _read_coverage_result(idx):
 
 def _coverage_boilerplate(mutant_func_accessor, coverage_file):
     return f"""
-#from src.Profiler import CoverageRecorder
-#coverage_target_func = {mutant_func_accessor}
-#recorder = CoverageRecorder(coverage_target_func, r'{coverage_file}')
+from src.Profiler import CoverageRecorder
+coverage_target_func = {mutant_func_accessor}
+recorder = CoverageRecorder(coverage_target_func, r'{coverage_file}')
 """
 
 
@@ -76,9 +76,8 @@ def _class_test_assignment(idx):
 from src.ClassEquivalence import make_class_equivalence_test
 test_{idx} = make_class_equivalence_test(
     OrigClass_{idx}, MutantClass_{idx},
-    # commented out for now
-    #coverage_target_func=coverage_target_func,
-    #coverage_recorder=recorder, higher_order=True
+    coverage_target_func=coverage_target_func,
+    coverage_recorder=recorder, higher_order=True
 )
 """
 
@@ -97,6 +96,8 @@ test_{idx} = make_function_equivalence_test(
 def run_fuzzing_session():
     os.environ["MUTANT_UNDER_TEST"] = ""
     clear_log()
+    shutil.rmtree(".hypothesis", ignore_errors=True)
+    shutil.rmtree(".mutant_coverage", ignore_errors=True)
 
     sys.path.insert(0, PROJECT_ROOT)
 
@@ -218,8 +219,9 @@ def _print_coverage_line(mutant_name: str, killed: bool, cov: dict):
         cov_str = "coverage: n/a"
     else:
         cov_str = f"coverage: {cov['covered']}/{cov['total']} lines ({cov['pct']:.1f}%)"
+    # temporarily comment out iterations while iteration counting is disabled
     #print(f"    [{status}] {mutant_name}  —  {cov_str}  —  {method_calls} method calls in {iters} iterations")
-    print(f"    [{status}] {mutant_name}  —  {cov_str}  —  {method_calls} method calls in {ttk} seconds")
+    print(f"    [{status}] {mutant_name}  —  {cov_str}  —  {method_calls} method calls in {ttk} seconds, {iters} iterations")
 
 
 def _print_coverage_summary(report: list[dict]):
@@ -254,11 +256,6 @@ def _print_coverage_summary(report: list[dict]):
             print(f"    {r['mutant']}  {r['covered']}/{r['total']} lines ({r['pct']:.1f}%)\n")
 
 def run_fuzz_file(log_file, label):
-    # delete hypothesis database for each mutant
-    # this probably is not necessary and was only included for testing
-    # TODO remove
-    shutil.rmtree(".hypothesis", ignore_errors=True)
-    shutil.rmtree(".mutant_coverage", ignore_errors=True)
     print(f"  {label}...", end=" ", flush=True)
 
     result = run_hypothesis_fuzz(

@@ -317,18 +317,16 @@ def exceptions_are_equivalent(log_a, log_b, strict_exceptions=True):
 
 
 def is_user_object(var):
-    # checks if a variable is a user-defined object
-    builtin_types = (int, float, complex, str, bool, bytes,
-                     list, tuple, set, dict, frozenset, type(None))
+    cls = var.__class__
+    return cls.__module__ != "builtins" and (
+        hasattr(var, "__dict__") or hasattr(cls, "__slots__")
+    )
 
-    return not isinstance(var, builtin_types) and hasattr(var, "__dict__")
-
-
-function_re = r"<function.{1,100}at 0x.{1,100}>"
+function_re = r"<function.{1,1000}at 0x.{1,1000}>"
+bound_method_re = r"<bound method.{1,1000} of.{1,1000}>"
 
 def is_function(val):
-    return re.match(function_re, str(val)) is not None
-
+    return re.match(function_re, str(val)) is not None or re.match(bound_method_re, str(val)) is not None
 
 def value_equivalence(value_a, value_b, visited=None):
     """
@@ -347,10 +345,11 @@ def value_equivalence(value_a, value_b, visited=None):
 
     if isinstance(value_a, Iterator) and isinstance(value_b, Iterator):
         # return True for iterators
+        # todo this needs a proper check
         return True
 
     if is_user_object(value_a):
-        return value_equivalence(vars(value_a), vars(value_b), visited)
+        return value_equivalence(get_attrs(value_a), get_attrs(value_b), visited)
 
     if type(value_a) is not type(value_b):
         if not (isinstance(value_a, (int, float)) and isinstance(value_b, (int, float))):
@@ -379,10 +378,10 @@ def value_equivalence(value_a, value_b, visited=None):
     if isinstance(value_a, dict):
         if value_a.keys() != value_b.keys():
             return False
-        return all(
-            value_equivalence(value_a[k], value_b[k], visited)
-            for k in value_a
-        )
+        for k in value_a.keys():
+            if not value_equivalence(value_a[k], value_b[k], visited):
+                return False
+            return True
 
     if isinstance(value_a, (list, tuple)):
         if len(value_a) != len(value_b):
@@ -393,6 +392,17 @@ def value_equivalence(value_a, value_b, visited=None):
         )
 
     return value_a == value_b
+
+def get_attrs(obj):
+    # return the attr dict for an object
+    if hasattr(obj, "__dict__"):
+        return vars(obj)
+    slots = (
+        slot
+        for cls in type(obj).__mro__
+        for slot in getattr(cls, "__slots__", ())
+    )
+    return {slot: getattr(obj, slot) for slot in slots}
 
 FAIL_MARKER = Path("hypofuzz_failures.log")
 def record_failure(module_name, exc, unique_id):
