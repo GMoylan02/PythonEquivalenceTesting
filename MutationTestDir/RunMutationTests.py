@@ -157,7 +157,8 @@ def run_fuzzing_session():
                     "total": cov["total"],
                     "pct": round(cov["pct"], 1),
                 })
-                _print_coverage_line(mutant_entry['attr_name'], killed, cov)
+                _print_coverage_line(mutant_entry['attr_name'], killed, cov,
+                                     round(time_to_kill, 2) if time_to_kill is not None else 0)
                 idx += 1
 
         # function mutants
@@ -210,10 +211,9 @@ def run_fuzzing_session():
     _print_coverage_summary(coverage_report)
 
 
-def _print_coverage_line(mutant_name: str, killed: bool, cov: dict):
+def _print_coverage_line(mutant_name: str, killed: bool, cov: dict, ttk: int):
     status = "KILLED" if killed else "SURVIVED"
     iters = cov.get("iterations", 0)
-    ttk = cov.get("time_to_kill", 0)
     method_calls = cov.get("total_method_calls", 0)
     if cov["total"] == 0:
         cov_str = "coverage: n/a"
