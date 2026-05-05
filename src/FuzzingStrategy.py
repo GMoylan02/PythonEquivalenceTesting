@@ -105,7 +105,8 @@ def build_args_strategy(func):
     a tuple of arguments matching the function's signature
     """
     sig = inspect.signature(func)
-    positional_strategies = []
+    required_strategies = []
+    optional_strategies = []
     has_varargs = False
     has_kwargs = False
     varargs_strategy = None
@@ -135,16 +136,41 @@ def build_args_strategy(func):
             )
             continue
 
+        has_default = param.default is not inspect.Parameter.empty
+
         if param.annotation != inspect.Parameter.empty:
             strat = strategy_from_annotation(param.annotation)
             if param.default is None:
                 strat = st.one_of(st.none(), strat)
-            positional_strategies.append(strat)
-        elif param.default != inspect.Parameter.empty:
-            positional_strategies.append(strategy_from_default(param.default))
+        elif has_default:
+            strat = strategy_from_default(param.default)
         else:
-            positional_strategies.append(get_universal_strategy())
-    args_strategy = st.tuples(*positional_strategies)
+            strat = get_universal_strategy()
+
+        if has_default:
+            optional_strategies.append(strat)
+        else:
+            required_strategies.append(strat)
+
+    @st.composite
+    def positional_args(draw):
+        """
+        Use the fuzzer to decide how many optional arguments are fuzzed.
+        For example, if there is a function:
+        def func(a=1, b=2, c=3, d=4, e=5):
+
+        since all the args are optional, this can be called as func(), or as func(1,2,3), or as func(8,8,8,8,8)
+        So in this case, we fuzz a number from 0 to the number of optional args (5 in this example)
+        And tell the fuzzer how many args to generate based on the number fuzzed
+        """
+        required = draw(st.tuples(*required_strategies)) if required_strategies else ()
+        num_optional = draw(st.integers(min_value=0, max_value=len(optional_strategies)))
+        chosen = optional_strategies[:num_optional]
+        optional = draw(st.tuples(*chosen)) if chosen else ()
+        return required + optional
+
+    args_strategy = positional_args()
+
     if has_varargs:
         args_strategy = st.builds(
             lambda a, v: a + v,

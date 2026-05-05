@@ -333,6 +333,8 @@ def value_equivalence(value_a, value_b, visited=None):
     Recursively check if two return values are equivalent, allowing them to any combination of primitives,
     objects of a user-defined class, or containers of these
     """
+    # TODO: error messages need to be a lot more descriptive, which will likely involve extracting information about
+    # the inequivalence from this function
     if value_a is value_b:
         return True
 
@@ -344,9 +346,18 @@ def value_equivalence(value_a, value_b, visited=None):
         return True
 
     if isinstance(value_a, Iterator) and isinstance(value_b, Iterator):
-        # return True for iterators
-        # todo this needs a proper check
-        return True
+        while True:
+            flag = object()
+            val_a = next(value_a, flag)
+            val_b = next(value_b, flag)
+            if val_a is flag and val_b is flag:
+                return True  # both exhausted together
+            if val_a is flag or val_b is flag:
+                return False  # length mismatch
+            # iterator value mismatch
+            if not value_equivalence(val_a, val_b, visited):
+                return False
+
 
     if is_user_object(value_a):
         return value_equivalence(get_attrs(value_a), get_attrs(value_b), visited)
@@ -381,7 +392,7 @@ def value_equivalence(value_a, value_b, visited=None):
         for k in value_a.keys():
             if not value_equivalence(value_a[k], value_b[k], visited):
                 return False
-            return True
+        return True
 
     if isinstance(value_a, (list, tuple)):
         if len(value_a) != len(value_b):
